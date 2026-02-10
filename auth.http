@@ -1,0 +1,12 @@
+POST http://localhost:3000/auth-v2/login
+content-type: application/json
+
+{
+    "username": "kermintzentze",
+    "password": "uouo"
+}
+
+###
+
+GET http://localhost:3000/auth-v2/me
+authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInVzZXJuYW1lIjoia2VybWludHplbnR6ZSIsImlhdCI6MTc3MDc0MDcxMCwiZXhwIjoxNzcwODI3MTEwfQ.q7Hak0wvBa7_eoUaP0BUd216BeOZm-jW1PYwrweHkSw
