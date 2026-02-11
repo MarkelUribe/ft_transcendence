@@ -1,20 +1,22 @@
-import { Body, Controller, HttpCode, HttpStatus, NotImplementedException, Post, Get, UseGuards, Request } from '@nestjs/common';
-
-import { AuthService } from './auth.service';
-import { AuthGuard } from './guards/auth.guard';
+import { Controller, HttpStatus, NotImplementedException, HttpCode, Post, Get, UseGuards, Request } from "@nestjs/common";
+import { AuthService } from "./auth.service";
+import { PassportLocalGuard } from "./guards/passport-local.guards";
+import { request } from "http";
+import { PassportJwtAuthGuard } from "./guards/passport-jwt.guard";
 
 @Controller('auth')
 export class AuthController {
-	constructor(private authService: AuthService) { }
+	constructor(private authService: AuthService) {}
 
 	@HttpCode(HttpStatus.OK)
 	@Post('login')
-	login(@Body() input: {username: string; password: string}) {
-		return this.authService.authenticate(input);
+	@UseGuards(PassportLocalGuard)
+	login(@Request() request) {
+		return this.authService.signIn(request.user);
 	}
 
-	@UseGuards(AuthGuard) // The get is protected by this guard which needs an access token
 	@Get('me')
+	@UseGuards(PassportJwtAuthGuard)
 	getUserInfo(@Request() request) {
 		return request.user;
 	}
