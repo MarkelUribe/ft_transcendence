@@ -1,70 +1,42 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
-  import { browser } from '$app/environment';
 
   let username = "";
+  let email = "";
   let password = "";
-  let isLoggedIn = false;
+  let confirmPassword = "";
   let error: string | null = null;
 
-  onMount(() => {
-    if (!browser) return;
+  async function handleSignIn() {
+    error = null;
 
-    const token = localStorage.getItem('token');
-    const storedUsername = localStorage.getItem('username');
-
-    if (token && storedUsername) {
-      isLoggedIn = true;
-      username = storedUsername;
+    if (password !== confirmPassword) {
+      error = 'Passwords do not match';
+      return;
     }
-  });
 
-  async function handleLogin() {
     try {
-      const res = await fetch('http://localhost:3000/auth/login', {
+      const res = await fetch('http://localhost:3000/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, email, password })
       });
 
       if (!res.ok) {
         const message = await res.text();
-        console.error('Login failed', res.status, message);
-        error = message || 'Log in failed';
+        console.error('Sign in failed', res.status, message);
+        error = message || 'Sign in failed';
         return;
       }
 
-      const data = await res.json();
-      const token = data.access_token;
-
-      if (!token) {
-        console.error('Login response missing access_token');
-        return;
-      }
-
-      localStorage.setItem('token', token);
-      localStorage.setItem('username', data.username);
-      isLoggedIn = true;
-      username = data.username;
-
-      goto('/chess');
+      // After successful sign up, send user to login page
+      goto('/login');
     } catch (err) {
-      console.error('Login error', err);
-      error = 'Unexpected error during Log in';
+      console.error('Sign in error', err);
+      error = 'Unexpected error during sign in';
     }
-  }
-
-  function handleLogout() {
-    if (!browser) return;
-
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    isLoggedIn = false;
-    username = "";
-    password = "";
   }
 </script>
 
@@ -141,22 +113,19 @@
 </style>
 
 <div class="login-container">
-  <h1>Chess Arena Login</h1>
+  <h1>Chess Arena Sign In</h1>
 
   <div class="login-box">
-    {#if isLoggedIn}
-      <p>Hello, {username}</p>
-      <button on:click={handleLogout}>Logout</button>
-    {:else}
-     {#if error}
+    {#if error}
       <p style="color: #ffb3b3; margin: 0 0 0.5rem 0;">{error}</p>
     {/if}
-      <input type="text" placeholder="Username" bind:value={username} />
-      <input type="password" placeholder="Password" bind:value={password} />
-      <button on:click={handleLogin}>Login</button>
-      <a href="/register"><button>Register Now</button></a>
-    {/if}
 
+    <input type="text" placeholder="Username" bind:value={username} />
+    <input type="email" placeholder="Email" bind:value={email} />
+    <input type="password" placeholder="Password" bind:value={password} />
+    <input type="password" placeholder="Confirm Password" bind:value={confirmPassword} />
+
+    <button on:click={handleSignIn}>Create account</button>
   </div>
 </div>
 

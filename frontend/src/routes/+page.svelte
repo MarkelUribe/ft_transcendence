@@ -1,5 +1,39 @@
 <script lang="ts">
-  // You can add any landing page animation or logic here later
+  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
+  import { goto } from '$app/navigation';
+
+  let username = '';
+  let isLoggedIn = false;
+
+  onMount(() => {
+    if (!browser) return;
+
+    const token = localStorage.getItem('token');
+    const storedUsername = localStorage.getItem('username');
+
+    if (token && storedUsername) {
+      isLoggedIn = true;
+      username = storedUsername;
+    }
+  });
+
+  function handlePlay() {
+    goto('/chess');
+  }
+
+  function handleLogin() {
+    goto('/login');
+  }
+
+  function handleLogout() {
+    if (!browser) return;
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    isLoggedIn = false;
+    username = '';
+  }
 </script>
 
 <style>
@@ -37,7 +71,7 @@
     gap: 2rem;
   }
 
-  a.button {
+  .button {
     padding: 1rem 2rem;
     font-size: 1.2rem;
     border: none;
@@ -50,7 +84,7 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   }
 
-  a.button:hover {
+  .button:hover {
     transform: translateY(-3px) scale(1.05);
     box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   }
@@ -71,10 +105,20 @@
 
 <div class="container">
   <h1>Welcome to Chess Arena</h1>
-  <p>Play chess, review your game logs, and improve your strategy. Choose what you want to do below:</p>
+  <p>
+    {#if isLoggedIn}
+      Hello, {username}! Ready to play?
+    {:else}
+      Play chess, review your game logs, and improve your strategy. Choose what you want to do below:
+    {/if}
+  </p>
   <div class="buttons">
-    <a href="/chess" class="button">Play</a>
-    <a href="/login" class="button">Login / Join up</a>
+    {#if isLoggedIn}
+      <button class="button" on:click={handlePlay}>Play</button>
+      <button class="button" on:click={handleLogout}>Logout</button>
+    {:else}
+      <button class="button" on:click={handleLogin}>Login</button>
+    {/if}
   </div>
 </div>
 

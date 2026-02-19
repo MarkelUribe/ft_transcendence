@@ -3,12 +3,14 @@
   import { getMoves } from '$lib/chess/Moves.js';
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
+  import { goto } from '$app/navigation';
 
   console.log("Is browser?", browser);
 
   let gameId = null;
   let fen = null;
   let board = [];
+  let username = '';
 
 function toAlgebraic(row, col) {
   const file = String.fromCharCode('a'.charCodeAt(0) + col); // a-h
@@ -20,8 +22,25 @@ onMount(async () => {
   try {
     console.log("Sending request...");
 
+    // onMount only runs in the browser, so localStorage is safe here
+    const token = localStorage.getItem('token');
+    const storedUsername = localStorage.getItem('username');
+
+    if (storedUsername) {
+      username = storedUsername;
+    }
+
+    if (!token) {
+      console.error('No auth token found, redirecting to login');
+      goto('/login');
+      return;
+    }
+
     const res = await fetch('http://localhost:3000/game', {
-      method: 'POST'
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     console.log("Response received:", res);
@@ -46,12 +65,21 @@ onMount(async () => {
 
   async function makeMove(from, to) {
     try {
+      const token = browser ? localStorage.getItem('token') : null;
+
+      if (!token) {
+        console.error('No auth token found, redirecting to login');
+        goto('/login');
+        return;
+      }
+
       const res = await fetch(
         `http://localhost:3000/game/${gameId}/move`,
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
             from: toAlgebraic(from.row, from.col),
@@ -183,6 +211,7 @@ onMount(async () => {
 </style>
 
 <div class="page">
+  <h4>Hello, {username}</h4>
   <div class="board">
     {#each board as row, r}
       {#each row as cell, c}
