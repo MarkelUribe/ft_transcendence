@@ -38,7 +38,7 @@ declare module "$app/types" {
 			"/register": Record<string, never>;
 			"/signin": Record<string, never>
 		};
-		Pathname(): "/" | "/chess" | "/chess/" | "/login" | "/login/" | "/register" | "/register/" | "/signin" | "/signin/";
+		Pathname(): "/" | "/chess" | "/login" | "/register" | "/signin";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
 		Asset(): "/pieces/B.png" | "/pieces/K.png" | "/pieces/N.png" | "/pieces/P.png" | "/pieces/Q.png" | "/pieces/R.png" | "/pieces/b.png" | "/pieces/k.png" | "/pieces/n.png" | "/pieces/p.png" | "/pieces/q.png" | "/pieces/r.png" | "/robots.txt" | string & {};
 	}

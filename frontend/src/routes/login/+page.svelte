@@ -31,9 +31,9 @@
       });
 
       if (!res.ok) {
-        const message = await res.text();
+        const message = await res.json();
         console.error('Login failed', res.status, message);
-        error = message || 'Log in failed';
+        error = message.message || 'Log in failed';
         return;
       }
 
@@ -144,6 +144,8 @@
   <h1>Chess Arena Login</h1>
 
   <div class="login-box">
+    <button on:click={() => goto('/')} style="align-self: flex-start; font-size: 0.9rem; padding: 0.4rem 0.8rem; margin-bottom: 0.5rem;">⬅ Back to home</button>
+
     {#if isLoggedIn}
       <p>Hello, {username}</p>
       <button on:click={handleLogout}>Logout</button>

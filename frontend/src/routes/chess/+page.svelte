@@ -151,6 +151,7 @@ onMount(async () => {
   .page {
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
   }
@@ -211,7 +212,10 @@ onMount(async () => {
 </style>
 
 <div class="page">
-  <h4>Hello, {username}</h4>
+  <div style="width: 100%; max-width: 640px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0 1rem; box-sizing: border-box;">
+    <button on:click={() => goto('/')} style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">⬅ Back to home</button>
+    <h4>Hello, {username}</h4>
+  </div>
   <div class="board">
     {#each board as row, r}
       {#each row as cell, c}

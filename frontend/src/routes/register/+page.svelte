@@ -25,9 +25,9 @@
       });
 
       if (!res.ok) {
-        const message = await res.text();
+        const message = await res.json();
         console.error('Sign in failed', res.status, message);
-        error = message || 'Sign in failed';
+        error = message.message || 'Sign in failed';
         return;
       }
 

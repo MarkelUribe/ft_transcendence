@@ -2,6 +2,7 @@ import { Controller, HttpStatus, HttpCode, Post, Get, UseGuards, Request, Body }
 import { AuthService } from "./auth.service";
 import { PassportLocalGuard } from "./guards/passport-local.guards";
 import { PassportJwtAuthGuard } from "./guards/passport-jwt.guard";
+import { RegisterDto } from "./dto/register.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -15,7 +16,7 @@ export class AuthController {
 	}
 
 	@Post('register')
-	register(@Body() body: { username: string; email: string; password: string }) {
+	register(@Body() body: RegisterDto) {
 		return this.authService.register(body);
 	}
 

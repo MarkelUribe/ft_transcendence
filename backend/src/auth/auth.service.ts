@@ -2,12 +2,13 @@ import { Injectable, UnauthorizedException, ConflictException, BadRequestExcepti
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { RegisterDto } from './dto/register.dto';
 
 
 type AuthInput = { username: string; password: string };
 type SignInData = { id: number; username: string };
 type AuthResult = { access_token: string; id: number; username: string };
-type SignUpData = { username: string; email: string; password: string };
+type SignUpData = RegisterDto;
 
 
 @Injectable()
@@ -41,7 +42,7 @@ export class AuthService {
 			id: user.id,
 			username: user.username,
 		};
-	}
+	}	
 
 	async signIn(user: SignInData): Promise<AuthResult> {
 		const tokenPayload = {

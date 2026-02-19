@@ -144,6 +144,8 @@
   <h1>Chess Arena Sign In</h1>
 
   <div class="login-box">
+    <button on:click={() => goto('/')} style="align-self: flex-start; font-size: 0.9rem; padding: 0.4rem 0.8rem; margin-bottom: 0.5rem;">⬅ Back to home</button>
+
     {#if error}
       <p style="color: #ffb3b3; margin: 0 0 0.5rem 0;">{error}</p>
     {/if}
