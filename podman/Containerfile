@@ -3,11 +3,11 @@ FROM docker.io/library/postgres:16-alpine
 
 # 2. (Opcional) Definir variables de entorno predeterminadas
 # Nota: Es mejor pasarlas al ejecutar el contenedor por seguridad
-ENV POSTGRES_DB=trascendence
+ENV POSTGRES_DB=transcendence
 
 # 3. (Opcional) Copiar scripts SQL para inicializar la base de datos
 # Cualquier script en esta carpeta se ejecuta la primera vez que se crea el volumen
-COPY ./init-db.sql /docker-entrypoint-initdb.d/
+#COPY ./init-db.sql /docker-entrypoint-initdb.d/
 
 # 4. Exponer el puerto estándar
-EXPOSE 5432
+EXPOSE 55555
