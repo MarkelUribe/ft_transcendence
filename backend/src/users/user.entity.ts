@@ -13,4 +13,7 @@ export class User {
 
   @Column({ unique: true })
   email: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  avatarUrl: string | null;
 }

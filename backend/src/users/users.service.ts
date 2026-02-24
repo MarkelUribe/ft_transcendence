@@ -24,6 +24,22 @@ export class UsersService {
 	async create(user: User): Promise<User> {
 		const hashed = await bcrypt.hash(user.password, 10);
 		user.password = hashed;
+		user.avatarUrl = "/uploads/avatars/default.png";
+		return this.usersRepository.save(user);
+	}
+
+	async updateAvatar(id: number, avatarUrl: string | null): Promise<User> {
+		const user = await this.findOne(id);
+		if (!user) throw new Error('User not found');
+		user.avatarUrl = avatarUrl;
+		return this.usersRepository.save(user);
+	}
+
+	async updateProfile(id: number, data: { email?: string }): Promise<User> {
+		const user = await this.findOne(id);
+		if (!user) throw new Error('User not found');
+		// Username is permanent; only allow updating email
+		if (data.email !== undefined) user.email = data.email;
 		return this.usersRepository.save(user);
 	}
 }

@@ -50,6 +50,8 @@
       isLoggedIn = true;
       username = data.username;
 
+      window.dispatchEvent(new CustomEvent('auth-changed', { detail: { status: 'loggedIn' } }));
+
       goto('/chess');
     } catch (err) {
       console.error('Login error', err);
@@ -65,6 +67,8 @@
     isLoggedIn = false;
     username = "";
     password = "";
+
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { status: 'loggedOut' } }));
   }
 </script>
 
