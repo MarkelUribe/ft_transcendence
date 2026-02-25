@@ -1,5 +1,12 @@
 {
-	"/": [],
-	"/chess": [],
-	"/login": []
+	"/": [
+		"src/routes/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/chess": [
+		"src/routes/+layout.js"
+	],
+	"/login": [
+		"src/routes/+layout.js"
+	]
 }

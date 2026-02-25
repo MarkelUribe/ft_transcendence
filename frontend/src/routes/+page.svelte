@@ -1,5 +1,5 @@
-<script lang="ts">
-  // You can add any landing page animation or logic here later
+<script>
+   import { t } from 'svelte-i18n';
 </script>
 
 <style>
@@ -70,11 +70,11 @@
 </style>
 
 <div class="container">
-  <h1>Welcome to Chess Arena</h1>
-  <p>Play chess, review your game logs, and improve your strategy. Choose what you want to do below:</p>
+  <h1>{$t('home.title')}</h1>
+  <p>{$t('home.subtitle')}</p>
   <div class="buttons">
-    <a href="/chess" class="button">Play</a>
-    <a href="/login" class="button">Login / Join up</a>
+    <a href="/chess" class="button">{$t('home.playButton')}</a>
+    <a href="/login" class="button">{$t('home.loginButton')}</a>
   </div>
 </div>
 

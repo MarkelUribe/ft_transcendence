@@ -1,0 +1,47 @@
+{
+  "common": {
+    "language": "Hizkuntza",
+    "loading": "Kargatzen..."
+  },
+  "home": {
+    "title": "Ongi etorri Chess Arena-ra",
+    "subtitle": "Jolastu xakea, ikus ezazu zure partidak eta hobetu zure estrategia. Aukeratu zer egin nahi duzun behean:",
+    "playButton": "Jolastu",
+    "loginButton": "Sartu / Erregistratu"
+  },
+  "chess": {
+    "gameTitle": "Xake Partida",
+    "gameOver": "Partida Amaituta",
+    "checkmate": "Txantxeta", 
+    "draw": "Berdinketa",
+    "active": "Partida Aktiboa",
+    "invalidMove": "Mugimendu baliogabea",
+    "gameNotFound": "Partida ez da aurkitu",
+    "loadingGame": "Partida kargatzen...",
+    "chat": {
+      "title": "Txat",
+      "placeholder": "Idatzi mezu bat...",
+      "send": "Bidali",
+      "playerJoined": "partidan sartu da",
+      "players": "Jokalariak"
+    }
+  },
+  "auth": {
+    "login": "Saioa hasi",
+    "signup": "Erregistratu",
+    "email": "Posta",
+    "password": "Pasahitza",
+    "username": "Erabiltzaile izena",
+    "rememberMe": "Gogora nazazu",
+    "forgotPassword": "Pasahitza ahaztu duzu?",
+    "noAccount": "Konturik ez?",
+    "haveAccount": "Jada kontu bat baduzu?",
+    "submit": "Bidali",
+    "logout": "Saioa itxi"
+  },
+  "errors": {
+    "failedToLoadGame": "Ezin izan da partida kargatu",
+    "moveFailed": "Mugimendua huts egin du",
+    "connectionError": "Konektatzeko errorea"
+  }
+}

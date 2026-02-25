@@ -1,0 +1,47 @@
+{
+  "common": {
+    "language": "Idioma",
+    "loading": "Cargando..."
+  },
+  "home": {
+    "title": "Bienvenido a Chess Arena",
+    "subtitle": "Juega ajedrez, revisa tus partidas y mejora tu estrategia. Elige qué quieres hacer a continuación:",
+    "playButton": "Jugar",
+    "loginButton": "Iniciar / Registrarse"
+  },
+  "chess": {
+    "gameTitle": "Partida de Ajedrez",
+    "gameOver": "Partida Terminada",
+    "checkmate": "Jaque Mate",
+    "draw": "Empate",
+    "active": "Partida Activa",
+    "invalidMove": "Movimiento Inválido",
+    "gameNotFound": "Partida no encontrada",
+    "loadingGame": "Cargando partida...",
+    "chat": {
+      "title": "Chat",
+      "placeholder": "Escribe un mensaje...",
+      "send": "Enviar",
+      "playerJoined": "se unió a la partida",
+      "players": "Jugadores"
+    }
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "signup": "Registrarse",
+    "email": "Correo",
+    "password": "Contraseña",
+    "username": "Usuario",
+    "rememberMe": "Recuérdame",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes cuenta?",
+    "haveAccount": "¿Ya tienes cuenta?",
+    "submit": "Enviar",
+    "logout": "Cerrar Sesión"
+  },
+  "errors": {
+    "failedToLoadGame": "Error al cargar la partida",
+    "moveFailed": "El movimiento falló",
+    "connectionError": "Error de conexión"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "common": {
+    "language": "Language",
+    "loading": "Loading..."
+  },
+  "home": {
+    "title": "Welcome to Chess Arena",
+    "subtitle": "Play chess, review your game logs, and improve your strategy. Choose what you want to do below:",
+    "playButton": "Play",
+    "loginButton": "Login / Sign Up"
+  },
+  "chess": {
+    "gameTitle": "Chess Game",
+    "gameOver": "Game Over",
+    "checkmate": "Checkmate",
+    "draw": "Draw",
+    "active": "Active Game",
+    "invalidMove": "Invalid Move",
+    "gameNotFound": "Game not found",
+    "loadingGame": "Loading game...",
+    "chat": {
+      "title": "Chat",
+      "placeholder": "Write a message...",
+      "send": "Send",
+      "playerJoined": "joined the game",
+      "players": "Players"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "username": "Username",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot your password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "submit": "Submit",
+    "logout": "Logout"
+  },
+  "errors": {
+    "failedToLoadGame": "Failed to load game",
+    "moveFailed": "Move failed",
+    "connectionError": "Connection error"
+  }
+}

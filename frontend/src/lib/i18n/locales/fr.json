@@ -1,0 +1,47 @@
+{
+  "common": {
+    "language": "Langue",
+    "loading": "Chargement..."
+  },
+  "home": {
+    "title": "Bienvenue sur Chess Arena",
+    "subtitle": "Jouez aux échecs, consultez vos parties et améliorez votre stratégie. Choisissez ce que vous voulez faire ci-dessous :",
+    "playButton": "Jouer",
+    "loginButton": "Connexion / Inscription"
+  },
+  "chess": {
+    "gameTitle": "Partie d'échecs",
+    "gameOver": "Partie terminée",
+    "checkmate": "Échec et mat",
+    "draw": "Nulle",
+    "active": "Partie active",
+    "invalidMove": "Coup invalide",
+    "gameNotFound": "Partie introuvable",
+    "loadingGame": "Chargement de la partie...",
+    "chat": {
+      "title": "Chat",
+      "placeholder": "Écrivez un message...",
+      "send": "Envoyer",
+      "playerJoined": "a rejoint la partie",
+      "players": "Joueurs"
+    }
+  },
+  "auth": {
+    "login": "Connexion",
+    "signup": "Inscription",
+    "email": "Courriel",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur",
+    "rememberMe": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "haveAccount": "Vous avez déjà un compte ?",
+    "submit": "Envoyer",
+    "logout": "Déconnexion"
+  },
+  "errors": {
+    "failedToLoadGame": "Échec du chargement de la partie",
+    "moveFailed": "Le coup a échoué",
+    "connectionError": "Erreur de connexion"
+  }
+}
