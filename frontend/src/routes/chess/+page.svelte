@@ -148,12 +148,21 @@ onMount(async () => {
 
 
 <style>
+  :global(body) {
+    margin: 0;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: #fff;
+  }
+
   .page {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    position: relative;
+    z-index: 1;
   }
 
   .board {
@@ -209,11 +218,42 @@ onMount(async () => {
     position: absolute;
   }
 
+  .nav-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff7e5f, #feb47b);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+  }
+
+  .nav-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  }
+
+  .floating-piece {
+    position: absolute;
+    font-size: 3rem;
+    animation: float 6s ease-in-out infinite;
+    opacity: 0.3;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(15deg); }
+  }
+
 </style>
 
 <div class="page">
   <div style="width: 100%; max-width: 640px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0 1rem; box-sizing: border-box;">
-    <button on:click={() => goto('/')} style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">⬅ Back to home</button>
+	<button on:click={() => goto('/')} class="nav-button">⬅ Back to home</button>
     <h4>Hello, {username}</h4>
   </div>
   <div class="board">
@@ -234,3 +274,9 @@ onMount(async () => {
     {/each}
   </div>
 </div>
+
+<!-- Floating chess pieces for style (same as home page) -->
+<span class="floating-piece" style="top: 10%; left: 20%;">♞</span>
+<span class="floating-piece" style="top: 40%; left: 80%; animation-delay: 2s;">♜</span>
+<span class="floating-piece" style="top: 70%; left: 16%; animation-delay: 4s;">♚</span>
+<span class="floating-piece" style="top: 20%; left: 60%; animation-delay: 1s;">♛</span>

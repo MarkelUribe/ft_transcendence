@@ -37,6 +37,21 @@
         }
       });
 
+      if (res.status === 401) {
+        if (browser) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('username');
+          window.dispatchEvent(
+            new CustomEvent('auth-changed', {
+              detail: { status: 'loggedOut' }
+            }),
+          );
+        }
+        user = null;
+        loading = false;
+        return;
+      }
+
       if (!res.ok) {
         user = null;
         loading = false;
@@ -84,8 +99,8 @@
       position: fixed;
       top: 1rem;
       left: 1rem;
-      width: 48px;
-      height: 48px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       padding: 0;
       border: 2px solid rgba(255, 255, 255, 0.8);
