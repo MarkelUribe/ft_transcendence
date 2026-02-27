@@ -1,11 +1,74 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
+
   let username = "";
   let password = "";
+  let isLoggedIn = false;
+  let error: string | null = null;
 
-  function handleLogin() {
-    // For now, just log the credentials to console
-    console.log("Logging in with:", username, password);
-    // TODO: connect to your auth system
+  onMount(() => {
+    if (!browser) return;
+
+    const token = localStorage.getItem('token');
+    const storedUsername = localStorage.getItem('username');
+
+    if (token && storedUsername) {
+      isLoggedIn = true;
+      username = storedUsername;
+    }
+  });
+
+  async function handleLogin() {
+    try {
+      const res = await fetch('http://localhost:3000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (!res.ok) {
+        const message = await res.json();
+        console.error('Login failed', res.status, message);
+        error = message.message || 'Log in failed';
+        return;
+      }
+
+      const data = await res.json();
+      const token = data.access_token;
+
+      if (!token) {
+        console.error('Login response missing access_token');
+        return;
+      }
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('username', data.username);
+      isLoggedIn = true;
+      username = data.username;
+
+      window.dispatchEvent(new CustomEvent('auth-changed', { detail: { status: 'loggedIn' } }));
+
+      goto('/chess');
+    } catch (err) {
+      console.error('Login error', err);
+      error = 'Unexpected error during Log in';
+    }
+  }
+
+  function handleLogout() {
+    if (!browser) return;
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    isLoggedIn = false;
+    username = "";
+    password = "";
+
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { status: 'loggedOut' } }));
   }
 </script>
 
@@ -41,6 +104,12 @@
     flex-direction: column;
     gap: 1rem;
     width: 300px;
+  }
+
+  .login-box form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   input {
@@ -85,9 +154,25 @@
   <h1>Chess Arena Login</h1>
 
   <div class="login-box">
-    <input type="text" placeholder="Username" bind:value={username} />
-    <input type="password" placeholder="Password" bind:value={password} />
-    <button on:click={handleLogin}>Login</button>
+    <button on:click={() => goto('/')} style="align-self: flex-start; font-size: 0.9rem; padding: 0.4rem 0.8rem; margin-bottom: 0.5rem;">⬅ Back to home</button>
+
+    {#if isLoggedIn}
+      <p>Hello, {username}</p>
+      <button on:click={handleLogout}>Logout</button>
+    {:else}
+      {#if error}
+        <p style="color: #ffb3b3; margin: 0 0 0.5rem 0;">{error}</p>
+      {/if}
+      <form on:submit|preventDefault={handleLogin}>
+        <input type="text" placeholder="Username" bind:value={username} />
+        <input type="password" placeholder="Password" bind:value={password} />
+        <button type="submit">Login</button>
+        <a href="/register">
+          <button type="button">Register Now</button>
+        </a>
+      </form>
+    {/if}
+
   </div>
 </div>
 

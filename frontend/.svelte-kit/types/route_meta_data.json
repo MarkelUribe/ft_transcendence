@@ -1,5 +1,8 @@
 {
 	"/": [],
 	"/chess": [],
-	"/login": []
+	"/login": [],
+	"/match_making": [],
+	"/profile": [],
+	"/register": []
 }
