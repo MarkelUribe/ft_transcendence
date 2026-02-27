@@ -50,6 +50,8 @@
       isLoggedIn = true;
       username = data.username;
 
+      window.dispatchEvent(new CustomEvent('auth-changed', { detail: { status: 'loggedIn' } }));
+
       goto('/chess');
     } catch (err) {
       console.error('Login error', err);
@@ -65,6 +67,8 @@
     isLoggedIn = false;
     username = "";
     password = "";
+
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { status: 'loggedOut' } }));
   }
 </script>
 
@@ -100,6 +104,12 @@
     flex-direction: column;
     gap: 1rem;
     width: 300px;
+  }
+
+  .login-box form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   input {
@@ -150,13 +160,17 @@
       <p>Hello, {username}</p>
       <button on:click={handleLogout}>Logout</button>
     {:else}
-     {#if error}
-      <p style="color: #ffb3b3; margin: 0 0 0.5rem 0;">{error}</p>
-    {/if}
-      <input type="text" placeholder="Username" bind:value={username} />
-      <input type="password" placeholder="Password" bind:value={password} />
-      <button on:click={handleLogin}>Login</button>
-      <a href="/register"><button>Register Now</button></a>
+      {#if error}
+        <p style="color: #ffb3b3; margin: 0 0 0.5rem 0;">{error}</p>
+      {/if}
+      <form on:submit|preventDefault={handleLogin}>
+        <input type="text" placeholder="Username" bind:value={username} />
+        <input type="password" placeholder="Password" bind:value={password} />
+        <button type="submit">Login</button>
+        <a href="/register">
+          <button type="button">Register Now</button>
+        </a>
+      </form>
     {/if}
 
   </div>

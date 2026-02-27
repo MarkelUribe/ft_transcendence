@@ -9,3 +9,8 @@ TODO:
 - Validación de inputs.
 - HTTPS
 -
+
+
+StockFish
+https://stockfishchess.org/
+https://lucidar.me/en/chess/how-to-use-stockfish-in-command-line/

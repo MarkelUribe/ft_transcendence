@@ -33,6 +33,8 @@
     localStorage.removeItem('username');
     isLoggedIn = false;
     username = '';
+
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { status: 'loggedOut' } }));
   }
 </script>
 
