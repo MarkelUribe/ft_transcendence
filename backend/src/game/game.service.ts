@@ -7,18 +7,17 @@ import { Game } from './entities/game.entity';
 export class GameService {
   private games = new Map<string, Game>();
 
-  create(): Game {
+  createGame(white: string, black: string): Game {
     const chess = new Chess();
 
     const game: Game = {
       id: randomUUID(),
-//      id: "test",
       fen: chess.fen(),
       status: 'active',
+      players: { white, black },
     };
 
     this.games.set(game.id, game);
-
     return game;
   }
 
@@ -28,6 +27,15 @@ export class GameService {
       throw new NotFoundException('Game not found');
     }
     return game;
+  }
+
+  findByPlayer(playerId: string): { gameId: string; fen: string } | null {
+    for (const game of this.games.values()) {
+      if (game.players.white === playerId || game.players.black === playerId) {
+        return { gameId: game.id, fen: game.fen };
+      }
+    }
+    return null;
   }
 
   makeMove(id: string, from: string, to: string): Game {
@@ -48,32 +56,6 @@ export class GameService {
     } else if (chess.isDraw()) {
       game.status = 'draw';
     }
-
     return game;
   }
 }
-
-/*
-@Injectable()
-export class GameService {
-  create(createGameDto: CreateGameDto) {
-    return 'This action adds a new game';
-  }
-
-  findAll() {
-    return `This action returns all game`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} game`;
-  }
-
-  update(id: number, updateGameDto: UpdateGameDto) {
-    return `This action updates a #${id} game`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} game`;
-  }
-}
-*/

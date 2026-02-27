@@ -2,6 +2,6 @@
 	"/": [],
 	"/chess": [],
 	"/login": [],
-	"/register": [],
-	"/signin": []
+	"/match_making": [],
+	"/register": []
 }

@@ -1,16 +1,41 @@
 <script>
   import * as utils from '$lib/chess/Utils.js';
   import { getMoves } from '$lib/chess/Moves.js';
-  import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
-
-  console.log("Is browser?", browser);
+  import { onMount, onDestroy } from 'svelte';
 
   let gameId = null;
   let fen = null;
   let board = [];
   let username = '';
+  let selected = null;
+  let validMoves = [];
+  let displayBoard = [];
+  let playerColor = null;
+
+  let fenInterval = null;
+
+  async function fetchFen() {
+    if (!gameId) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:3000/game/${gameId}`
+      );
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      if (data?.fen && data.fen !== fen) {
+        fen = data.fen;
+      }
+
+    } catch (err) {
+      console.error("FEN polling failed", err);
+    }
+  }
 
 function toAlgebraic(row, col) {
   const file = String.fromCharCode('a'.charCodeAt(0) + col); // a-h
@@ -18,17 +43,9 @@ function toAlgebraic(row, col) {
   return `${file}${rank}`;
 }
 
-onMount(async () => {
+async function makeMove(from, to) {
   try {
-    console.log("Sending request...");
-
-    // onMount only runs in the browser, so localStorage is safe here
-    const token = localStorage.getItem('token');
-    const storedUsername = localStorage.getItem('username');
-
-    if (storedUsername) {
-      username = storedUsername;
-    }
+    const token = browser ? localStorage.getItem('token') : null;
 
     if (!token) {
       console.error('No auth token found, redirecting to login');
@@ -36,114 +53,146 @@ onMount(async () => {
       return;
     }
 
-    const res = await fetch('http://localhost:3000/game', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
+    const res = await fetch(
+      `http://localhost:3000/game/${gameId}/move`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          from: toAlgebraic(from.row, from.col),
+          to: toAlgebraic(to.row, to.col)
+        })
       }
-    });
+    );
 
-    console.log("Response received:", res);
+    if (!res.ok) {
+      console.error("Illegal move");
+      selected = null;
+      return;
+    }
 
     const data = await res.json();
-    console.log("Parsed JSON:", data);
-
-    gameId = data.id;
     fen = data.fen;
+    selected = null;
 
   } catch (err) {
-    console.error('Failed to load game', err);
+    console.error('Move failed', err);
+    selected = null;
+  }
+}
+
+function handleClick(r, c) {
+  const cell = board[r][c];
+
+  if (!selected) { // ── no selection yet → select piece
+    if (cell) {
+      selected = { row: r, col: c };
+    }
+    return;
+  }
+
+  const move = validMoves.find(m => m.row === r && m.col === c);
+  const temp = { row: r, col: c };
+
+  if (move) { // ── try to move
+    makeMove(selected, temp);
+    return;
+  }
+
+  if (cell) { // ── clicked another piece → reselect
+    selected = { row: r, col: c };
+    return;
+  }
+
+  selected = null; // ── clicked empty invalid square → deselect
+}
+
+const isMoveSquare = (r, c) => validMoves.some(m => m.row === r && m.col === c);
+const isCaptureSquare = (r, c) => validMoves.find(m => m.row === r && m.col === c)?.capture;
+
+$: board = fen ? utils.fenToBoard(fen) : [];
+
+$: displayBoard =
+  playerColor === 'black'
+    ? board.slice().reverse().map(row => row.slice().reverse())
+    : board;
+
+$: validMoves = selected ? getMoves(board, selected.row, selected.col) : [];
+
+onMount(async () => {
+  fenInterval = setInterval(fetchFen, 1500);
+
+  if (!browser) return;
+
+  const token = localStorage.getItem('token');
+  const storedUsername = localStorage.getItem('username');
+//  const playerId = localStorage.getItem('id');
+
+  if (!token || !storedUsername) {
+    goto('/login');
+    return;
+  }
+
+  username = storedUsername;
+
+try {
+   let foundGameId = null;
+
+   while (!foundGameId) {
+      await new Promise(r => setTimeout(r, 1500));
+
+      const res = await fetch(
+         `http://localhost:3000/game/player/${username}`,
+         {}
+      );
+
+      if (!res.ok) continue;
+
+      const data = await res.json();
+
+      if (data?.gameId) {
+        foundGameId = data.gameId;
+      }
+
+   }
+
+   const gameRes = await fetch(
+      `http://localhost:3000/game/${foundGameId}`,
+      {}
+   );
+
+   if (!gameRes.ok) {
+      console.error("Failed to fetch game");
+      return;
+   }
+
+   const gameData = await gameRes.json();
+
+   gameId = gameData.id;
+   fen = gameData.fen;
+
+  if (gameData.players.white === username) {
+    playerColor = "white";
+  } else if (gameData.players.black === username) {
+    playerColor = "black";
+  } else {
+    console.error("User is not part of this game");
+  }
+
+} catch (err) {
+   console.error('Game initialization failed', err);
+}
+});
+
+onDestroy(() => {
+  if (fenInterval) {
+    clearInterval(fenInterval);
   }
 });
 
-  $: board = fen ? utils.fenToBoard(fen) : [];
-  $: console.log("FEN:", fen);
-  $: console.log("BOARD:", board);
-
-  let selected = null;
-  let validMoves = [];
-
-  async function makeMove(from, to) {
-    try {
-      const token = browser ? localStorage.getItem('token') : null;
-
-      if (!token) {
-        console.error('No auth token found, redirecting to login');
-        goto('/login');
-        return;
-      }
-
-      const res = await fetch(
-        `http://localhost:3000/game/${gameId}/move`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            from: toAlgebraic(from.row, from.col),
-            to: toAlgebraic(to.row, to.col)
-          })
-        }
-      );
-
-      if (!res.ok) {
-        console.error("Illegal move");
-        selected = null;
-        return;
-      }
-
-      const data = await res.json();
-      fen = data.fen;
-      selected = null;
-
-    } catch (err) {
-      console.error('Move failed', err);
-      selected = null;
-    }
-  }
-
-  function handleClick(r, c) {
-    const cell = board[r][c];
-
-    // ── no selection yet → select piece
-    if (!selected) {
-      if (cell) {
-        selected = { row: r, col: c };
-      }
-      return;
-    }
-
-    // ── try to move
-    const move = validMoves.find(m => m.row === r && m.col === c);
-
-    const temp = { row: r, col: c };
-    if (move) {
-      makeMove(selected, temp);
-      return;
-    }
-
-    // ── clicked another piece → reselect
-    if (cell) {
-      selected = { row: r, col: c };
-      return;
-    }
-
-    // ── clicked empty invalid square → deselect
-    selected = null;
-  }
-
-  const isMoveSquare = (r, c) =>
-    validMoves.some(m => m.row === r && m.col === c);
-
-  const isCaptureSquare = (r, c) =>
-    validMoves.find(m => m.row === r && m.col === c)?.capture;
-
-  $: validMoves =
-    selected
-      ? getMoves(board, selected.row, selected.col)
-      : [];
 </script>
 
 
@@ -217,20 +266,20 @@ onMount(async () => {
     <h4>Hello, {username}</h4>
   </div>
   <div class="board">
-    {#each board as row, r}
-      {#each row as cell, c}
-          <div
-            class="square {(r + c) % 2 ? 'dark' : 'light'}"
-            class:selected={selected?.row === r && selected?.col === c}
-            class:move-dot={isMoveSquare(r, c) && !isCaptureSquare(r, c)}
-            class:move-capture={isCaptureSquare(r, c)}
-            on:click={() => handleClick(r, c)}
-          >
-          {#if cell}
-            <img src={utils.pieceImage(cell)} alt="" />
-          {/if}
-        </div>
-      {/each}
+  {#each displayBoard as row, r}
+    {#each row as cell, c}
+      <div
+        class="square {(r + c) % 2 ? 'dark' : 'light'}"
+        class:selected={selected?.row === r && selected?.col === c}
+        class:move-dot={isMoveSquare(r, c) && !isCaptureSquare(r, c)}
+        class:move-capture={isCaptureSquare(r, c)}
+        on:click={() => handleClick(r, c)}
+      >
+        {#if cell}
+          <img src={utils.pieceImage(cell)} alt="" />
+        {/if}
+      </div>
     {/each}
-  </div>
+  {/each}
+</div>
 </div>

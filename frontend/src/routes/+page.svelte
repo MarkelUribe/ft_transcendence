@@ -19,7 +19,7 @@
   });
 
   function handlePlay() {
-    goto('/chess');
+    goto('/match_making');
   }
 
   function handleLogin() {
