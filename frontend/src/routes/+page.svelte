@@ -26,6 +26,10 @@
     goto('/login');
   }
 
+  function handlePlayBot() {
+    goto('/match_making/bot');
+  }
+
   function handleLogout() {
     if (!browser) return;
 
@@ -116,7 +120,8 @@
   </p>
   <div class="buttons">
     {#if isLoggedIn}
-      <button class="button" on:click={handlePlay}>Play</button>
+      <button class="button" on:click={handlePlay}>Join Match</button>
+      <button class="button" on:click={handlePlayBot}>Play Against Bot</button>
       <button class="button" on:click={handleLogout}>Logout</button>
     {:else}
       <button class="button" on:click={handleLogin}>Login</button>
