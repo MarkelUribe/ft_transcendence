@@ -16,8 +16,8 @@ export const server_loads = [];
 export const dictionary = {
 		"/": [2],
 		"/chess": [3],
-		"/login": [4],
-		"/match_making": [5],
+		"/chess/[gameId]": [4],
+		"/login": [5],
 		"/profile": [6],
 		"/register": [7]
 	};

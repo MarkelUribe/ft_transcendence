@@ -19,7 +19,7 @@
   });
 
   function handlePlay() {
-    goto('/match_making');
+    goto('/chess');
   }
 
   function handleLogin() {
@@ -30,6 +30,7 @@
     if (!browser) return;
 
     localStorage.removeItem('token');
+    localStorage.removeItem('id');
     localStorage.removeItem('username');
     isLoggedIn = false;
     username = '';
