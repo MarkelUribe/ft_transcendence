@@ -1,14 +1,14 @@
 services:
   db:
     build: .
-    container_name: psql_trascendence
+    container_name: psql_transcendence
     restart: always
     environment:
       POSTGRES_USER: myuser 
       POSTGRES_PASSWORD: mypassword 
       POSTGRES_DB: transcendence
     ports:
-      - "5432:5432"
+      - "55555:55555"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
