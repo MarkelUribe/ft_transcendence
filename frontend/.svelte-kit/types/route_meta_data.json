@@ -1,7 +1,7 @@
 {
 	"/": [],
-	"/chess": [],
-	"/chess/[gameId]": [],
+	"/game": [],
+	"/game/[gameId]": [],
 	"/login": [],
 	"/profile": [],
 	"/register": []

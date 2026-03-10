@@ -8,8 +8,8 @@ export class MatchmakingController {
   ) {}
 
   @Post('join')
-  joinQueue(@Body('playerId') playerId: string) {
-    return this.matchmakingService.joinQueue(playerId);
+  async joinQueue(@Body('playerId') playerId: string) {
+    return await this.matchmakingService.joinQueue(playerId);
   }
 
   @Post('leave')

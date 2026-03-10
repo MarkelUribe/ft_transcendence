@@ -53,6 +53,10 @@ export class ChessAPI {
     return this.fetchJSON(`/game/${gameId}`);
   }
 
+  getMe() {
+    return this.fetchJSON(`/auth/me`);
+  }
+
   makeMove(gameId: string, from: string, to: string) {
     return this.fetchJSON(`/game/${gameId}/move`, {
       method: 'POST',

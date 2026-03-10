@@ -1,26 +1,29 @@
-import { Controller, Post, Get, Param, Body, Req} from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Delete, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
-import { MakeMoveDto } from './dto/make-move.dto';
+import { PassportJwtAuthGuard } from 'src/auth/guards/passport-jwt.guard';
 
+@UseGuards(PassportJwtAuthGuard)
 @Controller('game')
 export class GameController {
   constructor(private readonly gameService: GameService) {}
-  
+
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.gameService.findOne(id);
   }
 
   @Get('player/:playerId')
-  getGameByPlayer(@Param('playerId') playerId: string) {
+  async getGameByPlayer(@Param('playerId') playerId: string) {
     return this.gameService.findByPlayer(playerId);
   }
 
-  @Post(':id/move')
-  makeMove(
-    @Param('id') gameId: string,
-    @Body() dto: { from: string; to: string },
-  ) {
-    return this.gameService.makeMove(gameId, dto.from, dto.to);
+  @Post()
+  async createGame(@Body() body: { whiteId: string; blackId: string }) {
+    return this.gameService.createGame(body.whiteId, body.blackId);
+  }
+
+  @Delete(':id')
+  async deleteGame(@Param('id') id: string) {
+    return this.gameService.deleteGame(id);
   }
 }

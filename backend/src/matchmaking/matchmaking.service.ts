@@ -2,32 +2,30 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { GameService } from '../game/game.service';
 
 @Injectable()
-export class MatchmakingService {
-  private queue: string[] = [];
+export class MatchmakingService
+{
+	private queue: string[] = [];
 
-  constructor(private readonly gameService: GameService) {}
+	constructor(private readonly gameService: GameService) {}
 
-  joinQueue(playerId: string) {
-    if (this.queue.includes(playerId)) {
-      throw new BadRequestException('Already in queue');
-    }
+	async joinQueue(playerId: string) {
+		if (this.queue.includes(playerId)) {
+			throw new BadRequestException('Already in queue');
+		}
 
-    if (this.queue.length > 0) {
-      const opponentId = this.queue.shift()!;
-      return this.gameService.createGame(opponentId, playerId);
-    }
-    this.queue.push(playerId); 
-    return null;
-  }
+		if (this.queue.length > 0) {
+			const opponentId = this.queue.shift()!;
+			return await this.gameService.createGame(opponentId, playerId);
+		}
+		this.queue.push(playerId); 
+		return null;
+	}
 
-  leaveQueue(playerId: string) {
-    this.queue = this.queue.filter(id => id !== playerId);
-  }
+	leaveQueue(playerId: string) { this.queue = this.queue.filter(id => id !== playerId); }
 
-  checkStatus(playerId: string) {
-    if (this.queue.includes(playerId)){
-      return { status: 'waiting' };
-    }
-    return { status: 'matched' };
-  }
+	checkStatus(playerId: string)
+	{
+		if (this.queue.includes(playerId)){ return { status: 'waiting' }; }
+		return { status: 'matched' };
+	}
 }

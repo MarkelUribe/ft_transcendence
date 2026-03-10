@@ -1,61 +1,81 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Chess } from 'chess.js';
-import { randomUUID } from 'crypto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
+import { User } from '../users/user.entity';
 
 @Injectable()
 export class GameService {
-  private games = new Map<string, Game>();
+	constructor(
+		@InjectRepository(Game) private readonly gameRepo: Repository<Game>,
+		@InjectRepository(User) private readonly userRepo: Repository<User>,
+	) {}
 
-  createGame(white: string, black: string): Game {
-    const chess = new Chess();
+	async createGame(whiteId: string, blackId: string): Promise<Game> {
+		const white = await this.userRepo.findOneBy({ id: Number(whiteId) });
+		const black = await this.userRepo.findOneBy({ id: Number(blackId) });
 
-    const game: Game = {
-      id: randomUUID(),
-      fen: chess.fen(),
-      status: 'active',
-      players: { white, black },
-    };
+		if (!white || !black) {
+			throw new NotFoundException('User not found');
+		}
 
-    this.games.set(game.id, game);
-    return game;
-  }
+		const chess = new Chess();
 
-  findOne(id: string): Game {
-    const game = this.games.get(id);
-    if (!game) {
-      throw new NotFoundException('Game not found');
-    }
-    return game;
-  }
+		const game = this.gameRepo.create({
+			fen: chess.fen(),
+			white,
+			black,
+			status: 'active',
+		} as Partial<Game>);
 
-  findByPlayer(playerId: string): { gameId: string; fen: string } | null {
-    for (const game of this.games.values()) {
-      if (game.players.white === playerId || game.players.black === playerId) {
-        return { gameId: game.id, fen: game.fen };
-      }
-    }
-    return null;
-  }
+		return this.gameRepo.save(game);
+	}
 
-  makeMove(id: string, from: string, to: string): Game {
-    const game = this.findOne(id);
+	async findOne(id: string): Promise<Game> {
+		const game = await this.gameRepo.findOne({ where: { id } });
+		if (!game) throw new NotFoundException('Game not found');
+		return game;
+	}
 
-    const chess = new Chess(game.fen);
+	async findByPlayer(playerId: string): Promise<{ gameId: string; fen: string } | null> {
+		const idNum = Number(playerId);
+		const game = await this.gameRepo
+			.createQueryBuilder('game')
+			.leftJoinAndSelect('game.white', 'white')
+			.leftJoinAndSelect('game.black', 'black')
+			.where('white.id = :id OR black.id = :id', { id: idNum })
+			.getOne();
 
-    const move = chess.move({ from, to });
+		if (!game) return null;
+		return { gameId: game.id, fen: game.fen };
+	}
 
-    if (!move) {
-      throw new BadRequestException('Invalid move');
-    }
+	async deleteGame(id: string): Promise<void> {
+		await this.gameRepo.delete(id);
+	}
 
-    game.fen = chess.fen();
+	// Internal helper: apply move and persist
+async makeMove(id: string, from: string, to: string): Promise<Game> {
+	const game = await this.findOne(id);
 
-    if (chess.isCheckmate()) {
-      game.status = 'checkmate';
-    } else if (chess.isDraw()) {
-      game.status = 'draw';
-    }
-    return game;
-  }
+	const chess = new Chess(game.fen);
+	console.log('Move attempt - FEN:', game.fen, 'Turn:', chess.turn(), 'From:', from, 'To:', to);
+	const move = chess.move({ from, to } as any);
+	console.log('Move result:', move);
+
+	if (!move) {
+		throw new BadRequestException('Invalid move');
+	}
+
+	game.fen = chess.fen();
+
+	if (chess.isCheckmate()) {
+		game.status = 'checkmate';
+	} else if (chess.isDraw()) {
+		game.status = 'draw';
+	}
+
+	return this.gameRepo.save(game);
+}
 }
