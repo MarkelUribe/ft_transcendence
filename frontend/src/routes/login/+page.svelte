@@ -46,13 +46,15 @@
       }
 
       localStorage.setItem('token', token);
+      localStorage.setItem('id', data.id);
       localStorage.setItem('username', data.username);
+
       isLoggedIn = true;
       username = data.username;
 
       window.dispatchEvent(new CustomEvent('auth-changed', { detail: { status: 'loggedIn' } }));
 
-      goto('/chess');
+      goto('/');
     } catch (err) {
       console.error('Login error', err);
       error = 'Unexpected error during Log in';
@@ -63,6 +65,7 @@
     if (!browser) return;
 
     localStorage.removeItem('token');
+    localStorage.removeItem('id');
     localStorage.removeItem('username');
     isLoggedIn = false;
     username = "";

@@ -11,6 +11,7 @@
     username: string;
     email: string;
     avatarUrl: string | null;
+    elo?: number | null; // add elo if your backend returns it
   };
 
   let user: User | null = null;
@@ -99,22 +100,48 @@
       position: fixed;
       top: 1rem;
       left: 1rem;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      padding: 0;
+      border-radius: 9999px;
+      padding: 0.4rem 0.7rem 0.4rem 0.4rem;
       border: 2px solid rgba(255, 255, 255, 0.8);
-      overflow: hidden;
       cursor: pointer;
-      background: transparent;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
       z-index: 1000;
+      color: #fff;
     "
     aria-label="Go to profile"
   >
-    <img
-      src={user.avatarUrl ? `${BACKEND_URL}${user.avatarUrl}` : '/pieces/default-avatar.png'}
-      alt=""
-      style="width: 100%; height: 100%; object-fit: cover; display: block;"
-    />
+    <div
+      style="
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+      "
+    >
+      <img
+        src={user.avatarUrl ? `${BACKEND_URL}${user.avatarUrl}` : '/pieces/default-avatar.png'}
+        alt=""
+        style="width: 100%; height: 100%; object-fit: cover; display: block;"
+      />
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 0.8rem;
+        line-height: 1.2;
+        text-align: left;
+      "
+    >
+      <span style="font-weight: 600;">{user.username}</span>
+      <span>ID: {user.id}</span>
+      <span>{user.elo ?? 'Unrated'} ELO</span>
+    </div>
   </button>
 {/if}
