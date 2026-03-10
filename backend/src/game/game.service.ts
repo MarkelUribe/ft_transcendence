@@ -6,7 +6,8 @@ import { Game } from './entities/game.entity';
 import { User } from '../users/user.entity';
 
 @Injectable()
-export class GameService {
+export class GameService
+{
 	constructor(
 		@InjectRepository(Game) private readonly gameRepo: Repository<Game>,
 		@InjectRepository(User) private readonly userRepo: Repository<User>,
@@ -16,9 +17,7 @@ export class GameService {
 		const white = await this.userRepo.findOneBy({ id: Number(whiteId) });
 		const black = await this.userRepo.findOneBy({ id: Number(blackId) });
 
-		if (!white || !black) {
-			throw new NotFoundException('User not found');
-		}
+		if (!white || !black) { throw new NotFoundException('User not found'); }
 
 		const chess = new Chess();
 
@@ -32,13 +31,15 @@ export class GameService {
 		return this.gameRepo.save(game);
 	}
 
-	async findOne(id: string): Promise<Game> {
+	async findOne(id: string): Promise<Game>
+	{
 		const game = await this.gameRepo.findOne({ where: { id } });
 		if (!game) throw new NotFoundException('Game not found');
 		return game;
 	}
 
-	async findByPlayer(playerId: string): Promise<{ gameId: string; fen: string } | null> {
+	async findByPlayer(playerId: string): Promise<{ gameId: string; fen: string } | null>
+	{
 		const idNum = Number(playerId);
 		const game = await this.gameRepo
 			.createQueryBuilder('game')
@@ -51,31 +52,24 @@ export class GameService {
 		return { gameId: game.id, fen: game.fen };
 	}
 
-	async deleteGame(id: string): Promise<void> {
-		await this.gameRepo.delete(id);
+	async deleteGame(id: string): Promise<void> { await this.gameRepo.delete(id); }
+
+	async makeMove(id: string, from: string, to: string): Promise<Game>
+	{
+		const game = await this.findOne(id);
+
+		const chess = new Chess(game.fen);
+		console.log('Move attempt - FEN:', game.fen, 'Turn:', chess.turn(), 'From:', from, 'To:', to);
+		const move = chess.move({ from, to } as any);
+		console.log('Move result:', move);
+
+		if (!move) { throw new BadRequestException('Invalid move'); }
+
+		game.fen = chess.fen();
+
+		if (chess.isCheckmate()) { game.status = 'checkmate'; }
+		else if (chess.isDraw()) { game.status = 'draw'; }
+
+		return this.gameRepo.save(game);
 	}
-
-	// Internal helper: apply move and persist
-async makeMove(id: string, from: string, to: string): Promise<Game> {
-	const game = await this.findOne(id);
-
-	const chess = new Chess(game.fen);
-	console.log('Move attempt - FEN:', game.fen, 'Turn:', chess.turn(), 'From:', from, 'To:', to);
-	const move = chess.move({ from, to } as any);
-	console.log('Move result:', move);
-
-	if (!move) {
-		throw new BadRequestException('Invalid move');
-	}
-
-	game.fen = chess.fen();
-
-	if (chess.isCheckmate()) {
-		game.status = 'checkmate';
-	} else if (chess.isDraw()) {
-		game.status = 'draw';
-	}
-
-	return this.gameRepo.save(game);
-}
 }
