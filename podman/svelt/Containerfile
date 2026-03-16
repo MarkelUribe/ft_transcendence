@@ -1,0 +1,14 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Exponemos el puerto de Vite/SvelteKit
+EXPOSE 5173
+
+# Importante: --host es necesario para que el contenedor acepte conexiones externas
+CMD ["npm", "run", "dev", "--", "--host"]
