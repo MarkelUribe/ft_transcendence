@@ -8,6 +8,7 @@ import { User } from '../users/user.entity';
 @Injectable()
 export class GameService
 {
+
 	constructor(
 		@InjectRepository(Game) private readonly gameRepo: Repository<Game>,
 		@InjectRepository(User) private readonly userRepo: Repository<User>,
@@ -38,9 +39,9 @@ export class GameService
 		return game;
 	}
 
-	async findByPlayer(playerId: string): Promise<{ gameId: string; fen: string } | null>
+	async findByPlayer(playerId: number): Promise<{ gameId: string; fen: string } | null>
 	{
-		const idNum = Number(playerId);
+		const idNum = playerId;
 		const game = await this.gameRepo
 			.createQueryBuilder('game')
 			.leftJoinAndSelect('game.white', 'white')
@@ -54,9 +55,21 @@ export class GameService
 
 	async deleteGame(id: string): Promise<void> { await this.gameRepo.delete(id); }
 
-	async makeMove(id: string, from: string, to: string): Promise<Game>
+	async makeMove(id: string, from: string, to: string, userId: number): Promise<Game>
 	{
 		const game = await this.findOne(id);
+
+		let turnId = '';
+
+		if (game.white.id === userId)
+			turnId = 'w';
+		if (game.black.id === userId)
+			turnId = 'b';
+
+		const turn = game.fen.split(' ')[1]; // w or b
+
+		if (turn != turnId)
+			throw new BadRequestException('Bro dont cheat');
 
 		const chess = new Chess(game.fen);
 		console.log('Move attempt - FEN:', game.fen, 'Turn:', chess.turn(), 'From:', from, 'To:', to);

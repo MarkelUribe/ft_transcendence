@@ -1,6 +1,8 @@
-import { Controller, Post, Get, Param, Body } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, UseGuards} from '@nestjs/common';
 import { MatchmakingService } from '../matchmaking/matchmaking.service';
+import { PassportJwtAuthGuard } from 'src/auth/guards/passport-jwt.guard';
 
+@UseGuards(PassportJwtAuthGuard)
 @Controller('matchmaking')
 export class MatchmakingController {
   constructor(

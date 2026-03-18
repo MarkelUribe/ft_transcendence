@@ -21,11 +21,12 @@ let GameController = class GameController {
     constructor(gameService) {
         this.gameService = gameService;
     }
+    async getMyGame(req) {
+        const userId = req.user.id;
+        return this.gameService.findByPlayer(userId);
+    }
     async findOne(id) {
         return this.gameService.findOne(id);
-    }
-    async getGameByPlayer(playerId) {
-        return this.gameService.findByPlayer(playerId);
     }
     async createGame(body) {
         return this.gameService.createGame(body.whiteId, body.blackId);
@@ -36,19 +37,20 @@ let GameController = class GameController {
 };
 exports.GameController = GameController;
 __decorate([
+    (0, common_1.Get)('player'),
+    (0, common_1.UseGuards)(passport_jwt_guard_1.PassportJwtAuthGuard),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], GameController.prototype, "getMyGame", null);
+__decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], GameController.prototype, "findOne", null);
-__decorate([
-    (0, common_1.Get)('player/:playerId'),
-    __param(0, (0, common_1.Param)('playerId')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], GameController.prototype, "getGameByPlayer", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),

@@ -82,9 +82,15 @@ function handleSquareClick(r: number, c: number)
 	const [or, oc] = originalIndices(r, c);
 	const piece = board[or]?.[oc];
 
-	if (selected === coord) {
-		selected = null;
-		return;
+
+	if (selected && piece)
+	{
+		const color = piece < 'a' ? 'w' : 'b';
+		if (color === turn || selected === coord)
+		{
+			selected = null;
+			return;
+		}
 	}
 
 	if (selected) {
@@ -107,7 +113,11 @@ onMount(async () =>
 
 	await fetchGameState();
 
-	socket = io('http://localhost:3000');
+	socket = io("http://localhost:3000", {
+		auth: {
+			token: localStorage.getItem("token")
+		}
+	});
 
 	socket.on('connect', () => {
 		socket.emit('joinGame', {
@@ -122,9 +132,15 @@ onMount(async () =>
 	{
 		status = msg.status;
 
-		if (msg.status === 'draw')					resultText = 'Draw';
-		else if (msg.status === 'checkmate') {		resultText = turn === myColor ? 'Defeat' : 'Victory'; }
-		else if (msg.status === 'surrendered') {	resultText = 'Defeat by surrender'; }
+		if (msg.status === 'draw')
+			resultText = 'Draw';
+
+		else if (msg.status === 'checkmate')
+		{
+			resultText = msg.loser == localStorage.getItem('id')
+				? 'Defeat'
+				: 'Victory';
+		}
 
 		gameOver = true;
 	});

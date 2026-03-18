@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MatchmakingController = void 0;
 const common_1 = require("@nestjs/common");
 const matchmaking_service_1 = require("../matchmaking/matchmaking.service");
+const passport_jwt_guard_1 = require("../auth/guards/passport-jwt.guard");
 let MatchmakingController = class MatchmakingController {
     matchmakingService;
     constructor(matchmakingService) {
@@ -53,6 +54,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MatchmakingController.prototype, "checkStatus", null);
 exports.MatchmakingController = MatchmakingController = __decorate([
+    (0, common_1.UseGuards)(passport_jwt_guard_1.PassportJwtAuthGuard),
     (0, common_1.Controller)('matchmaking'),
     __metadata("design:paramtypes", [matchmaking_service_1.MatchmakingService])
 ], MatchmakingController);

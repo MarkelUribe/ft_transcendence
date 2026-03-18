@@ -20,35 +20,68 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const game_entity_1 = require("./entities/game.entity");
+const jwt_1 = require("@nestjs/jwt");
 let GameGateway = class GameGateway {
     gameService;
+    jwtService;
     gameRepo;
     server;
-    constructor(gameService, gameRepo) {
+    constructor(gameService, jwtService, gameRepo) {
         this.gameService = gameService;
+        this.jwtService = jwtService;
         this.gameRepo = gameRepo;
+    }
+    async handleConnection(client) {
+        try {
+            const token = client.handshake.auth?.token;
+            if (!token) {
+                client.disconnect();
+                return;
+            }
+            const payload = this.jwtService.verify(token);
+            client.data.userId = Number(payload.sub);
+        }
+        catch (err) {
+            console.log('Socket rejected');
+            client.disconnect();
+        }
     }
     async handleJoinGame(client, data) {
         const { gameId } = data;
-        console.log('joinGame received from', client.id, 'for', gameId);
-        client.data.playerId = data.playerId;
         client.join(gameId);
         try {
             const game = await this.gameService.findOne(gameId);
-            client.emit('gameState', { gameId: game.id, fen: game.fen, white: game.white, black: game.black, status: game.status });
+            client.emit('gameState', {
+                gameId: game.id,
+                fen: game.fen,
+                white: game.white,
+                black: game.black,
+                status: game.status
+            });
         }
-        catch (err) {
+        catch {
             client.emit('error', { message: 'Game not found' });
         }
     }
     async handleProposeMove(client, data) {
         const { gameId, from, to } = data;
-        console.log('ProposeMove received:', { gameId, from, to });
+        const userId = client.data.userId;
+        if (!userId) {
+            client.emit('moveRejected', { reason: 'Unauthorized' });
+            return;
+        }
+        console.log('ProposeMove received:', { gameId, from, to, userId });
         try {
-            const game = await this.gameService.makeMove(gameId, from, to);
-            this.server.to(gameId).emit('moveMade', { gameId: game.id, fen: game.fen, status: game.status, white: game.white, black: game.black });
+            const game = await this.gameService.makeMove(gameId, from, to, userId);
+            this.server.to(gameId).emit('moveMade', {
+                gameId: game.id,
+                fen: game.fen,
+                status: game.status,
+                white: game.white,
+                black: game.black
+            });
             if (game.status === 'checkmate' || game.status === 'draw') {
-                this.server.to(gameId).emit('gameEnded', { status: game.status });
+                this.server.to(gameId).emit('gameEnded', { status: game, loser: userId });
                 await this.gameService.deleteGame(gameId);
             }
         }
@@ -61,13 +94,21 @@ let GameGateway = class GameGateway {
     async handleSurrender(client, data) {
         const { gameId } = data;
         try {
+            const userId = client.data.userId;
+            if (!userId) {
+                client.emit('error', { message: 'Unauthorized' });
+                return;
+            }
             const game = await this.gameService.findOne(gameId);
             game.status = 'checkmate';
             await this.gameRepo.save(game);
-            this.server.to(gameId).emit('gameEnded', { status: 'checkmate' });
+            this.server.to(gameId).emit('gameEnded', {
+                status: 'checkmate',
+                loser: userId
+            });
             await this.gameService.deleteGame(gameId);
         }
-        catch (err) {
+        catch {
             client.emit('error', { message: 'Surrender failed' });
         }
     }
@@ -103,8 +144,9 @@ __decorate([
 ], GameGateway.prototype, "handleSurrender", null);
 exports.GameGateway = GameGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({ cors: { origin: '*' } }),
-    __param(1, (0, typeorm_1.InjectRepository)(game_entity_1.Game)),
+    __param(2, (0, typeorm_1.InjectRepository)(game_entity_1.Game)),
     __metadata("design:paramtypes", [game_service_1.GameService,
+        jwt_1.JwtService,
         typeorm_2.Repository])
 ], GameGateway);
 //# sourceMappingURL=game.gateway.js.map

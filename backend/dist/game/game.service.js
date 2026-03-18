@@ -48,7 +48,7 @@ let GameService = class GameService {
         return game;
     }
     async findByPlayer(playerId) {
-        const idNum = Number(playerId);
+        const idNum = playerId;
         const game = await this.gameRepo
             .createQueryBuilder('game')
             .leftJoinAndSelect('game.white', 'white')
@@ -60,8 +60,16 @@ let GameService = class GameService {
         return { gameId: game.id, fen: game.fen };
     }
     async deleteGame(id) { await this.gameRepo.delete(id); }
-    async makeMove(id, from, to) {
+    async makeMove(id, from, to, userId) {
         const game = await this.findOne(id);
+        let turnId = '';
+        if (game.white.id === userId)
+            turnId = 'w';
+        if (game.black.id === userId)
+            turnId = 'b';
+        const turn = game.fen.split(' ')[1];
+        if (turn != turnId)
+            throw new common_1.BadRequestException('Bro dont cheat');
         const chess = new chess_js_1.Chess(game.fen);
         console.log('Move attempt - FEN:', game.fen, 'Turn:', chess.turn(), 'From:', from, 'To:', to);
         const move = chess.move({ from, to });

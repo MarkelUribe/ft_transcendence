@@ -8,16 +8,16 @@ export class MatchmakingService
 
 	constructor(private readonly gameService: GameService) {}
 
-	async joinQueue(playerId: string) {
-		if (this.queue.includes(playerId)) {
-			throw new BadRequestException('Already in queue');
-		}
+	async joinQueue(playerId: string)
+	{
+		if (this.queue.includes(playerId)) { throw new BadRequestException('Already in queue'); }
 
-		if (this.queue.length > 0) {
+		if (this.queue.length > 0)
+		{
 			const opponentId = this.queue.shift()!;
 			return await this.gameService.createGame(opponentId, playerId);
 		}
-		this.queue.push(playerId); 
+		this.queue.push(playerId);
 		return null;
 	}
 
@@ -25,7 +25,7 @@ export class MatchmakingService
 
 	checkStatus(playerId: string)
 	{
-		if (this.queue.includes(playerId)){ return { status: 'waiting' }; }
+		if (this.queue.includes(playerId)) { return { status: 'waiting' }; }
 		return { status: 'matched' };
 	}
 }
