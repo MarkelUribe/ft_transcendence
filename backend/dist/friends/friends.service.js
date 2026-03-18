@@ -79,7 +79,7 @@ let FriendsService = class FriendsService {
     async rejectFriendRequest(friendshipId, userId) {
         const friendship = await this.friendshipRepository.findOne({
             where: { id: friendshipId },
-            relations: ['addressee'],
+            relations: ['requester', 'addressee'],
         });
         if (!friendship) {
             throw new common_1.NotFoundException('Friend request not found');
@@ -87,7 +87,10 @@ let FriendsService = class FriendsService {
         if (friendship.addressee.id !== userId) {
             throw new common_1.ForbiddenException('You cannot reject this request.');
         }
+        const requesterId = friendship.requester.id;
+        const addresseeId = friendship.addressee.id;
         await this.friendshipRepository.remove(friendship);
+        return { requesterId, addresseeId };
     }
     async getFriendsForUser(userId) {
         const friendships = await this.friendshipRepository.find({

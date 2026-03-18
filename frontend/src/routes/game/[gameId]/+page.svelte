@@ -95,8 +95,7 @@ function handleSquareClick(r: number, c: number)
 
 	if (piece) {
 		const color = piece < 'a' ? 'w' : 'b';
-		if (myColor !== turn) return;
-		if (color === turn) selected = coord;
+ selected = coord;
 	}
 }
 
@@ -107,7 +106,7 @@ onMount(async () =>
 
 	await fetchGameState();
 
-	socket = io('http://localhost:3000');
+	socket = io('https://localhost:3000');
 
 	socket.on('connect', () => {
 		socket.emit('joinGame', {

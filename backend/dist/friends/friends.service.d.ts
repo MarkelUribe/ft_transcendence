@@ -7,7 +7,10 @@ export declare class FriendsService {
     constructor(friendshipRepository: Repository<Friendship>, usersRepository: Repository<User>);
     sendFriendRequest(requesterId: number, targetUserId: number): Promise<Friendship>;
     acceptFriendRequest(friendshipId: number, userId: number): Promise<Friendship>;
-    rejectFriendRequest(friendshipId: number, userId: number): Promise<void>;
+    rejectFriendRequest(friendshipId: number, userId: number): Promise<{
+        requesterId: number;
+        addresseeId: number;
+    }>;
     getFriendsForUser(userId: number): Promise<User[]>;
     getPendingRequestsForUser(userId: number): Promise<{
         incoming: Friendship[];

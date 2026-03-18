@@ -1,5 +1,5 @@
 // src/lib/api/chess.ts
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'https://localhost:3000';
 
 export class ChessAPI {
   token: string;
@@ -61,6 +61,13 @@ export class ChessAPI {
     return this.fetchJSON(`/game/${gameId}/move`, {
       method: 'POST',
       body: JSON.stringify({ from, to })
+    });
+  }
+
+  createGame(whiteId: string, blackId: string) {
+    return this.fetchJSON('/game', {
+      method: 'POST',
+      body: JSON.stringify({ whiteId, blackId })
     });
   }
 }

@@ -15,24 +15,35 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FriendsController = void 0;
 const common_1 = require("@nestjs/common");
 const friends_service_1 = require("./friends.service");
+const friends_gateway_1 = require("./friends.gateway");
 const passport_jwt_guard_1 = require("../auth/guards/passport-jwt.guard");
 const create_friend_request_dto_1 = require("./dto/create-friend-request.dto");
 let FriendsController = class FriendsController {
     friendsService;
-    constructor(friendsService) {
+    friendsGateway;
+    constructor(friendsService, friendsGateway) {
         this.friendsService = friendsService;
+        this.friendsGateway = friendsGateway;
     }
     async sendFriendRequest(req, body) {
         const requesterId = req.user.id;
-        return this.friendsService.sendFriendRequest(requesterId, body.targetUserId);
+        const friendship = await this.friendsService.sendFriendRequest(requesterId, body.targetUserId);
+        this.friendsGateway.notifyUsers([requesterId, body.targetUserId]);
+        return friendship;
     }
     async acceptFriendRequest(req, id) {
         const userId = req.user.id;
-        return this.friendsService.acceptFriendRequest(id, userId);
+        const friendship = await this.friendsService.acceptFriendRequest(id, userId);
+        this.friendsGateway.notifyUsers([
+            friendship.requester.id,
+            friendship.addressee.id,
+        ]);
+        return friendship;
     }
     async rejectFriendRequest(req, id) {
         const userId = req.user.id;
-        await this.friendsService.rejectFriendRequest(id, userId);
+        const { requesterId, addresseeId } = await this.friendsService.rejectFriendRequest(id, userId);
+        this.friendsGateway.notifyUsers([requesterId, addresseeId]);
         return { success: true };
     }
     async getFriends(req) {
@@ -86,6 +97,7 @@ __decorate([
 exports.FriendsController = FriendsController = __decorate([
     (0, common_1.UseGuards)(passport_jwt_guard_1.PassportJwtAuthGuard),
     (0, common_1.Controller)('friends'),
-    __metadata("design:paramtypes", [friends_service_1.FriendsService])
+    __metadata("design:paramtypes", [friends_service_1.FriendsService,
+        friends_gateway_1.FriendsGateway])
 ], FriendsController);
 //# sourceMappingURL=friends.controller.js.map

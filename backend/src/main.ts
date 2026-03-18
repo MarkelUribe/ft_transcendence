@@ -3,9 +3,16 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { join } from 'path';
 import * as express from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+    const httpsOptions = {
+    key: fs.readFileSync(path.join(__dirname, '..', '..', 'certs', 'localhost+2-key.pem')),
+    cert: fs.readFileSync(path.join(__dirname, '..', '..', 'certs', 'localhost+2.pem')),
+  };
+
+  const app = await NestFactory.create(AppModule, { httpsOptions });
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
@@ -14,9 +21,7 @@ async function bootstrap() {
   }));
 
   app.enableCors({
-    // In dev, reflect the request origin to avoid hard-coding
-    origin: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    origin: ['https://localhost:5173'], // Vite dev URL
     credentials: true,
   });
 
@@ -25,6 +30,6 @@ async function bootstrap() {
     express.static(join(__dirname, '..', 'uploads')),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(3000);
 }
 bootstrap();

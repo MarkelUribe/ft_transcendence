@@ -12,6 +12,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const friendship_entity_1 = require("./friendship.entity");
 const friends_service_1 = require("./friends.service");
 const friends_controller_1 = require("./friends.controller");
+const friends_gateway_1 = require("./friends.gateway");
 const user_entity_1 = require("../users/user.entity");
 let FriendsModule = class FriendsModule {
 };
@@ -19,9 +20,9 @@ exports.FriendsModule = FriendsModule;
 exports.FriendsModule = FriendsModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([friendship_entity_1.Friendship, user_entity_1.User])],
-        providers: [friends_service_1.FriendsService],
+        providers: [friends_service_1.FriendsService, friends_gateway_1.FriendsGateway],
         controllers: [friends_controller_1.FriendsController],
-        exports: [friends_service_1.FriendsService],
+        exports: [friends_service_1.FriendsService, friends_gateway_1.FriendsGateway],
     })
 ], FriendsModule);
 //# sourceMappingURL=friends.module.js.map

@@ -1,8 +1,10 @@
 import { FriendsService } from './friends.service';
+import { FriendsGateway } from './friends.gateway';
 import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
 export declare class FriendsController {
     private readonly friendsService;
-    constructor(friendsService: FriendsService);
+    private readonly friendsGateway;
+    constructor(friendsService: FriendsService, friendsGateway: FriendsGateway);
     sendFriendRequest(req: any, body: CreateFriendRequestDto): Promise<import("./friendship.entity").Friendship>;
     acceptFriendRequest(req: any, id: number): Promise<import("./friendship.entity").Friendship>;
     rejectFriendRequest(req: any, id: number): Promise<{

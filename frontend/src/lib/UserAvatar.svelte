@@ -4,7 +4,7 @@
   import { browser } from '$app/environment';
   import { page } from '$app/stores';
 
-  const BACKEND_URL = 'http://localhost:3000';
+  const BACKEND_URL = 'https://localhost:3000';
 
   type User = {
     id: number;
