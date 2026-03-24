@@ -2,19 +2,21 @@ services:
   db:
     build: ./postgresql
     container_name: psql_transcendence
+    dockerfile: Containerfile
     restart: always
     environment:
       POSTGRES_USER: myuser 
       POSTGRES_PASSWORD: mypassword 
       POSTGRES_DB: transcendence
     ports:
-      - "55555:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
     build: ./nest
     container_name: nest_backend
+    dockerfile: Containerfile
     restart: always
     depends_on:
       - db
@@ -28,6 +30,7 @@ services:
   frontend:
     build: ./svelte
     container_name: svelte_frontend
+    dockerfile: Containerfile
     restart: always
     depends_on:
       - backend
