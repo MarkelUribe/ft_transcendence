@@ -102,13 +102,6 @@
 </script>
 
 <style>
-  :global(body) {
-    margin: 0;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: #fff;
-  }
-
   .page-container {
     min-height: 100vh;
     display: flex;

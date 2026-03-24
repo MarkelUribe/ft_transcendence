@@ -17,10 +17,7 @@ let resultText = '';
 let socket: Socket;
 let api: ChessAPI;
 
-$: display =
-	myColor === 'b'
-		? board.map(r => [...r].reverse()).reverse()
-		: board;
+$: display = myColor === 'b' ? board.map(r => [...r].reverse()).reverse() : board;
 
 function parseFen(fen: string)
 {
@@ -130,17 +127,10 @@ onMount(async () =>
 	socket.on('moveMade', setState);
 	socket.on('gameEnded', (msg: any) =>
 	{
-		status = msg.status;
-
-		if (msg.status === 'draw')
+		if (msg.status === 'checkmate')
+			resultText = msg.loser == localStorage.getItem('id') ? 'Defeat' : 'Victory';
+		else
 			resultText = 'Draw';
-
-		else if (msg.status === 'checkmate')
-		{
-			resultText = msg.loser == localStorage.getItem('id')
-				? 'Defeat'
-				: 'Victory';
-		}
 
 		gameOver = true;
 	});
@@ -250,13 +240,6 @@ onDestroy(() => socket?.disconnect());
 		cursor: pointer;
 	}
 
-	.floating-piece {
-		position: absolute;
-		font-size: 3rem;
-		animation: float 6s ease-in-out infinite;
-		opacity: 0.3;
-	}
-
 	@keyframes float {
 		0%, 100% { transform: translateY(0px) rotate(0deg); }
 		50% { transform: translateY(-20px) rotate(15deg); }
@@ -272,37 +255,32 @@ onDestroy(() => socket?.disconnect());
 		<div>Status: {status}</div>
 	</div>
 
-<div class="board">
-	{#each display as row, r}
-		{#each row as cell, c}
-			<button
-				type="button"
-				class="square {( (r + c) % 2 === 0 ? 'light' : 'dark' )}"
-				class:selected={selected === coordFromDisplay(r, c)}
-				on:click={() => handleSquareClick(r, c)}
-			>
-				{#if cell}
-					<img class="piece" src={getPieceImage(cell)} alt={cell} />
-				{/if}
-			</button>
+	<div class="board">
+		{#each display as row, r}
+			{#each row as cell, c}
+				<button
+					type="button"
+					class="square {( (r + c) % 2 === 0 ? 'light' : 'dark' )}"
+					class:selected={selected === coordFromDisplay(r, c)}
+					on:click={() => handleSquareClick(r, c)}
+				>
+					{#if cell}
+						<img class="piece" src={getPieceImage(cell)} alt={cell} />
+					{/if}
+				</button>
+			{/each}
 		{/each}
-	{/each}
-	{#if gameOver}
-	<div class="modal">
-		<div class="modal-box">
-		<h2>{resultText}</h2>
-		<button on:click={goHome}>Return to home</button>
+		{#if gameOver}
+		<div class="modal">
+			<div class="modal-box">
+			<h2>{resultText}</h2>
+			<button on:click={goHome}>Return to home</button>
+			</div>
 		</div>
+		{/if}
 	</div>
-	{/if}
-</div>
 
-<div class="controls">
-	<button on:click={surrender}>Surrender</button>
+	<div class="controls">
+		<button on:click={surrender}>Surrender</button>
+	</div>
 </div>
-</div>
-
-<span class="floating-piece" style="top: 10%; left: 20%;">♞</span>
-<span class="floating-piece" style="top: 40%; left: 80%; animation-delay: 2s;">♜</span>
-<span class="floating-piece" style="top: 80%; left: 30%; animation-delay: 4s;">♚</span>
-<span class="floating-piece" style="top: 20%; left: 60%; animation-delay: 1s;">♛</span>

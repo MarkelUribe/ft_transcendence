@@ -8,7 +8,6 @@ import { User } from '../users/user.entity';
 @Injectable()
 export class GameService
 {
-
 	constructor(
 		@InjectRepository(Game) private readonly gameRepo: Repository<Game>,
 		@InjectRepository(User) private readonly userRepo: Repository<User>,

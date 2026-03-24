@@ -128,8 +128,3 @@
     <button on:click={handleSignIn}>Create account</button>
   </div>
 </div>
-
-<!-- Floating chess pieces for style -->
-<span class="floating-piece" style="top: 15%; left: 10%;">♞</span>
-<span class="floating-piece" style="top: 60%; left: 75%; animation-delay: 2s;">♜</span>
-<span class="floating-piece" style="top: 25%; left: 60%; animation-delay: 4s;">♚</span>

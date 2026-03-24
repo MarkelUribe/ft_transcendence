@@ -2,14 +2,11 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { io, type Socket } from 'socket.io-client';
 	import { FriendsAPI } from '$lib/api/friends';
+	import { handleButtonClick, searching } from '$lib/Matchmaking';
 
 	let username = '';
 	let isLoggedIn = false;
-	let socket: Socket | null = null;
-	let status = 'Not searching';
-	let searching = false;
 	let playerId: string | null = null;
 
 	let friends: { id: number; username: string; avatarUrl: string | null; elo: number | null }[] = [];
@@ -48,64 +45,6 @@
 		friendsApi = new FriendsAPI(token);
 		refreshFriendsAndRequests();
 	});
-
-	async function startMatchmaking() {
-		searching = true;
-		status = 'Checking for existing game...';
-
-		try {
-			const res = await fetch(`http://localhost:3000/game/player`, {
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem("token")}`
-				}
-			});
-
-			if (res.ok) {
-				const game = await res.json().catch(() => null);
-				if (game && game.gameId) {
-					return goto(`/game/${game.gameId}`);
-				}
-			}
-		} catch (err) { console.error(err); }
-
-		socket = io('http://localhost:3000', {
-			auth: { token: localStorage.getItem("token") }
-		});
-
-		socket.on('connect', () => {
-			status = 'Searching for opponent...';
-			socket.emit('joinQueue');
-		});
-
-		socket.on('waiting', () => {
-			status = 'Waiting for opponent...';
-		});
-
-		socket.on('matched', (data: { gameId: string }) => {
-			console.log("Received 'matched' event:", data);
-			searching = false;
-			goto(`/game/${data.gameId}`);
-		});
-
-		socket.on('disconnect', () => {
-			status = 'Disconnected...';
-			searching = false;
-		});
-	}
-
-	function cancelMatchmaking() {
-		if (!socket) return;
-		socket.emit('leaveQueue');
-		socket.disconnect();
-		socket = null;
-		status = 'Matchmaking canceled';
-		searching = false;
-	}
-
-	function handleButtonClick() {
-		if (searching) cancelMatchmaking();
-		else startMatchmaking();
-	}
 
 	async function refreshFriendsAndRequests() {
 		if (!friendsApi) return;
@@ -202,14 +141,6 @@
 </script>
 
 <style>
-	:global(body) {
-		margin: 0;
-		font-family: 'Segoe UI', Roboto, sans-serif;
-		background: linear-gradient(135deg, #1e3c72, #2a5298);
-		color: #fff;
-		overflow: hidden;
-	}
-
 	.container {
 		display: flex;
 		flex-direction: column;
@@ -268,14 +199,6 @@
 		0% { transform: scale(1); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
 		50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,255,255,0.8); }
 		100% { transform: scale(1); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
-	}
-
-	/* Floating chess pieces */
-	.floating-piece {
-		position: absolute;
-		font-size: 3rem;
-		animation: float 6s ease-in-out infinite;
-		opacity: 0.3;
 	}
 
 	@keyframes float {
@@ -420,14 +343,6 @@
 		100% { transform: scale(1); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
 	}
 
-	/* Floating chess pieces */
-	.floating-piece {
-		position: absolute;
-		font-size: 3rem;
-		animation: float 6s ease-in-out infinite;
-		opacity: 0.3;
-	}
-
 	@keyframes float {
 		0%, 100% { transform: translateY(0px) rotate(0deg); }
 		50% { transform: translateY(-20px) rotate(15deg); }
@@ -446,9 +361,9 @@
 	<div class="buttons">
 		{#if isLoggedIn}
 			<button
-				class="button {searching ? 'searching' : 'idle'}"
+				class="button {$searching ? 'searching' : 'idle'}"
 				on:click={handleButtonClick}>
-				{searching ? 'Searching... (Click to cancel)' : 'Play'}
+				{$searching ? 'Searching... (Click to cancel)' : 'Play'}
 			</button>
 			<button class="button" on:click={handlePlayBot}>Play Against Bot</button>
 			<button class="button" on:click={handleLogout}>Logout</button>
@@ -536,9 +451,3 @@
 		</div>
 	{/if}
 </div>
-
-<!-- Floating chess pieces -->
-<span class="floating-piece" style="top: 10%; left: 20%;">♞</span>
-<span class="floating-piece" style="top: 40%; left: 80%; animation-delay: 2s;">♜</span>
-<span class="floating-piece" style="top: 70%; left: 30%; animation-delay: 4s;">♚</span>
-<span class="floating-piece" style="top: 20%; left: 60%; animation-delay: 1s;">♛</span>

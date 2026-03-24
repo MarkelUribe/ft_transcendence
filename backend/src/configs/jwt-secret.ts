@@ -1,2 +1,1 @@
-export const JWT_SECRET =
-	"sekreto-secreto-iberiko-nosekeponer-como-sekreto"
+export const JWT_SECRET = "sekreto-secreto-iberiko-nosekeponer-como-sekreto"

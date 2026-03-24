@@ -1,5 +1,6 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
+    import Default from '$lib/Default.svelte';
 	import UserAvatar from '$lib/UserAvatar.svelte';
 
 	let { children } = $props();
@@ -10,5 +11,6 @@
 </svelte:head>
 
 <UserAvatar />
+<Default />
 
 {@render children()}

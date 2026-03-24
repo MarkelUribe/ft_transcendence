@@ -76,13 +76,6 @@
 </script>
 
 <style>
-  :global(body) {
-    margin: 0;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: #fff;
-  }
-
   .login-container {
     display: flex;
     flex-direction: column;
@@ -140,13 +133,6 @@
     box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   }
 
-  .floating-piece {
-    position: absolute;
-    font-size: 2.5rem;
-    animation: float 6s ease-in-out infinite;
-    opacity: 0.3;
-  }
-
   @keyframes float {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
     50% { transform: translateY(-15px) rotate(15deg); }
@@ -178,8 +164,3 @@
 
   </div>
 </div>
-
-<!-- Floating chess pieces for style -->
-<span class="floating-piece" style="top: 15%; left: 10%;">♞</span>
-<span class="floating-piece" style="top: 60%; left: 75%; animation-delay: 2s;">♜</span>
-<span class="floating-piece" style="top: 25%; left: 60%; animation-delay: 4s;">♚</span>

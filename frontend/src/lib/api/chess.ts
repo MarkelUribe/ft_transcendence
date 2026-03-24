@@ -1,6 +1,23 @@
 // src/lib/api/chess.ts
 const BASE_URL = 'http://localhost:3000';
 
+export async function getExistingGame(token: string) {
+  try {
+    const res = await fetch(`http://localhost:3000/game/player`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) return null;
+
+    return await res.json().catch(() => null);
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 export class ChessAPI {
   token: string;
 
