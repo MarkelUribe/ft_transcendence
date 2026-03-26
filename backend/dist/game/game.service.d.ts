@@ -12,5 +12,5 @@ export declare class GameService {
         fen: string;
     } | null>;
     deleteGame(id: string): Promise<void>;
-    makeMove(id: string, from: string, to: string, userId: number): Promise<Game>;
+    makeMove(id: string, from: string, to: string, userId: number, promotion?: string): Promise<Game>;
 }

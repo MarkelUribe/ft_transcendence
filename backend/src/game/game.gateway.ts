@@ -78,9 +78,9 @@ export class GameGateway implements OnGatewayConnection {
 	@SubscribeMessage('proposeMove')
 	async handleProposeMove(
 		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { gameId: string; from: string; to: string }
+		@MessageBody() data: { gameId: string; from: string; to: string; promotion?: string}
 	) {
-		const { gameId, from, to } = data;
+		const { gameId, from, to, promotion } = data;
 
 		const userId = client.data.userId;
 
@@ -89,10 +89,10 @@ export class GameGateway implements OnGatewayConnection {
 			return;
 		}
 
-		console.log('ProposeMove received:', { gameId, from, to, userId });
+		console.log('ProposeMove received:', { gameId, from, to, promotion, userId });
 
 		try {
-			const game = await this.gameService.makeMove(gameId, from, to, userId);
+			const game = await this.gameService.makeMove(gameId, from, to, userId, promotion);
 
 			this.server.to(gameId).emit('moveMade', {
 				gameId: game.id,

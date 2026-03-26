@@ -64,15 +64,15 @@ let GameGateway = class GameGateway {
         }
     }
     async handleProposeMove(client, data) {
-        const { gameId, from, to } = data;
+        const { gameId, from, to, promotion } = data;
         const userId = client.data.userId;
         if (!userId) {
             client.emit('moveRejected', { reason: 'Unauthorized' });
             return;
         }
-        console.log('ProposeMove received:', { gameId, from, to, userId });
+        console.log('ProposeMove received:', { gameId, from, to, promotion, userId });
         try {
-            const game = await this.gameService.makeMove(gameId, from, to, userId);
+            const game = await this.gameService.makeMove(gameId, from, to, userId, promotion);
             this.server.to(gameId).emit('moveMade', {
                 gameId: game.id,
                 fen: game.fen,

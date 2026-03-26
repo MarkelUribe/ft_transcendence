@@ -60,7 +60,7 @@ let GameService = class GameService {
         return { gameId: game.id, fen: game.fen };
     }
     async deleteGame(id) { await this.gameRepo.delete(id); }
-    async makeMove(id, from, to, userId) {
+    async makeMove(id, from, to, userId, promotion) {
         const game = await this.findOne(id);
         let turnId = '';
         if (game.white.id === userId)
@@ -68,22 +68,19 @@ let GameService = class GameService {
         if (game.black.id === userId)
             turnId = 'b';
         const turn = game.fen.split(' ')[1];
-        if (turn != turnId)
-            throw new common_1.BadRequestException('Bro dont cheat');
+        if (turn !== turnId)
+            throw new common_1.BadRequestException("Bro dont cheat");
         const chess = new chess_js_1.Chess(game.fen);
-        console.log('Move attempt - FEN:', game.fen, 'Turn:', chess.turn(), 'From:', from, 'To:', to);
-        const move = chess.move({ from, to });
+        console.log('Move attempt - FEN:', game.fen, 'Turn:', chess.turn(), 'From:', from, 'To:', to, 'Promotion:', promotion);
+        const move = chess.move({ from, to, promotion });
         console.log('Move result:', move);
-        if (!move) {
+        if (!move)
             throw new common_1.BadRequestException('Invalid move');
-        }
         game.fen = chess.fen();
-        if (chess.isCheckmate()) {
+        if (chess.isCheckmate())
             game.status = 'checkmate';
-        }
-        else if (chess.isDraw()) {
+        else if (chess.isDraw())
             game.status = 'draw';
-        }
         return this.gameRepo.save(game);
     }
 };

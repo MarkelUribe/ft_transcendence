@@ -18,6 +18,7 @@ export declare class GameGateway implements OnGatewayConnection {
         gameId: string;
         from: string;
         to: string;
+        promotion?: string;
     }): Promise<void>;
     handleSurrender(client: Socket, data: {
         gameId: string;
