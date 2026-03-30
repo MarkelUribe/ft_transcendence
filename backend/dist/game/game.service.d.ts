@@ -12,5 +12,7 @@ export declare class GameService {
         fen: string;
     } | null>;
     deleteGame(id: string): Promise<void>;
+    private eloGivingLogic;
     makeMove(id: string, from: string, to: string, userId: number, promotion?: string): Promise<Game>;
+    surrender(id: string, userId: number): Promise<Game>;
 }

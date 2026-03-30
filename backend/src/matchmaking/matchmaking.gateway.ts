@@ -36,47 +36,47 @@ export class MatchmakingGateway implements OnGatewayDisconnect {
 async handleJoinQueue(@ConnectedSocket() client: Socket) {
 	const playerId = client.data.userId;
 
-	console.log('--- joinQueue called ---');
-	console.log('socket.id:', client.id);
-	console.log('playerId from socket:', playerId);
+//	console.log('--- joinQueue called ---');
+//	console.log('socket.id:', client.id);
+//	console.log('playerId from socket:', playerId);
 
 	if (!playerId) {
-		console.log('No playerId, disconnecting socket');
+//		console.log('No playerId, disconnecting socket');
 		return client.disconnect();
 	}
 
 	const game = await this.matchmakingService.joinQueue(playerId);
 
-	console.log('game returned from matchmaking:', game);
+//	console.log('game returned from matchmaking:', game);
 
 	if (!game) {
-		console.log('No match yet, emitting waiting');
+//		console.log('No match yet, emitting waiting');
 		return client.emit('waiting');
 	}
 
-	console.log('white player id:', game.white?.id);
-	console.log('black player id:', game.black?.id);
+//	console.log('white player id:', game.white?.id);
+//	console.log('black player id:', game.black?.id);
 
 	const opponentId =
 		game.white?.id === playerId
 			? game.black?.id
 			: game.white?.id;
 
-	console.log('calculated opponentId:', opponentId);
+//	console.log('calculated opponentId:', opponentId);
 
 	const opponentSocket = this.findSocketByPlayerId(opponentId);
 
-	console.log(
-		'opponent socket found:',
-		opponentSocket ? opponentSocket.id : 'NONE'
-	);
+//	console.log(
+//		'opponent socket found:',
+//		opponentSocket ? opponentSocket.id : 'NONE'
+//	);
 
 	if (!opponentSocket) {
-		console.log('Opponent socket not found, emitting waiting');
+//		console.log('Opponent socket not found, emitting waiting');
 		return client.emit('waiting');
 	}
 
-	console.log('Emitting matched to both players. Game ID:', game.id);
+//	console.log('Emitting matched to both players. Game ID:', game.id);
 
 	opponentSocket.emit('matched', { gameId: game.id });
 	client.emit('matched', { gameId: game.id });

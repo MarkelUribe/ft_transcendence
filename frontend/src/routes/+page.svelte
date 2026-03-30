@@ -7,7 +7,6 @@
 
 	let username = '';
 	let isLoggedIn = false;
-	let playerId: string | null = null;
 
 	let friends: { id: number; username: string; avatarUrl: string | null; elo: number | null }[] = [];
 
@@ -35,7 +34,6 @@
 
 		const token = localStorage.getItem('token');
 		const storedUsername = localStorage.getItem('username');
-		playerId = localStorage.getItem('id');
 
 		if (token && storedUsername) {
 			isLoggedIn = true;
@@ -52,16 +50,16 @@
 		requestsError = '';
 
 		try {
-		const [friendsData, pending] = await Promise.all([
-			friendsApi.getFriends(),
-			friendsApi.getPendingRequests(),
-		]);
-		friends = friendsData ?? [];
-		incomingRequests = pending?.incoming ?? [];
-		outgoingRequests = pending?.outgoing ?? [];
-		} catch (err) {
-		console.error('Failed to load friends or requests', err);
-		requestsError = 'Could not load friend requests.';
+			const [friendsData, pending] = await Promise.all([
+				friendsApi.getFriends(),
+				friendsApi.getPendingRequests(),
+			]);
+			friends = friendsData ?? [];
+			incomingRequests = pending?.incoming ?? [];
+			outgoingRequests = pending?.outgoing ?? [];
+			} catch (err) {
+			console.error('Failed to load friends or requests', err);
+			requestsError = 'Could not load friend requests.';
 		}
 	}
 

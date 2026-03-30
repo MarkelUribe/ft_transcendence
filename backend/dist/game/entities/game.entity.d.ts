@@ -4,7 +4,8 @@ export declare class Game {
     fen: string;
     white: User;
     black: User;
-    status: 'active' | 'checkmate' | 'draw';
+    status: 'active' | 'ended';
     createdAt: Date;
     updatedAt: Date;
+    looser: number;
 }

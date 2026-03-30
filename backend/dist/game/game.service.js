@@ -27,17 +27,21 @@ let GameService = class GameService {
         this.userRepo = userRepo;
     }
     async createGame(whiteId, blackId) {
-        const white = await this.userRepo.findOneBy({ id: Number(whiteId) });
-        const black = await this.userRepo.findOneBy({ id: Number(blackId) });
-        if (!white || !black) {
+        const player1 = await this.userRepo.findOneBy({ id: Number(whiteId) });
+        const player2 = await this.userRepo.findOneBy({ id: Number(blackId) });
+        if (!player1 || !player2) {
             throw new common_1.NotFoundException('User not found');
         }
         const chess = new chess_js_1.Chess();
+        const isSwap = Math.random() < 0.5;
+        const white = isSwap ? player2 : player1;
+        const black = isSwap ? player1 : player2;
         const game = this.gameRepo.create({
             fen: chess.fen(),
             white,
             black,
             status: 'active',
+            looser: -1
         });
         return this.gameRepo.save(game);
     }
@@ -60,6 +64,31 @@ let GameService = class GameService {
         return { gameId: game.id, fen: game.fen };
     }
     async deleteGame(id) { await this.gameRepo.delete(id); }
+    async eloGivingLogic(game, winner) {
+        const K = 32;
+        const whiteElo = game.white.elo;
+        const blackElo = game.black.elo;
+        const expectedWhite = 1 / (1 + Math.pow(10, (blackElo - whiteElo) / 400));
+        const expectedBlack = 1 / (1 + Math.pow(10, (whiteElo - blackElo) / 400));
+        let scoreWhite = 0.5;
+        let scoreBlack = 0.5;
+        game.looser = -1;
+        if (winner === 'w') {
+            scoreWhite = 1;
+            scoreBlack = 0;
+            game.looser = game.black.id;
+        }
+        else if (winner === 'b') {
+            scoreWhite = 0;
+            scoreBlack = 1;
+            game.looser = game.white.id;
+        }
+        game.status = 'ended';
+        game.white.elo = Math.max(0, Math.round(whiteElo + K * (scoreWhite - expectedWhite)));
+        game.black.elo = Math.max(0, Math.round(blackElo + K * (scoreBlack - expectedBlack)));
+        await this.userRepo.save(game.white);
+        await this.userRepo.save(game.black);
+    }
     async makeMove(id, from, to, userId, promotion) {
         const game = await this.findOne(id);
         let turnId = '';
@@ -71,16 +100,26 @@ let GameService = class GameService {
         if (turn !== turnId)
             throw new common_1.BadRequestException("Bro dont cheat");
         const chess = new chess_js_1.Chess(game.fen);
-        console.log('Move attempt - FEN:', game.fen, 'Turn:', chess.turn(), 'From:', from, 'To:', to, 'Promotion:', promotion);
         const move = chess.move({ from, to, promotion });
-        console.log('Move result:', move);
         if (!move)
             throw new common_1.BadRequestException('Invalid move');
         game.fen = chess.fen();
-        if (chess.isCheckmate())
-            game.status = 'checkmate';
-        else if (chess.isDraw())
-            game.status = 'draw';
+        if (chess.isCheckmate()) {
+            this.eloGivingLogic(game, turnId);
+        }
+        else if (chess.isDraw()) {
+            this.eloGivingLogic(game, 'd');
+        }
+        return this.gameRepo.save(game);
+    }
+    async surrender(id, userId) {
+        const game = await this.findOne(id);
+        let winner = '';
+        if (game.white.id === userId)
+            winner = 'b';
+        if (game.black.id === userId)
+            winner = 'w';
+        this.eloGivingLogic(game, winner);
         return this.gameRepo.save(game);
     }
 };

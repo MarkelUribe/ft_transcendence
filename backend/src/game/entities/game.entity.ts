@@ -16,11 +16,14 @@ export class Game {
   black: User;
 
   @Column({ type: 'varchar', default: 'active' })
-  status: 'active' | 'checkmate' | 'draw';
+  status: 'active' | 'ended';
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column('text')
+  looser: number;
 }

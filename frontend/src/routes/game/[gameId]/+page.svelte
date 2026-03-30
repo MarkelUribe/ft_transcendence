@@ -8,7 +8,6 @@ import { goto } from '$app/navigation';
 let gameId = '';
 let board: (string | null)[][] = [];
 let selected: string | null = null;
-let status = '';
 let turn: 'w' | 'b' = 'w';
 let myColor: 'w' | 'b' | null = null;
 let gameOver = false;
@@ -49,7 +48,6 @@ function parseFen(fen: string)
 function setState(state: any)
 {
 	board = parseFen(state.fen);
-	status = state.status;
 	turn = state.fen.split(' ')[1] as 'w' | 'b';
 
 	const me = localStorage.getItem('id');
@@ -196,12 +194,18 @@ onMount(async () =>
 
 	socket.on('gameState', setState);
 	socket.on('moveMade', setState);
-	socket.on('gameEnded', (msg: any) =>
+	socket.on('ended', (msg: any) =>
 	{
-		if (msg.status === 'checkmate')
-			resultText = msg.loser == localStorage.getItem('id') ? 'Defeat' : 'Victory';
-		else
+		const myId = Number(localStorage.getItem('id'));
+
+		if (!myColor)
+			resultText = 'Match ended';
+		else if (msg.looser === -1)
 			resultText = 'Draw';
+		else
+			resultText = msg.looser === myId ? 'Defeat' : 'Victory';
+	
+		console.log(msg);
 
 		gameOver = true;
 	});
@@ -235,7 +239,6 @@ onDestroy(() => socket?.disconnect());
 		border-radius: 10px;
 		box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 		margin: 1rem auto;
-		
 	}
 
 	.square {
@@ -506,7 +509,7 @@ onDestroy(() => socket?.disconnect());
 			<div class="turn-indicator {myColor === turn ? 'my-turn' : ''}">
 				<span class="dot"></span>
 				<span class="turn-text">
-					{myColor === turn  ? 'Your turn!' : 'Enemys turn'}
+					{!myColor ? 'Spectating' : myColor === turn ? 'Your turn!' : 'Enemy’s turn'}
 				</span>
 			</div>
 		{/if}

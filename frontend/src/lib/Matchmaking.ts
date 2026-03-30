@@ -5,11 +5,9 @@ import { writable, get } from 'svelte/store';
 
 let socket: Socket | null = null;
 export const searching = writable(false);
-let status = 'Not searching';
 
 async function startMatchmaking() {
 	searching.set(true);
-	status = 'Checking for existing game...';
 
 	const token = localStorage.getItem("token");
 
@@ -19,12 +17,10 @@ async function startMatchmaking() {
 	socket = io('http://localhost:3000', { auth: { token } });
 
 	socket.on('connect', () => {
-		status = 'Searching for opponent...';
 		socket.emit('joinQueue');
 	});
 
 	socket.on('waiting', () => {
-		status = 'Waiting for opponent...';
 	});
 
 	socket.on('matched', (data: { gameId: string }) => {
@@ -33,7 +29,6 @@ async function startMatchmaking() {
 	});
 
 	socket.on('disconnect', () => {
-		status = 'Disconnected...';
 		searching.set(false);
 	});
 }
@@ -43,7 +38,6 @@ function cancelMatchmaking() {
 	socket.emit('leaveQueue');
 	socket.disconnect();
 	socket = null;
-	status = 'Matchmaking canceled';
 	searching.set(false);
 }
 

@@ -73,16 +73,18 @@ let GameGateway = class GameGateway {
         console.log('ProposeMove received:', { gameId, from, to, promotion, userId });
         try {
             const game = await this.gameService.makeMove(gameId, from, to, userId, promotion);
-            this.server.to(gameId).emit('moveMade', {
-                gameId: game.id,
-                fen: game.fen,
-                status: game.status,
-                white: game.white,
-                black: game.black
-            });
-            if (game.status === 'checkmate' || game.status === 'draw') {
-                this.server.to(gameId).emit('gameEnded', { status: game, loser: userId });
+            await this.gameRepo.save(game);
+            if (game.status === 'ended') {
+                this.server.to(gameId).emit('ended', { looser: game.looser });
                 await this.gameService.deleteGame(gameId);
+            }
+            else {
+                this.server.to(gameId).emit('moveMade', {
+                    gameId: game.id,
+                    fen: game.fen,
+                    white: game.white,
+                    black: game.black
+                });
             }
         }
         catch (err) {
@@ -99,13 +101,8 @@ let GameGateway = class GameGateway {
                 client.emit('error', { message: 'Unauthorized' });
                 return;
             }
-            const game = await this.gameService.findOne(gameId);
-            game.status = 'checkmate';
-            await this.gameRepo.save(game);
-            this.server.to(gameId).emit('gameEnded', {
-                status: 'checkmate',
-                loser: userId
-            });
+            const game = await this.gameService.surrender(gameId, userId);
+            this.server.to(gameId).emit('ended', { looser: game.looser });
             await this.gameService.deleteGame(gameId);
         }
         catch {

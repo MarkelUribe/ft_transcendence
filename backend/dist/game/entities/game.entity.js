@@ -20,6 +20,7 @@ let Game = class Game {
     status;
     createdAt;
     updatedAt;
+    looser;
 };
 exports.Game = Game;
 __decorate([
@@ -50,6 +51,10 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], Game.prototype, "updatedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)('text'),
+    __metadata("design:type", Number)
+], Game.prototype, "looser", void 0);
 exports.Game = Game = __decorate([
     (0, typeorm_1.Entity)('games')
 ], Game);

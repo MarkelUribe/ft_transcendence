@@ -12,12 +12,13 @@ const matchmaking_service_1 = require("../matchmaking/matchmaking.service");
 const matchmaking_controller_1 = require("./matchmaking.controller");
 const matchmaking_gateway_1 = require("./matchmaking.gateway");
 const game_module_1 = require("../game/game.module");
+const users_module_1 = require("../users/users.module");
 let MatchmakingModule = class MatchmakingModule {
 };
 exports.MatchmakingModule = MatchmakingModule;
 exports.MatchmakingModule = MatchmakingModule = __decorate([
     (0, common_1.Module)({
-        imports: [game_module_1.GameModule],
+        imports: [game_module_1.GameModule, users_module_1.UsersModule],
         controllers: [matchmaking_controller_1.MatchmakingController],
         providers: [matchmaking_service_1.MatchmakingService, matchmaking_gateway_1.MatchmakingGateway],
     })
