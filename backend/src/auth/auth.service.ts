@@ -36,7 +36,7 @@ export class AuthService {
 
 		const isValid = await bcrypt.compare(input.password, user.password);
 		if (!isValid)
-			    throw new UnauthorizedException('Invalid username or password');
+			throw new UnauthorizedException('Invalid username or password');
 
 		return {
 			id: user.id,

@@ -11,6 +11,7 @@
     username: string;
     email: string;
     avatarUrl: string | null;
+    elo?: number | null; // add elo if your backend returns it
   };
 
   let user: User | null = null;
@@ -91,6 +92,28 @@
   $: hideOnAuthPages = currentPath.startsWith('/login') || currentPath.startsWith('/register') || currentPath.startsWith('/signin');
 </script>
 
+<style>
+  :global(body) {
+		margin: 0;
+		font-family: 'Segoe UI', Roboto, sans-serif;
+		background: linear-gradient(135deg, #1e3c72, #2a5298);
+		color: #fff;
+		overflow: hidden;
+	}
+
+  .floating-piece {
+		position: absolute;
+		font-size: 3rem;
+		animation: float 6s ease-in-out infinite;
+		opacity: 0.3;
+	}
+
+	@keyframes float {
+		0%, 100% { transform: translateY(0px) rotate(0deg); }
+		50% { transform: translateY(-20px) rotate(15deg); }
+	}
+</style>
+
 {#if !loading && user && !hideOnAuthPages}
   <button
     type="button"
@@ -99,22 +122,65 @@
       position: fixed;
       top: 1rem;
       left: 1rem;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      padding: 0;
+      border-radius: 9999px;
+      padding: 0.4rem 0.7rem 0.4rem 0.4rem;
       border: 2px solid rgba(255, 255, 255, 0.8);
-      overflow: hidden;
       cursor: pointer;
-      background: transparent;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
       z-index: 1000;
+      color: #fff;
     "
     aria-label="Go to profile"
   >
-    <img
-      src={user.avatarUrl ? `${BACKEND_URL}${user.avatarUrl}` : '/pieces/default-avatar.png'}
-      alt=""
-      style="width: 100%; height: 100%; object-fit: cover; display: block;"
-    />
+    <div
+      style="
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+      "
+    >
+      <img
+        src={user.avatarUrl ? `${BACKEND_URL}${user.avatarUrl}` : '/pieces/default-avatar.png'}
+        alt=""
+        style="width: 100%; height: 100%; object-fit: cover; display: block;"
+      />
+    </div>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 0.8rem;
+        line-height: 1.2;
+        text-align: left;
+      "
+    >
+      <span style="font-weight: 600;">{user.username}</span>
+      <span>ID: {user.id}</span>
+      <span>{user.elo ?? 'Unrated'} ELO</span>
+    </div>
   </button>
 {/if}
+
+<span class="floating-piece" style="top: 5%; left: 10%; animation-delay: 0.5s;">♟</span>
+<span class="floating-piece" style="top: 15%; left: 70%; animation-delay: 1.2s;">♘</span>
+<span class="floating-piece" style="top: 25%; left: 35%; animation-delay: 2.3s;">♖</span>
+<span class="floating-piece" style="top: 30%; left: 85%; animation-delay: 0.8s;">♝</span>
+<span class="floating-piece" style="top: 45%; left: 15%; animation-delay: 3s;">♞</span>
+<span class="floating-piece" style="top: 55%; left: 50%; animation-delay: 1.7s;">♜</span>
+<span class="floating-piece" style="top: 65%; left: 75%; animation-delay: 2.8s;">♛</span>
+<span class="floating-piece" style="top: 70%; left: 25%; animation-delay: 0.3s;">♚</span>
+<span class="floating-piece" style="top: 85%; left: 60%; animation-delay: 4.1s;">♟</span>
+<span class="floating-piece" style="top: 90%; left: 5%; animation-delay: 2.6s;">♘</span>
+<span class="floating-piece" style="top: 12%; left: 40%; animation-delay: 3.4s;">♝</span>
+<span class="floating-piece" style="top: 38%; left: 55%; animation-delay: 1.9s;">♖</span>
+<span class="floating-piece" style="top: 48%; left: 90%; animation-delay: 0.6s;">♞</span>
+<span class="floating-piece" style="top: 60%; left: 5%; animation-delay: 2.2s;">♜</span>
+<span class="floating-piece" style="top: 75%; left: 45%; animation-delay: 3.7s;">♛</span>
+<span class="floating-piece" style="top: 95%; left: 80%; animation-delay: 1.1s;">♚</span>

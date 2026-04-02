@@ -1,10 +1,29 @@
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { User } from '../../users/user.entity';
+
+@Entity('games')
 export class Game {
+  @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column('text')
   fen: string;
-//  turn: 'white' | 'black';
-  players: {
-    white: string;
-    black: string;
-  }
-  status: 'active' | 'checkmate' | 'draw';
+
+  @ManyToOne(() => User, { eager: true })
+  white: User;
+
+  @ManyToOne(() => User, { eager: true })
+  black: User;
+
+  @Column({ type: 'varchar', default: 'active' })
+  status: 'active' | 'ended';
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @Column('text')
+  looser: number;
 }

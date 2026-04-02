@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Friendship } from '../friends/friendship.entity';
 
 @Entity('users')
 export class User {
@@ -23,4 +24,10 @@ export class User {
   
   @Column({ type: 'int', default: 0, nullable: true })
   elo: number;
+
+  @OneToMany(() => Friendship, (friendship) => friendship.requester)
+  sentFriendships: Friendship[];
+
+  @OneToMany(() => Friendship, (friendship) => friendship.addressee)
+  receivedFriendships: Friendship[];
 }
