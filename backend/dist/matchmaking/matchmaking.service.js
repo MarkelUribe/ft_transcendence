@@ -40,7 +40,7 @@ let MatchmakingService = class MatchmakingService {
                 if (opponent.id === playerId)
                     continue;
                 const waitingTime = (Date.now() - joinedAt) / 1000;
-                const range = 50 + waitingTime * 10;
+                const range = waitingTime * 10;
                 const eloDiff = Math.abs(opponent.elo - newPlayer.elo);
                 if (eloDiff <= range && eloDiff <= 400) {
                     this.queue = this.queue.filter(p => p.id !== playerId && p.id !== opponent.id);

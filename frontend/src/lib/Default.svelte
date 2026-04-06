@@ -12,6 +12,7 @@
 		font-size: 3rem;
 		animation: float 6s ease-in-out infinite;
 		opacity: 0.3;
+		z-index: -1;
 	}
 
 	@keyframes float {
