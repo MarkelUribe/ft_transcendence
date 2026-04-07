@@ -1,0 +1,39 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import * as fs from 'fs';
+
+// Tus módulos
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { GameModule } from './game/game.module';
+import { MatchmakingModule } from './matchmaking/matchmaking.module';
+import { FriendsModule } from './friends/friends.module';
+const dbPassword = fs.readFileSync('/run/secrets/db_password', 'utf8').trim();
+
+@Module({
+  imports: [
+    // 🔹 Configuración global de variables de entorno
+    ConfigModule.forRoot({ isGlobal: true }),
+
+    // 🔹 Configuración de MariaDB con secret
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: 'db', // nombre del contenedor MariaDB
+      port: 3306,
+      username: process.env.MYSQL_USER,
+      password: dbPassword,
+      database: process.env.MYSQL_DATABASE,
+      autoLoadEntities: true,
+      synchronize: true, // solo para dev
+    }),
+
+    // 🔹 Tus módulos
+    UsersModule,
+    AuthModule,
+    GameModule,
+    MatchmakingModule,
+    FriendsModule,
+  ],
+})
+export class AppModule {}
