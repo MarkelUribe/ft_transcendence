@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
 
-  const BACKEND_URL = 'http://localhost:3000';
+  const BACKEND_URL = 'https://localhost:3000';
 
   let user: {
     id: number;

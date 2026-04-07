@@ -38,8 +38,14 @@ const app_module_1 = require("./app.module");
 const common_1 = require("@nestjs/common");
 const path_1 = require("path");
 const express = __importStar(require("express"));
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const httpsOptions = {
+        key: fs.readFileSync(path.join(__dirname, '..', '..', 'certs', 'localhost+2-key.pem')),
+        cert: fs.readFileSync(path.join(__dirname, '..', '..', 'certs', 'localhost+2.pem')),
+    };
+    const app = await core_1.NestFactory.create(app_module_1.AppModule, { httpsOptions });
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
@@ -51,6 +57,7 @@ async function bootstrap() {
         credentials: true,
     });
     app.use('/uploads', express.static((0, path_1.join)(__dirname, '..', 'uploads')));
+    app.use('/resources', express.static((0, path_1.join)(__dirname, '..', 'resources')));
     await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

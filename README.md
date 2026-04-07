@@ -14,3 +14,9 @@ TODO:
 StockFish
 https://stockfishchess.org/
 https://lucidar.me/en/chess/how-to-use-stockfish-in-command-line/
+
+
+to create the local ssl certificates:
+cd certs
+mkcert -install
+mkcert localhost 127.0.0.1 ::1

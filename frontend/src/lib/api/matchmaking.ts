@@ -16,7 +16,7 @@ async function startMatchmaking() {
 	const game = await getExistingGame(token);
 	if (game?.gameId) return goto(`/game/${game.gameId}`);
 
-	socket = io('http://localhost:3000', { auth: { token } });
+	socket = io('https://localhost:3000', { auth: { token } });
 
 	socket.on('connect', () => {
 		status = 'Searching for opponent...';
