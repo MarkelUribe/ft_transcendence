@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, Relation } from 'typeorm';
 import { Friendship } from '../friends/friendship.entity';
 
 @Entity('users')
@@ -26,8 +26,23 @@ export class User {
   elo: number;
 
   @OneToMany(() => Friendship, (friendship) => friendship.requester)
-  sentFriendships: Friendship[];
+  sentFriendships: Relation<Friendship>[]; // Añade Relation<> aquí
 
   @OneToMany(() => Friendship, (friendship) => friendship.addressee)
-  receivedFriendships: Friendship[];
+  receivedFriendships: Relation<Friendship>[]; // Añade Relation<> aquí
 }
+/*
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, Relation } from 'typeorm'; // Añade Relation
+import { Friendship } from '../friends/friendship.entity';
+
+@Entity('users')
+export class User {
+  // ... (tus otras columnas iguales)
+
+  @OneToMany(() => Friendship, (friendship) => friendship.requester)
+  sentFriendships: Relation<Friendship>[]; // Añade Relation<> aquí
+
+  @OneToMany(() => Friendship, (friendship) => friendship.addressee)
+  receivedFriendships: Relation<Friendship>[]; // Añade Relation<> aquí
+}
+*/
