@@ -1,38 +1,39 @@
-# Paths
-BACKEND_DIR=backend
-FRONTEND_DIR=frontend
+.PHONY: up down rebuild ensure-env
 
-# Default target
-.PHONY: all
-all: dev
+ENV_FILE := ./srcs/.env
+ENV_EXAMPLE := ./srcs/.env.example
 
-# ── Development ──
-.PHONY: dev
-dev:
-	@echo "Starting backend..."
-	@cd $(BACKEND_DIR) && npm run start:dev &
-	@sleep 5
-	@echo "Starting frontend..."
-	@cd $(FRONTEND_DIR) && npm run dev
+ensure-env:
+	@if [ ! -f "$(ENV_FILE)" ]; then \
+		if [ -f "$(ENV_EXAMPLE)" ]; then \
+			cp "$(ENV_EXAMPLE)" "$(ENV_FILE)"; \
+			echo "[make] Created $(ENV_FILE) from $(ENV_EXAMPLE)."; \
+			echo "[make] Edit $(ENV_FILE) and re-run: make up"; \
+			exit 1; \
+		else \
+			echo "[make] Missing $(ENV_EXAMPLE). Cannot generate $(ENV_FILE)."; \
+			exit 1; \
+		fi; \
+	fi
 
-# ── Backend build
-.PHONY: backend-build
-backend-build:
-	@cd $(BACKEND_DIR) && npm run build
+up: ensure-env
+	@sh -c 'set -eu; \
+		trap "echo \"\n[make] Caught Ctrl+C → stopping stack...\"; podman-compose -f ./srcs/compose.yaml down -v >/dev/null 2>&1 || true" INT TERM; \
+		podman-compose -f ./srcs/compose.yaml up --build'
 
-# ── Frontend build
-.PHONY: frontend-build
-frontend-build:
-	@cd $(FRONTEND_DIR) && npm run build
+down:
+	@podman-compose -f ./srcs/compose.yaml down -v || true
+	@podman rm -f $$(podman ps -aq --filter label=io.podman.compose.project=srcs) 2>/dev/null || true
+	@podman volume rm $$(podman volume ls -q --filter label=io.podman.compose.project=srcs) 2>/dev/null || true
+	@podman network rm srcs_transcendence_net 2>/dev/null || true
 
-# ── Full production build
-.PHONY: build
-build: backend-build frontend-build
-	@echo "Backend and frontend built."
-
-# ── Clean
-.PHONY: clean
-clean:
-	@cd $(BACKEND_DIR) && rm -rf dist
-	@cd $(FRONTEND_DIR) && rm -rf build node_modules
-	@echo "Cleaned backend and frontend."
+rebuild: ensure-env
+	@echo "Destruyendo todo..."
+	@podman-compose -f ./srcs/compose.yaml down -v || true
+	@echo "Limpiando volúmenes residuales..."
+	@podman volume rm $$(podman volume ls -q --filter label=io.podman.compose.project=srcs) 2>/dev/null || true
+	@echo "Borrando imágenes viejas..."
+	@podman rmi -f nest_backend mariadb 2>/dev/null || true
+	@echo "Construyendo sin caché..."
+	@podman-compose -f ./srcs/compose.yaml build --no-cache
+	@podman-compose -f ./srcs/compose.yaml up

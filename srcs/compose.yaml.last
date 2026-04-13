@@ -1,0 +1,92 @@
+version: "3.8"
+
+services:
+  db:
+    image: mariadb:10.11
+    container_name: mariadb
+    restart: always
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=/run/secrets/db_password
+      - MYSQL_ROOT_PASSWORD=/run/secrets/db_root_password
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    secrets:
+      - db_password
+      - db_root_password
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ../secrets/db_password.txt:/run/secrets/db_password:ro,Z
+      - ../secrets/db_root_password.txt:/run/secrets/db_root_password:ro,Z
+    networks:
+      - transcendence_net
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./requirements/nest
+    container_name: nest_backend
+    restart: always
+    # Eliminamos 'user: root', Nest suele preferir el usuario por defecto de la imagen
+    depends_on:
+      db: 
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - PORT=3000
+    secrets:
+      - db_password
+      - db_root_password
+      - source: db_password
+        target: db_password
+        # Quitamos el mode: 0444, suele dar problemas en Podman rootless
+    ports:
+      - "3000:3000"
+    networks:
+      - transcendence_net
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build: ./requirements/svelte
+    container_name: svelte_frontend
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    networks:
+      - transcendence_net
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mariadb_data:
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+
+networks:
+  transcendence_net:
+    driver: bridge
