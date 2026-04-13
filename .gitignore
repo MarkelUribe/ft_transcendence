@@ -96,6 +96,10 @@ backend/uploads/
 **/*.p12
 **/*.pfx
 
+# large vendored binaries (avoid bloating git history)
+**/src/stockfish/stockfish
+**/stockfish/stockfish
+
 */node_modules/
 node_modules/
 frontend/node_modules/
