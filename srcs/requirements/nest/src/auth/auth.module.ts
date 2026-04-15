@@ -4,10 +4,12 @@ import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 
 import { UsersModule } from 'src/users/users.module';
-import { JWT_SECRET } from 'src/configs/jwt-secret';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+
+import { readFileSync } from 'fs';
+
 
 @Module({
   providers: [AuthService, LocalStrategy, JwtStrategy],
@@ -16,7 +18,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     UsersModule,
     JwtModule.register({
       global: true,
-      secret: JWT_SECRET,
+      secret: readFileSync('/run/secrets/jwt_secret', 'utf8').trim(),
       signOptions: { expiresIn: '1d'},
     }),
     PassportModule,

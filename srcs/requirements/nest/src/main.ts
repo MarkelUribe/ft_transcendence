@@ -3,9 +3,16 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { join } from 'path';
 import * as express from 'express';
+import { readFileSync } from 'fs';
+
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const httpsOptions = {
+    key: readFileSync('/run/secrets/ssl_key'),
+    cert: readFileSync('/run/secrets/ssl_cert'),
+  };
+
+  const app = await NestFactory.create(AppModule, {httpsOptions});
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
@@ -23,6 +30,10 @@ async function bootstrap() {
   app.use(
     '/uploads',
     express.static(join(__dirname, '..', 'uploads')),
+  );
+  app.use(
+    '/resources',
+    express.static(join(__dirname, '..', 'resources')),
   );
 
   await app.listen(process.env.PORT ?? 3000);

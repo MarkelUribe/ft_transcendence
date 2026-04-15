@@ -185,7 +185,7 @@ onMount(async () =>
 
 	await fetchGameState();
 
-	socket = io("http://localhost:3000", {
+	socket = io("https://localhost:3000", {
 		auth: {
 			token: localStorage.getItem("token")
 		}

@@ -59,7 +59,7 @@ export class UsersService {
 		await this.ensureUniqueUsernameAndEmail(user.username, user.email);
 		const hashed = await bcrypt.hash(user.password, 10);
 		user.password = hashed;
-		user.avatarUrl = "/uploads/avatars/default.png";
+		user.avatarUrl = "/resources/default.webp";
 		if (user.elo == null) {
 			user.elo = 0;
 		}
