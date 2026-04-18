@@ -2,7 +2,8 @@ version: "3.8"
 
 services:
   db:
-    image: docker.io/library/mariadb:10.11
+    build:
+      context: ./requirements/mariadb
     container_name: mariadb
     restart: always
     environment:
@@ -50,7 +51,7 @@ services:
     networks:
       - transcendence_net
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "--no-check-certificate", "https://localhost:3000"]
+      test: ["CMD", "nc", "-z", "localhost", "3000"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -74,7 +75,7 @@ services:
     networks:
       - transcendence_net
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "--no-check-certificate", "https://localhost:5173"]
+      test: ["CMD", "nc", "-z", "localhost", "5173"]
       interval: 10s
       timeout: 5s
       retries: 5

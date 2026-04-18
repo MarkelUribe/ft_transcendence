@@ -34,5 +34,10 @@ if [ -f /docker-entrypoint-initdb.d/init.sql.template ]; then
     echo "[Entrypoint] Generated init.sql"
 fi
 
+# Unset the variables so they don't conflict with MYSQL_PASSWORD_FILE and MYSQL_ROOT_PASSWORD_FILE
+# The official MariaDB entrypoint will read from the _FILE versions
+unset MYSQL_PASSWORD
+unset MYSQL_ROOT_PASSWORD
+
 echo "[Entrypoint] Delegating to official MariaDB entrypoint..."
 exec /usr/local/bin/docker-entrypoint.sh "$@"
