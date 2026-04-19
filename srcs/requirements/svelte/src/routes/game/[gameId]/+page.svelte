@@ -23,6 +23,7 @@ let pendingPromotionMove: { from: string, to: string } | null = null;
 let socket: Socket;
 let api: ChessAPI;
 
+
 $: display = myColor === 'b' ? board.map(r => [...r].reverse()).reverse() : board;
 
 let showConfirm = false;
@@ -198,6 +199,16 @@ onMount(async () =>
 		});
 	});
 
+	socket.on('chatHistory', (history: Array<{ user: string, text: string }>) => {
+        messages = history; 
+        scrollToBottom();
+    });
+	
+	socket.on('chatMessage', (msg: { user: string, text: string }) => {
+        messages = [...messages, msg];
+        scrollToBottom();
+    });
+
 	socket.on('gameState', setState);
 	socket.on('moveMade', setState);
 	socket.on('ended', (msg: any) =>
@@ -224,18 +235,91 @@ function getPromotionPieces(color: 'w' | 'b')
 	return ['q', 'r', 'b', 'n'];
 }
 
+let newMessage = "";
+    let messages: Array<{user: string, text: string}> = [];
+
+    function sendChat() {
+        if (newMessage.trim()) {
+            const myUsername = myColor === 'w' ? white : black;
+
+            const payload = {
+                gameId, // Ya lo tienes definido en el onMount
+                user: myUsername,
+                text: newMessage
+            };
+
+            // 1. Enviamos al servidor a través del socket que ya tienes abierto
+            socket.emit('sendMessage', payload);
+
+            // 2. Lo añadimos a nuestra lista local para verlo al instante
+            messages = [...messages, { user: payload.user, text: payload.text }];
+            
+            // 3. Limpiamos el input
+            newMessage = ""; 
+
+            // 4. Bajamos el scroll para ver el último mensaje
+            scrollToBottom();
+        }
+    }
+
+    function scrollToBottom() {
+        setTimeout(() => {
+            const container = document.querySelector('.chat-messages');
+            if (container) container.scrollTop = container.scrollHeight;
+        }, 50);
+    }
+
 onDestroy(() => socket?.disconnect());
 
 </script>
 
 <style>
 
+	.game-layout {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-start;
+		justify-content: center;
+		gap: 50px;
+		padding: 20px;
+		width: 100%;
+	}
+
+	.sidebar-right {
+        display: flex;
+        flex-direction: column;
+        width: 300px;
+        height: 560px; 
+        justify-content: space-between;
+		flex-shrink: 0;
+		margin-top: 106px;
+    }
+
+	.chat-sidebar {
+		flex: 1;
+		/*width: 300px;
+		height: 500px;*/
+		background: #e0e0e0;;
+		border: 1px solid #ccc;
+		border-radius: 12px;
+		display: flex;
+		flex-direction: column;
+		box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+		overflow: hidden;
+		margin-bottom: 20px;
+	}
+
+	.sidebar-controls {
+        display: flex;
+        justify-content: center; 
+        width: 100%;
+    }
+
 	.game-container {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		min-height: 100vh;
 	}
 
 	.board {
@@ -497,63 +581,182 @@ onDestroy(() => socket?.disconnect());
 		}
 	}
 
+
+	.chat-header {
+		background: #d1d1d1;
+		padding: 12px;
+		font-weight: bold;
+		text-align: center;
+		border-bottom: 1px solid #bbb;
+		color: #555;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+	}
+
+	.chat-messages {
+		flex: 1;
+		overflow-y: auto;
+		padding: 10px;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		background: #f5f5f5;
+	}
+
+	/* Scrollbar personalizada para el chat */
+	.chat-messages::-webkit-scrollbar {
+		width: 6px;
+	}
+	.chat-messages::-webkit-scrollbar-thumb {
+		background: #444;
+		border-radius: 10px;
+	}
+
+	.message {
+		font-size: 0.85rem;
+		padding: 2px 8px;
+		border-radius: 8px;
+		margin: 2px 0;
+        line-height: 1.4;
+        text-shadow: none;
+	}
+
+	.user {
+		font-weight: bold;
+		color: #b58863;;
+		margin-right: 8px;
+	}
+
+	.text {
+		color: #000000;
+		line-height: 1.4;
+	}
+
+	.chat-input {
+		display: flex;
+		padding: 12px;
+		background: #d1d1d1;
+		gap: 8px;
+	}
+
+	.chat-input input {
+		flex: 1;
+		background: #fffffff;
+		border: 1px solid #bbb;
+		color: #333;
+		padding: 8px;
+		border-radius: 6px;
+		outline: none;
+	}
+
+	.chat-input button {
+		background: #999;
+		border: none;
+		color: white;
+		padding: 0 15px;
+		border-radius: 6px;
+		font-weight: bold;
+		cursor: pointer;
+		transition: transform 0.2s;
+	}
+
+	.chat-input button:hover {
+		transform: no;
+		background: #5c7cfa;
+	}
+
+	/* Responsivo: Si la pantalla es estrecha, el chat se va abajo */
+	@media (max-width: 1100px) {
+		.game-layout {
+			flex-direction: column;
+			height: auto;
+			padding-top: 100px;
+		}
+		.chat-sidebar {
+			width: 560px; /* Ancho del tablero (8 * 70px) */
+			height: 400px;
+		}
+	}
+
 </style>
+<div class="game-layout">
+	<div class="game-container">
 
-<div class="game-container">
+		<div class="turn-container">
+			{#if promotion && myColor}
+				<div class="turn-indicator promotion-bar {myColor === turn ? 'my-turn' : ''}">
+					{#each getPromotionPieces(myColor) as p}
+						<button on:click={() => handlePromotionChoice(p)}>
+							<img src={getPieceImage(p)} />
+						</button>
+					{/each}
+				</div>
+			{:else}
+				<div class="turn-indicator {myColor === turn ? 'my-turn' : ''}">
+					<span class="dot"></span>
+					<span class="turn-text">
+						{turn === myColor ? 'Your Turn!' : turn === 'w'? white + "'s turn" : black + "'s turn"}
+					</span>
+				</div>
+			{/if}
+		</div>
 
-	<div class="turn-container">
-		{#if promotion && myColor}
-			<div class="turn-indicator promotion-bar {myColor === turn ? 'my-turn' : ''}">
-				{#each getPromotionPieces(myColor) as p}
-					<button on:click={() => handlePromotionChoice(p)}>
-						<img src={getPieceImage(p)} />
+		<div class="board">
+			{#each display as row, r}
+				{#each row as cell, c}
+					<button
+						type="button"
+						class="square {( (r + c) % 2 === 0 ? 'light' : 'dark' )}"
+						class:selected={selected === coordFromDisplay(r, c)}
+						on:click={() => handleSquareClick(r, c)}
+					>
+						{#if cell}
+							<img class="piece" src={getPieceImage(cell)} alt={cell} />
+						{/if}
 					</button>
 				{/each}
-			</div>
-		{:else}
-			<div class="turn-indicator {myColor === turn ? 'my-turn' : ''}">
-				<span class="dot"></span>
-				<span class="turn-text">
-					{turn === myColor ? 'Your Turn!' : turn === 'w'? white + "'s turn" : black + "'s turn"}
-				</span>
-			</div>
-		{/if}
-	</div>
-
-	<div class="board">
-		{#each display as row, r}
-			{#each row as cell, c}
-				<button
-					type="button"
-					class="square {( (r + c) % 2 === 0 ? 'light' : 'dark' )}"
-					class:selected={selected === coordFromDisplay(r, c)}
-					on:click={() => handleSquareClick(r, c)}
-				>
-					{#if cell}
-						<img class="piece" src={getPieceImage(cell)} alt={cell} />
-					{/if}
-				</button>
 			{/each}
-		{/each}
 
-		{#if gameOver}
-		<div class="modal">
-			<div class="modal-box">
-			<h2>{resultText}</h2>
-			<button on:click={goHome}>Return to home</button>
+			{#if gameOver}
+			<div class="modal">
+				<div class="modal-box">
+				<h2>{resultText}</h2>
+				<button on:click={goHome}>Return to home</button>
+				</div>
 			</div>
+			{/if}
 		</div>
-		{/if}
 	</div>
+	<div class="sidebar-right">
+		<aside class="chat-sidebar">
+			<div class="chat-header">GAME CHAT</div>
+			<div class="chat-messages">
+				{#each messages as msg}
+					<div class="message">
+						<span class="user">{msg.user}:</span>
+						<span class="text">{msg.text}</span>
+					</div>
+				{/each}
+			</div>
+			<div class="chat-input">
+				<input 
+					bind:value={newMessage} 
+					placeholder="Escribe..." 
+					on:keydown={(e) => e.key === 'Enter' && sendChat()}
+				/>
+				<button on:click={sendChat}>Send</button>
+			</div>
+		</aside>
 
-	<div class="controls">
-		{#if myColor !== null}
-		<button class="surrender-btn" on:click={() => showConfirm = true}>
-			🏳️ Surrender
-		</button>
-		{:else}
-		<button class="surrender-btn" on:click={goHome}> Return to home </button>
-		{/if}
+		<div class="sidebar-controls">
+			{#if myColor !== null}
+				<button class="surrender-btn" on:click={() => showConfirm = true}>
+					🏳️ Surrender
+				</button>
+			{:else}
+				<button class="surrender-btn" on:click={goHome}> Return to home </button>
+			{/if}
+		</div>
 	</div>
 
 	{#if showConfirm}
@@ -561,14 +764,9 @@ onDestroy(() => socket?.disconnect());
 			<div class="confirm-box">
 				<h2>Are you sure?</h2>
 				<p>You will lose the game.</p>
-
 				<div class="actions">
-					<button class="cancel" on:click={() => showConfirm = false}>
-						Cancel
-					</button>
-					<button class="confirm" on:click={confirmSurrender}>
-						Yes, surrender
-					</button>
+					<button class="cancel" on:click={() => showConfirm = false}>Cancel</button>
+					<button class="confirm" on:click={confirmSurrender}>Yes, surrender</button>
 				</div>
 			</div>
 		</div>
