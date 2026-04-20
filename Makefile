@@ -6,6 +6,16 @@ ENV_EXAMPLE := ./srcs/.env.example
 all: ensure-env
 #Create SSL certs and jwt secret
 	@mkdir -p secrets/ssl
+	@if [ ! -f secrets/db_password.txt ]; then
+		openssl rand -base64 48 > secrets/db_password.txt
+		chmod 600 secrets/db_password.txt
+		echo "[make] Created secrets/db_password.txt"
+	fi
+	@if [ ! -f secrets/db_root_password.txt ]; then
+		openssl rand -base64 48 > secrets/db_root_password.txt
+		chmod 600 secrets/db_root_password.txt
+		echo "[make] Created secrets/db_root_password.txt"
+	fi
 	@if [ ! -f secrets/ssl/localhost.key ] || [ ! -f secrets/ssl/localhost.crt ]; then \
 		openssl req -x509 -nodes -newkey rsa:2048 \
 			-keyout secrets/ssl/localhost.key \
@@ -14,9 +24,10 @@ all: ensure-env
 			-subj "/CN=localhost" \
 			-addext "subjectAltName=DNS:localhost,IP:127.0.0.1"; \
 	fi
-	@if [ ! -f secrets/jwt_secret.txt ]; then \
-		openssl rand -base64 48 > secrets/jwt_secret.txt; \
-		chmod 600 secrets/jwt_secret.txt; \
+	@if [ ! -f secrets/jwt_secret.txt ]; then
+		openssl rand -base64 48 > secrets/jwt_secret.txt
+		chmod 600 secrets/jwt_secret.txt
+		echo "[make] Created secrets/jwt_secret.txt"
 	fi
 
 ensure-env:
