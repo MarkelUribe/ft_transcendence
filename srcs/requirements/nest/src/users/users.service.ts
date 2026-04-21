@@ -85,4 +85,20 @@ export class UsersService {
 		if (data.email !== undefined) user.email = data.email;
 		return this.usersRepository.save(user);
 	}
+
+	async getTopByElo(n: number): Promise<User[]> {
+		const limit = Math.max(1, Math.min(n, 100)); // opcional: clamp
+
+		return this.usersRepository.find({
+			order: { elo: 'DESC' },
+			take: limit,
+			// opcional pero recomendado: solo campos “seguros”
+			select: {
+				id: true,
+				username: true,
+				avatarUrl: true,
+				elo: true,
+			},
+		});
+	}
 }

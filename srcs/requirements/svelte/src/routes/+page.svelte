@@ -129,9 +129,7 @@
 	function handleLogout() {
 		if (!browser) return;
 
-		localStorage.removeItem('token'); 
-		localStorage.removeItem('id');
-		localStorage.removeItem('username');
+		localStorage.clear();
 		isLoggedIn = false;
 		username = '';
 

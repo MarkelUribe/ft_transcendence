@@ -27,6 +27,14 @@ export class FriendsController {
     return { success: true };
   }
 
+  @Post('deletefriend/:id')
+  async removeFriend(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
+    const userId = req.user.id;
+    await this.friendsService.removeFriendship(userId, id);
+    return { success: true };
+  }
+
+
   @Get()
   async getFriends(@Req() req: any) {
     const userId = req.user.id;
