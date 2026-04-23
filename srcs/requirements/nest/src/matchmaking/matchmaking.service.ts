@@ -37,7 +37,7 @@ export class MatchmakingService
 
 		this.queue.push(newPlayer);
 
-		while (this.queue.some(p => p.id === playerId)) // 👈 loop only while still in queue
+		while (this.queue.some(p => p.id === playerId)) // loop only while still in queue
 		{
 			for (let i = 0; i < this.queue.length; i++)
 			{
