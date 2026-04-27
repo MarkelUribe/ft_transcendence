@@ -5,9 +5,10 @@ import { DatabaseModule } from './database/database.module';
 import { GameModule } from './game/game.module';
 import { MatchmakingModule } from './matchmaking/matchmaking.module';
 import { FriendsModule } from './friends/friends.module';
+import { ChatModule } from './chat/chat.module';
 
 
 @Module({
-  imports: [UsersModule, AuthModule, DatabaseModule, GameModule, MatchmakingModule, FriendsModule],
+  imports: [UsersModule, AuthModule, DatabaseModule, GameModule, MatchmakingModule, FriendsModule, ChatModule],
 })
 export class AppModule {}
