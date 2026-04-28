@@ -12,6 +12,7 @@ import { BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
+import { Move } from './entities/move.entity';
 import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({ cors: { origin: '*' } })
@@ -23,7 +24,9 @@ export class GameGateway implements OnGatewayConnection{
 		private readonly gameService: GameService,
 		private readonly jwtService: JwtService,
 		@InjectRepository(Game)
-		private readonly gameRepo: Repository<Game>,) {}
+		private readonly gameRepo: Repository<Game>,
+		@InjectRepository(Move)
+		private readonly moveRepo: Repository<Move>,) {}
 
 	async handleConnection(client: Socket)
 	{
@@ -68,13 +71,24 @@ export class GameGateway implements OnGatewayConnection{
 		{
 			const game = await this.gameService.findOne(gameId);
 
-			client.emit('gameState',
+			const moves = await this.moveRepo.find(
 			{
+				where: { game: { id: gameId } },
+				order: { id: 'ASC' },
+			});
+
+			client.emit('gameState', {
 				gameId: game.id,
-				fen: game.fen,
 				white: game.white,
 				black: game.black,
-				status: game.status
+				status: game.status,
+				moves: moves.map(m => ({
+					from: m.from,
+					to: m.to,
+					san: m.san,
+					promotion: m.promotion,
+					fen: m.fen,
+				})),
 			});
 		}
 		catch { client.emit('error', { message: 'Game not found' }); }
@@ -97,8 +111,6 @@ export class GameGateway implements OnGatewayConnection{
 		{
 			const game = await this.gameService.makeMove(gameId, from, to, userId, promotion);
 
-			await this.gameRepo.save(game);
-
 			if (game.status === 'ended')
 			{
 				this.server.to(gameId).emit('ended', {looser: game.looser});
@@ -106,17 +118,27 @@ export class GameGateway implements OnGatewayConnection{
 			}
 			else
 			{
-				this.server.to(gameId).emit('moveMade', {
-					gameId: game.id,
-					fen: game.fen,
-					white: game.white,
-					black: game.black
+				const move = await this.moveRepo.findOne(
+				{
+					where: { game: { id: gameId } },
+					order: { id: 'DESC' },
+				});
+
+				if (!move) { throw new Error('Move was not created'); }
+
+				this.server.to(gameId).emit('moveMade',
+				{
+					from: move.from,
+					to: move.to,
+					san: move.san,
+					promotion: move.promotion,
+					fen: move.fen,
 				});
 			}
 		}
-		catch (err)
+		catch
 		{
-			const reason = err instanceof BadRequestException ? err.message : 'Invalid move';
+			const reason = 'Invalid move';
 			console.log('Move error:', reason);
 			client.emit('moveRejected', { reason });
 		}
@@ -136,6 +158,8 @@ export class GameGateway implements OnGatewayConnection{
 			if (!userId) { client.emit('error', { message: 'Unauthorized' }); return; }
 
 			const game = await this.gameService.surrender(gameId, userId);
+
+			if (!game) return ;
 
 			this.server.to(gameId).emit('ended', {looser: game.looser});
 

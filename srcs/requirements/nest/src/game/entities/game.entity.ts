@@ -1,13 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { User } from '../../users/user.entity';
+import { Move } from './move.entity';
 
 @Entity('games')
 export class Game {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column('text')
-  fen: string;
 
   @ManyToOne(() => User, { eager: true })
   white: User;
@@ -26,4 +24,7 @@ export class Game {
 
   @Column('text')
   looser: number;
+
+  @OneToMany(() => Move, (move) => move.game, { cascade: true })
+  moves: Move[];
 }
