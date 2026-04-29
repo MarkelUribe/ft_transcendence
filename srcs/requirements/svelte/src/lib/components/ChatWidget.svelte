@@ -96,17 +96,17 @@ onDestroy(() => {
 
   function scrollToBottom() {
     if (messagesContainer) {
-        messagesContainer.scrollTo({
-            top: messagesContainer.scrollHeight,
-            behavior: 'smooth' // Esto lo hace más visual
-        });
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
-}
+  }
 
   $effect(() => {
-      if (selectedFriend || messages.length) {
-          setTimeout(scrollToBottom, 0);
-      }
+    const _trigger = messages; 
+    const _friend = selectedFriend;
+
+    if (selectedFriend && messagesContainer) {
+      setTimeout(scrollToBottom, 50);
+    }
   });
 </script>
 
