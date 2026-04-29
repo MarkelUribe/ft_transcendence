@@ -5,6 +5,8 @@
   import { initChatSocket, sendMessage, getConversation, disconnectChat } from '$lib/api/chat';
   import { browser } from '$app/environment';
 
+  const BACKEND_URL = 'https://localhost:3000';
+
   let { compact = true } = $props();
   let messagesContainer = $state();
   
@@ -16,6 +18,30 @@
   let error = $state('');
 
   let currentUserId: number | null = null;
+
+  function handleNewMessageNotification(senderId) {
+    if (!selectedFriend || selectedFriend.id !== senderId) {
+      unreadCounts[senderId] = (unreadCounts[senderId] || 0) + 1;
+    }
+
+    const friendIndex = friends.findIndex(f => f.id === senderId);
+    if (friendIndex > -1) {
+      const friendData = friends[friendIndex];
+      friends.splice(friendIndex, 1);
+      friends.unshift(friendData);
+    }
+  }
+
+  function onSelectFriend(friend) {
+    unreadCounts[friend.id] = 0;
+    selectFriend(friend); // Tu función original
+  }
+
+  function getAvatarUrl(avatarUrl: string | null): string {
+    if (!avatarUrl) return '';
+    if (avatarUrl.startsWith('http')) return avatarUrl;
+    return `${BACKEND_URL}${avatarUrl}`;
+  }
 
   onMount(async () => {
     const token = localStorage.getItem('token');
@@ -116,7 +142,7 @@ onDestroy(() => {
         {#if !selectedFriend}
             <!-- VISTA A: LISTA DE AMIGOS -->
             <aside class="friends-list full-width">
-                <h2>Amigos</h2>
+                <h2>Friends</h2>
                 {#if friends.length === 0}
                     <p class="empty">No tienes amigos aún</p>
                 {:else}
@@ -125,7 +151,11 @@ onDestroy(() => {
                             <li>
                                 <button type="button" class="friend-item-btn" onclick={() => selectFriend(friend)}>
                                     <div class="avatar">
-                                        {friend.username?.charAt(0).toUpperCase() || '?'}
+                                        {#if friend.avatarUrl}
+                                            <img src={getAvatarUrl(friend.avatarUrl)} alt={friend.username} class="avatar-img" />
+                                        {:else}
+                                            {friend.username?.charAt(0).toUpperCase() || '?'}
+                                        {/if}
                                     </div>
                                     <span class="username">{friend.username}</span>
                                 </button>
@@ -143,7 +173,11 @@ onDestroy(() => {
                         ←
                     </button>
                     <div class="avatar">
-                        {selectedFriend.username?.charAt(0).toUpperCase() || '?'}
+                        {#if selectedFriend.avatarUrl}
+                            <img src={getAvatarUrl(selectedFriend.avatarUrl)} alt={selectedFriend.username} class="avatar-img" />
+                        {:else}
+                            {selectedFriend.username?.charAt(0).toUpperCase() || '?'}
+                        {/if}
                     </div>
                     <span>{selectedFriend.username}</span>
                 </header>
@@ -263,6 +297,7 @@ onDestroy(() => {
   }
 
   .friends-list h2 {
+    text-align: center;
     margin: 0 0 1rem;
     font-size: 1rem;
     color: #000000;
@@ -303,6 +338,13 @@ onDestroy(() => {
     align-items: center;
     justify-content: center;
     font-weight: bold;
+    overflow: hidden;
+  }
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .username {
