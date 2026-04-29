@@ -92,72 +92,74 @@ onDestroy(() => {
   }
 </script>
 
-<div class="chat-container">
-  <aside class="friends-list">
-    <h2>Amigos</h2>
-    {#if friends.length === 0}
-      <p class="empty">No tienes amigos aún</p>
-    {:else}
-      <ul>
-        {#each friends as friend}
-          <li
-            class:active={selectedFriend?.id === friend.id}
-            onclick={() => selectFriend(friend)}
-          >
-            <div class="avatar">
-              {friend.username?.charAt(0).toUpperCase() || '?'}
-            </div>
-            <span class="username">{friend.username}</span>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-  </aside>
-
-  <main class="chat-area">
-    {#if !selectedFriend}
-      <div class="no-chat">
-        <p>Selecciona un amigo para chatear</p>
-      </div>
-    {:else}
-      <header class="chat-header">
-        <div class="avatar">
-          {selectedFriend.username?.charAt(0).toUpperCase() || '?'}
-        </div>
-        <span>{selectedFriend.username}</span>
-      </header>
-
-      <div class="messages">
-        {#if loading}
-          <p class="loading">Cargando mensajes...</p>
-        {:else if messages.length === 0}
-          <p class="empty">No hay mensajes aún</p>
+<div class="chat-box" class:compact>
+    <div class="chat-container">
+    <aside class="friends-list">
+        <h2>Amigos</h2>
+        {#if friends.length === 0}
+          <p class="empty">No tienes amigos aún</p>
         {:else}
-          {#each messages as msg}
-            <div class="message" class:own={msg.senderId === currentUserId}>
-              {#if msg.senderId !== currentUserId}
-                <span class="sender-name">{msg.sender?.username || 'Usuario'}</span>
-              {/if}
-              <div class="content">{msg.content}</div>
-              <span class="time">{formatTime(msg.createdAt)}</span>
-            </div>
-          {/each}
+        <ul>
+            {#each friends as friend}
+           <li
+                class:active={selectedFriend?.id === friend.id}
+                onclick={() => selectFriend(friend)}
+              >
+                <div class="avatar">
+                  {friend.username?.charAt(0).toUpperCase() || '?'}
+                </div>
+                <span class="username">{friend.username}</span>
+              </li>
+            {/each}
+          </ul>
         {/if}
-      </div>
+    </aside>
 
-      <form class="message-input" onsubmit={(e) => { e.preventDefault(); handleSendMessage(); }}>
-        <input
-          type="text"
-          bind:value={newMessage}
-          placeholder="Escribe un mensaje..."
-          disabled={loading}
-        />
-        <button type="submit" disabled={!newMessage.trim() || loading}>
-          Enviar
-        </button>
-      </form>
-    {/if}
-  </main>
+    <main class="chat-area">
+        {#if !selectedFriend}
+          <div class="no-chat">
+            <p>Selecciona un amigo para chatear</p>
+          </div>
+        {:else}
+          <header class="chat-header">
+            <div class="avatar">
+              {selectedFriend.username?.charAt(0).toUpperCase() || '?'}
+            </div>
+            <span>{selectedFriend.username}</span>
+          </header>
+
+          <div class="messages">
+            {#if loading}
+              <p class="loading">Cargando mensajes...</p>
+            {:else if messages.length === 0}
+              <p class="empty">No hay mensajes aún</p>
+            {:else}
+              {#each messages as msg}
+                <div class="message" class:own={msg.senderId === currentUserId}>
+                  {#if msg.senderId !== currentUserId}
+                    <span class="sender-name">{msg.sender?.username || 'Usuario'}</span>
+                  {/if}
+                  <div class="content">{msg.content}</div>
+                  <span class="time">{formatTime(msg.createdAt)}</span>
+                </div>
+              {/each}
+            {/if}
+          </div>
+
+          <form class="message-input" onsubmit={(e) => { e.preventDefault(); handleSendMessage(); }}>
+            <input
+              type="text"
+              bind:value={newMessage}
+              placeholder="Escribe un mensaje..."
+              disabled={loading}
+            />
+            <button type="submit" disabled={!newMessage.trim() || loading}>
+              Enviar
+            </button>
+          </form>
+        {/if}
+    </main>
+    </div>
 </div>
 
 {#if error}
@@ -165,6 +167,23 @@ onDestroy(() => {
 {/if}
 
 <style>
+    .chat-box.compact {
+    width: 300px;
+    height: 400px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    border: 1px solid #ccc;
+    background: white;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+  }
   .chat-container {
     display: flex;
     height: calc(100vh - 60px);

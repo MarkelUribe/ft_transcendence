@@ -4,7 +4,8 @@
 	import { goto } from '$app/navigation';
 	import { FriendsAPI } from '$lib/api/friends';
 	import { handleButtonClick, searching } from '$lib/Matchmaking';
-
+	import ChatWidget from '../lib/components/ChatWidget.svelte';
+	
 	let username = '';
 	let isLoggedIn = false;
 
@@ -348,6 +349,7 @@
 	}
 </style>
 
+
 <div class="container">
 	<h1>Welcome to Chess Arena</h1>
 	<p>
@@ -450,3 +452,7 @@
 		</div>
 	{/if}
 </div>
+
+{#if isLoggedIn}
+	<ChatWidget />
+{/if}
