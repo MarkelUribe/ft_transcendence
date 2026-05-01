@@ -11,6 +11,8 @@
   let { compact = true } = $props();
   let messagesContainer = $state();
 
+  let lastMessageTimes = $state<{ [key: number]: string }>({});
+
   type SidebarView = 'FRIENDS' | 'MESSAGES';
 
   let currentView = $state('MESSAGES');
@@ -23,7 +25,11 @@
             const eloB = Number(b.elo) || 0;
             return eloB - eloA; // De mayor a menor
           }) 
-        : friends
+        : [...friends].sort((a, b) => {
+          const dateA = new Date(a.last_message_at || 0).getTime();
+          const dateB = new Date(b.last_message_at || 0).getTime();
+          return dateB - dateA;
+        })
   );
 
   //$: if (gameId) {
@@ -41,7 +47,7 @@
   let loading = $state(false);
   let error = $state('');
 
-  let currentUserId: number | null = null;
+  let currentUserId = $state<number | null>(null);
 
   let unreadChats = $state(new Set());
 
@@ -71,6 +77,11 @@
       return;
     }
 
+    const savedTimes = localStorage.getItem('chat_times');
+    if (savedTimes) {
+      lastMessageTimes = JSON.parse(savedTimes);
+    }
+
     const savedUnreads = localStorage.getItem('unread_chats');
     if (savedUnreads) {
         unreadChats = new Set(JSON.parse(savedUnreads));
@@ -88,7 +99,18 @@
 
     try {
       const api = new FriendsAPI(token);
-      friends = await api.getFriends();
+      const fetchedFriends = await api.getFriends();
+
+      // 2. FUNDAMENTAL: Inyectar los tiempos en el array de amigos
+      friends = fetchedFriends.map(f => ({
+        ...f,
+        // Si el ID del amigo está en nuestro mapa de tiempos, se lo asignamos
+        last_message_at: lastMessageTimes[f.id] || null
+      }));
+      
+      // 3. Forzar a Svelte a ver el cambio de currentUserId
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      currentUserId = payload.sub;
     } catch (e: any) {
       error = e.message;
     }
@@ -108,6 +130,10 @@ onDestroy(() => {
     
     const friendId = message.senderId === currentUserId ? message.receiverId : message.senderId;
 
+    const now = new Date().toISOString();
+
+    lastMessageTimes[friendId] = now;
+
     if (selectedFriend && selectedFriend.id == friendId) {
       messages = [...messages, message];
     } else if (message.senderId !== currentUserId) {
@@ -115,8 +141,10 @@ onDestroy(() => {
       unreadChats = new Set(unreadChats);
     }
 
-    // 3. Siempre movemos al amigo al primer lugar
-    moverAmigoAlPrincipio(friendId);
+    friends = friends.map(f => {
+      if (f.id == friendId) return { ...f, last_message_at: now };
+      return f;
+    });
   }
 
   async function selectFriend(friend: any) {
@@ -139,17 +167,26 @@ onDestroy(() => {
   async function handleSendMessage() {
     if (!newMessage.trim() || !selectedFriend) return;
 
+    const now = new Date().toISOString();
+
     try {
       sendMessage(selectedFriend.id, newMessage.trim());
+
+      lastMessageTimes[selectedFriend.id] = now;
+      lastMessageTimes = { ...lastMessageTimes }; // Forzar reactividad en el objeto
+
+      // 2. Actualizar el array de amigos (para el $derived visual)
+      friends = friends.map(f => {
+        if (f.id === selectedFriend.id) return { ...f, last_message_at: now };
+        return f;
+      });
+
       messages = [...messages, {
         senderId: currentUserId,
         content: newMessage.trim(),
         createdAt: new Date().toISOString(),
       }];
       newMessage = '';
-
-      const otherFriends = friends.filter(f => f.id !== selectedFriend.id);
-      friends = [selectedFriend, ...otherFriends];
 
     } catch (e: any) {
       error = e.message;
@@ -166,6 +203,12 @@ onDestroy(() => {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
   }
+
+  $effect(() => {
+    // Convertimos a JSON para disparar el seguimiento de la propiedad
+    const data = JSON.stringify(lastMessageTimes);
+    localStorage.setItem('chat_times', data);
+  });
 
   $effect(() => {
     localStorage.setItem('unread_chats', JSON.stringify(Array.from(unreadChats)));
@@ -413,13 +456,6 @@ onDestroy(() => {
     overflow-y: auto;
   }
 
-  .friends-list h2 {
-    text-align: center;
-    margin: 0 0 1rem;
-    font-size: 1rem;
-    color: #000000;
-  }
-
   .friends-list ul {
     list-style: none;
     padding: 0;
@@ -442,9 +478,6 @@ onDestroy(() => {
     transition: background 0.3s ease;
   }
 
-  .friends-list li.active {
-    background: #3a3a3a;
-  }
 
   .avatar {
     flex-shrink: 0;
@@ -482,14 +515,6 @@ onDestroy(() => {
     flex: 1;
     display: flex;
     flex-direction: column;
-  }
-
-  .no-chat {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #888;
   }
 
   .chat-header span {
@@ -533,13 +558,6 @@ onDestroy(() => {
     word-break: break-word;
     font-size: 0.85rem;
     line-height: 1.2;
-  }
-
-  .message .sender-name {
-    font-size: 0.7rem;
-    color: #9ca3af;
-    display: block;
-    margin-bottom: 0.25rem;
   }
 
   .message .time {
@@ -603,16 +621,6 @@ onDestroy(() => {
     color: #888;
     text-align: center;
     padding: 2rem;
-  }
-
-  .error-toast {
-    position: fixed;
-    bottom: 1rem;
-    right: 1rem;
-    padding: 1rem 1.5rem;
-    background: #dc2626;
-    color: #fff;
-    border-radius: 8px;
   }
 
   .unread {
