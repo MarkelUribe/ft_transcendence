@@ -50,6 +50,7 @@
   let currentUserId = $state<number | null>(null);
 
   let unreadChats = $state(new Set());
+  let hasUnreadChats = $derived(unreadChats.size > 0);
 
   function moverAmigoAlPrincipio(friendId: number) {
     const index = friends.findIndex(f => f.id == friendId);
@@ -240,9 +241,12 @@ onDestroy(() => {
 
                         <button
                             class:active={currentView === 'MESSAGES'}
-                            onclick={() => currentView = 'MESSAGES'}
+                            onclick={() => { currentView = 'MESSAGES'; hasUnreadChats = false; }}
                         >
                             Messages
+                            {#if hasUnreadChats && currentView !== 'MESSAGES'}
+                              <span class="notification-dot"></span>
+                            {/if}
                         </button>
                     </div>
                 </div>
@@ -431,6 +435,25 @@ onDestroy(() => {
         color: #444444;
         background-color: rgba(0, 0, 0, 0.03);
     }
+
+  .notification-dot {
+    position: static;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #00ff00;
+    border-radius: 50%;
+    box-shadow: 0 0 5px #00ff00;
+    margin-top: 1px;
+    vertical-align: middle;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
 
     .elo-label {
         margin-left: auto;
