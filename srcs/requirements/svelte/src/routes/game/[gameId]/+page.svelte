@@ -594,60 +594,73 @@ onDestroy(() => socket?.disconnect());
 	}
 
 	.chat-messages {
-		flex: 1;
-		overflow-y: auto;
-		padding: 10px;
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		background: #f5f5f5;
-	}
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Un poco más de espacio entre burbujas */
+    background: #f5f5f5;
+}
 
-	/* Scrollbar personalizada para el chat */
-	.chat-messages::-webkit-scrollbar {
-		width: 6px;
-	}
-	.chat-messages::-webkit-scrollbar-thumb {
-		background: #444;
-		border-radius: 10px;
-	}
+/* 2. EL CAMBIO CLAVE PARA EL SALTO DE LÍNEA */
+.message {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    border-radius: 12px;
+    margin: 2px 0;
+    line-height: 1.4;
+    max-width: 85%; /* Evita que el mensaje ocupe todo el ancho */
+    width: fit-content; /* El globo se ajusta al texto */
+    
+    /* ESTO EVITA EL SCROLL HORIZONTAL */
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap; 
+}
 
-	.message {
-		font-size: 0.85rem;
-		padding: 2px 8px;
-		border-radius: 8px;
-		margin: 2px 0;
-        line-height: 1.4;
-        text-shadow: none;
-	}
+/* 3. DIFERENCIACIÓN DE BURBUJAS (Mío vs Otro) */
+/* Si usas la clase 'own' para tus mensajes */
+.message.own {
+    align-self: flex-end;
+    background: #2563eb;
+    color: white;
+    border-bottom-right-radius: 2px; /* Efecto colita de mensaje */
+}
 
-	.user {
-		font-weight: bold;
-		color: #b58863;;
-		margin-right: 8px;
-	}
+/* Si es el mensaje del amigo */
+.message:not(.own) {
+    align-self: flex-start;
+    background: #e4e6eb;
+    color: #000;
+    border-bottom-left-radius: 2px;
+}
 
-	.text {
-		color: #000000;
-		line-height: 1.4;
-	}
+/* 4. AJUSTE DEL TEXTO INTERNO */
+.text {
+    display: inline; /* Para que no fuerce bloques extra */
+    color: inherit;  /* Para que use el blanco en 'own' y negro en el resto */
+}
 
-	.chat-input {
-		display: flex;
-		padding: 12px;
-		background: #d1d1d1;
-		gap: 8px;
-	}
+/* Limpieza del input para que no se vea gris viejo */
+.chat-input {
+    display: flex;
+    padding: 12px;
+    background: #ffffff; /* Blanco en vez de gris */
+    gap: 8px;
+    border-top: 1px solid #ddd;
+}
 
-	.chat-input input {
-		flex: 1;
-		background: #fffffff;
-		border: 1px solid #bbb;
-		color: #333;
-		padding: 8px;
-		border-radius: 6px;
-		outline: none;
-	}
+.chat-input input {
+    flex: 1;
+    background: #f0f2f5;
+    border: 1px solid #ddd;
+    color: #333;
+    padding: 10px;
+    border-radius: 20px; /* Estilo píldora moderna */
+    outline: none;
+}
 
 	.chat-input button {
 		background: #999;

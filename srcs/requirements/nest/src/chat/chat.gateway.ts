@@ -68,6 +68,7 @@ export class ChatGateway implements OnGatewayDisconnect {
       id: message.id,
       recipientId: data.recipientId,
       createdAt: message.createdAt,
+      content: message.content,
     });
 
     return { success: true, messageId: message.id };
@@ -117,8 +118,14 @@ export class ChatGateway implements OnGatewayDisconnect {
   handleDisconnect(client: Socket) {}
 
   findSocketByPlayerId(playerId: number): Socket | undefined {
-    for (const socket of this.server.sockets.sockets.values()) {
-      if (socket.data.userId === playerId) {
+    const socketsMap = this.server?.sockets?.sockets || (this.server?.sockets as any);
+
+    if (!socketsMap || typeof socketsMap.values !== 'function') {
+      return undefined;
+    }
+
+    for (const socket of socketsMap.values()) {
+      if (socket.data?.userId == playerId) {
         return socket;
       }
     }

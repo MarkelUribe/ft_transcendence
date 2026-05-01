@@ -29,6 +29,7 @@
 	let incomingRequests: FriendshipRequest[] = [];
 	let outgoingRequests: FriendshipRequest[] = [];
 	let requestsError = '';
+	
 
 	onMount(() => {
 		if (!browser) return;
@@ -73,7 +74,7 @@
 		goto('/match_making/bot');
 	}
 
-	// REPLACED: handleNewFriend now actually sends a request
+
 	async function handleNewFriend() {
 		if (!friendsApi || !newFriendId.trim()) return;
 
@@ -347,6 +348,20 @@
 		0%, 100% { transform: translateY(0px) rotate(0deg); }
 		50% { transform: translateY(-20px) rotate(15deg); }
 	}
+
+	.responsive-chat {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1000;
+    }
+
+
+    @media (max-width: 1100px) {
+        .responsive-chat {
+            display: none; 
+        }
+    }
 </style>
 
 
@@ -375,7 +390,7 @@
 
 	{#if isLoggedIn}
 		<div class="friends-panel">
-			<h2>Your friends</h2>
+			<h2>Make new friends</h2>
 
 			<!-- NEW: add-friend inline form -->
 			<div class="add-friend-form">
@@ -393,18 +408,6 @@
 			{:else if addFriendSuccess}
 				<p class="friends-message success">{addFriendSuccess}</p>
 			{/if}
-
-			{#if friends.length === 0}
-				<p>You have no friends added yet.</p>
-			{:else}
-				{#each friends as friend}
-					<div class="friend-item">
-						<span>{friend.username}</span>
-						<span>{friend.elo ?? 0} ELO</span>
-					</div>
-				{/each}
-			{/if}
-
 			{#if requestsError}
 				<p class="friends-message error" style="margin-top: 0.5rem;">{requestsError}</p>
 			{/if}
@@ -454,5 +457,7 @@
 </div>
 
 {#if isLoggedIn}
-	<ChatWidget />
+	<div class="responsive-chat">
+        <ChatWidget />
+    </div>
 {/if}
