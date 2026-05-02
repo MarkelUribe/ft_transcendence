@@ -159,7 +159,7 @@ export class GameGateway implements OnGatewayConnection{
 
 		this.gameService.addMessage(gameId, { user, text });
 
-        client.to(gameId).emit('chatMessage', {
+        this.server.to(gameId).emit('chatMessage', {
             user,
             text
         });

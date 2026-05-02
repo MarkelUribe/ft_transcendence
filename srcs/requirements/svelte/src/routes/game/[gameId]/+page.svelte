@@ -4,6 +4,7 @@ import { page } from '$app/stores';
 import { io, type Socket } from 'socket.io-client';
 import { ChessAPI } from '$lib/api/chess';
 import { goto } from '$app/navigation';
+import ChatWidget from '../../../lib/components/ChatWidget.svelte';
 
 let gameId = '';
 let board: (string | null)[][] = [];
@@ -238,26 +239,20 @@ function getPromotionPieces(color: 'w' | 'b')
 let newMessage = "";
     let messages: Array<{user: string, text: string}> = [];
 
+    $: myUsername = (myColor === 'w' ? white : black) || "Yo";
+
     function sendChat() {
         if (newMessage.trim()) {
-            const myUsername = myColor === 'w' ? white : black;
-
             const payload = {
-                gameId, // Ya lo tienes definido en el onMount
+                gameId,
                 user: myUsername,
                 text: newMessage
             };
 
-            // 1. Enviamos al servidor a través del socket que ya tienes abierto
             socket.emit('sendMessage', payload);
-
-            // 2. Lo añadimos a nuestra lista local para verlo al instante
-            messages = [...messages, { user: payload.user, text: payload.text }];
             
-            // 3. Limpiamos el input
             newMessage = ""; 
 
-            // 4. Bajamos el scroll para ver el último mensaje
             scrollToBottom();
         }
     }
@@ -601,6 +596,20 @@ onDestroy(() => socket?.disconnect());
     flex-direction: column;
     gap: 10px; /* Un poco más de espacio entre burbujas */
     background: #f5f5f5;
+
+	.responsive-chat {
+    	position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1000;
+    }
+
+
+    @media (max-width: 1100px) {
+        .responsive-chat {
+            display: none; 
+        }
+    }
 }
 
 /* 2. EL CAMBIO CLAVE PARA EL SALTO DE LÍNEA */
@@ -678,6 +687,13 @@ onDestroy(() => socket?.disconnect());
 		background: #5c7cfa;
 	}
 
+	.responsive-chat {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1000;
+    }
+
 	/* Responsivo: Si la pantalla es estrecha, el chat se va abajo */
 	@media (max-width: 1100px) {
 		.game-layout {
@@ -689,9 +705,13 @@ onDestroy(() => socket?.disconnect());
 			width: 560px; /* Ancho del tablero (8 * 70px) */
 			height: 400px;
 		}
+		.responsive-chat {
+            display: none; 
+        }
 	}
 
 </style>
+
 <div class="game-layout">
 	<div class="game-container">
 
@@ -784,4 +804,23 @@ onDestroy(() => socket?.disconnect());
 			</div>
 		</div>
 	{/if}
+</div>
+
+<div class="responsive-chat">
+    <ChatWidget 
+        isInGame={true} 
+        gameMessages={messages} 
+        opponentName={(myColor === 'w' ? black : white) || "Oponente"}
+    	myUsername={(myColor === 'w' ? white : black) || "Yo"}
+        onSendGameChat={(text) => {
+        // Aquí SÍ usamos el socket de la partida
+        if (socket && socket.connected) {
+            socket.emit('sendMessage', {
+                gameId: gameId,
+                user: myUsername,
+                text: text
+            });
+        }
+    }}
+    />
 </div>

@@ -269,18 +269,6 @@
 		color: #b3ffcb;
 	}
 
-	.friend-item {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 0.35rem 0;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-		font-size: 0.95rem;
-	}
-
-	.friend-item:last-child {
-		border-bottom: none;
-	}
 
 	.request-section-title {
 		margin-top: 0.75rem;

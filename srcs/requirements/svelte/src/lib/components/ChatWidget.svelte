@@ -8,7 +8,7 @@
 
   const BACKEND_URL = 'https://localhost:3000';
 
-  let { compact = true } = $props();
+  //let { compact = true } = $props();
   let messagesContainer = $state();
 
   let lastMessageTimes = $state<{ [key: number]: string }>({});
@@ -32,13 +32,15 @@
         })
   );
 
-  //$: if (gameId) {
-	//	currentView = 'CHAT';
-	//} else if (currentView === 'CHAT' && !gameId) {
-	//	currentView = 'FRIENDS';
-	//}
+  let { 
+    compact = true,
+    isInGame = false, 
+    gameMessages = [], 
+    myUsername = "",
+    opponentName = "Oponente",
+    onSendGameChat 
+  } = $props();
 
-  
   
   let friends: any[] = $state([]);
   let selectedFriend: any = $state(null);
@@ -49,8 +51,37 @@
 
   let currentUserId = $state<number | null>(null);
 
-  let unreadChats = $state(new Set());
-  let hasUnreadChats = $derived(unreadChats.size > 0);
+  let lastKnownGameMsgCount = $state(
+    typeof window !== 'undefined' 
+    ? Number(localStorage.getItem('game_msg_count') || 0) 
+    : 0
+  );
+
+
+  let unreadChats = $state(new Set(
+    typeof window !== 'undefined' 
+    ? JSON.parse(localStorage.getItem('unread_chats') || '[]') 
+    : []
+  ));
+
+  let hasNewActivity = $state(false);
+
+
+  $effect(() => {
+    if (gameMessages.length > lastKnownGameMsgCount) {
+      const lastMsg = gameMessages[gameMessages.length - 1];
+
+      if (
+        lastMsg.user !== myUsername && 
+        selectedFriend?.id !== 'current-game-chat'
+      ) {
+        unreadChats.add('current-game-chat');
+        unreadChats = new Set(unreadChats);
+        hasNewActivity = true;
+      }
+      lastKnownGameMsgCount = gameMessages.length;
+    }
+  });
 
   function moverAmigoAlPrincipio(friendId: number) {
     const index = friends.findIndex(f => f.id == friendId);
@@ -60,10 +91,6 @@
     }
   }
 
-  function onSelectFriend(friend) {
-    unreadCounts[friend.id] = 0;
-    selectFriend(friend);
-  }
 
   function getAvatarUrl(avatarUrl: string | null): string {
     if (!avatarUrl) return '';
@@ -102,14 +129,11 @@
       const api = new FriendsAPI(token);
       const fetchedFriends = await api.getFriends();
 
-      // 2. FUNDAMENTAL: Inyectar los tiempos en el array de amigos
       friends = fetchedFriends.map(f => ({
         ...f,
-        // Si el ID del amigo está en nuestro mapa de tiempos, se lo asignamos
         last_message_at: lastMessageTimes[f.id] || null
       }));
       
-      // 3. Forzar a Svelte a ver el cambio de currentUserId
       const payload = JSON.parse(atob(token.split('.')[1]));
       currentUserId = payload.sub;
     } catch (e: any) {
@@ -135,6 +159,10 @@ onDestroy(() => {
 
     lastMessageTimes[friendId] = now;
 
+    if (currentView !== 'MESSAGES') {
+            hasNewActivity = true;
+        }
+
     if (selectedFriend && selectedFriend.id == friendId) {
       messages = [...messages, message];
     } else if (message.senderId !== currentUserId) {
@@ -155,6 +183,12 @@ onDestroy(() => {
     unreadChats.delete(friend.id);
     unreadChats = new Set(unreadChats);
 
+    if (friend.isGame) {
+      messages = [];
+      lastKnownGameMsgCount = gameMessages.length;
+      return; 
+    }
+
     try {
       const msgs = await getConversation(friend.id);
       messages = msgs;
@@ -168,15 +202,22 @@ onDestroy(() => {
   async function handleSendMessage() {
     if (!newMessage.trim() || !selectedFriend) return;
 
+    if (selectedFriend.isGame) {
+    if (onSendGameChat) {
+      onSendGameChat(newMessage.trim());
+      newMessage = '';
+    }
+    return;
+  }
+
     const now = new Date().toISOString();
 
     try {
       sendMessage(selectedFriend.id, newMessage.trim());
 
       lastMessageTimes[selectedFriend.id] = now;
-      lastMessageTimes = { ...lastMessageTimes }; // Forzar reactividad en el objeto
+      lastMessageTimes = { ...lastMessageTimes };
 
-      // 2. Actualizar el array de amigos (para el $derived visual)
       friends = friends.map(f => {
         if (f.id === selectedFriend.id) return { ...f, last_message_at: now };
         return f;
@@ -206,7 +247,6 @@ onDestroy(() => {
   }
 
   $effect(() => {
-    // Convertimos a JSON para disparar el seguimiento de la propiedad
     const data = JSON.stringify(lastMessageTimes);
     localStorage.setItem('chat_times', data);
   });
@@ -215,8 +255,26 @@ onDestroy(() => {
     localStorage.setItem('unread_chats', JSON.stringify(Array.from(unreadChats)));
 });
 
-  $effect(() => {
-    const _trigger = messages; 
+$effect(() => {
+    localStorage.setItem('game_msg_count', lastKnownGameMsgCount.toString());
+});
+
+$effect(() => {
+    if (gameMessages.length > lastKnownGameMsgCount) {
+        const lastMsg = gameMessages[gameMessages.length - 1];
+
+        if (lastMsg.user !== myUsername && selectedFriend?.id !== 'current-game-chat') {
+            unreadChats.add('current-game-chat');
+            unreadChats = new Set(unreadChats); // Notifica el cambio al Set
+        } else if (selectedFriend?.id === 'current-game-chat') {
+            lastKnownGameMsgCount = gameMessages.length;
+        }
+    }
+});
+
+$effect(() => {
+    const _msgNormal = messages;
+    const _msgGame = gameMessages;
     const _friend = selectedFriend;
 
     if (selectedFriend && messagesContainer) {
@@ -241,89 +299,140 @@ onDestroy(() => {
 
                         <button
                             class:active={currentView === 'MESSAGES'}
-                            onclick={() => { currentView = 'MESSAGES'; hasUnreadChats = false; }}
+                            onclick={() => { currentView = 'MESSAGES'; hasNewActivity = false; }}
                         >
                             Messages
-                            {#if hasUnreadChats && currentView !== 'MESSAGES'}
+                            {#if hasNewActivity && currentView !== 'MESSAGES'}
                               <span class="notification-dot"></span>
                             {/if}
                         </button>
                     </div>
                 </div>
-                {#if friends.length === 0}
-                    <p class="empty">No tienes amigos aún</p>
+                {#if friends.length === 0 && !isInGame}
+                  <p class="empty">No tienes amigos aún</p>
                 {:else}
-                    <ul>
-                        {#each filteredFriends as friend}
-                            <li>
-                                <button type="button" class="friend-item-btn" 
-                                  class:only-view={currentView === 'FRIENDS'}
-                                  onclick={() => currentView === 'MESSAGES' ? selectFriend(friend) : null}>
-                                    <div class="avatar">
-                                        {#if friend.avatarUrl}
-                                            <img src={getAvatarUrl(friend.avatarUrl)} alt={friend.username} class="avatar-img" />
-                                        {:else}
-                                            {friend.username?.charAt(0).toUpperCase() || '?'}
-                                        {/if}
-                                    </div>
-                                    <span class="username" class:unread={currentView === 'MESSAGES' && unreadChats.has(friend.id)}>
-                                        <span class="name-text">{friend.username}</span>
-                                        {#if currentView === 'FRIENDS'}
-                                            <span class="elo-label">{friend.elo || 0}</span>
-                                        {/if}
-                                    </span>
-                                </button>
-                            </li>
-                        {/each}
-                    </ul>
-                {/if}
-            </aside>
-        {:else}
-            <main class="chat-area full-width">
-                <header class="chat-header">
-                    <button class="back-btn" onclick={() => selectedFriend = null}>
-                        ←
-                    </button>
-                    <div class="avatar">
-                        {#if selectedFriend.avatarUrl}
-                            <img src={getAvatarUrl(selectedFriend.avatarUrl)} alt={selectedFriend.username} class="avatar-img" />
+                <ul>
+                  {#if currentView === 'MESSAGES' && isInGame}
+                    <li>
+                      <button 
+                        type="button" 
+                        class="friend-item-btn game-highlight" 
+                        onclick={() => { 
+                          selectFriend({ 
+                            id: 'current-game-chat', 
+                            username: opponentName || "Oponente",
+                            isGame: true 
+                          }); 
+                        }}
+                      >
+                        <div class="avatar game-avatar">
+                          🎮
+                        </div>
+                        <span class="username" class:unread={unreadChats.has('current-game-chat')}>
+                          <span class="name-text">Chat de Partida</span>
+                        </span>
+                      </button>
+                    </li>
+                  {/if}
+                  {#each filteredFriends as friend}
+                  <li>
+                    <button type="button" class="friend-item-btn" 
+                      class:only-view={currentView === 'FRIENDS'}
+                      onclick={() => currentView === 'MESSAGES' ? selectFriend(friend) : null}>
+                      <div class="avatar">
+                        {#if friend.avatarUrl}
+                            <img src={getAvatarUrl(friend.avatarUrl)} alt={friend.username} class="avatar-img" />
                         {:else}
-                            {selectedFriend.username?.charAt(0).toUpperCase() || '?'}
+                            {friend.username?.charAt(0).toUpperCase() || '?'}
                         {/if}
-                    </div>
-                    <span>{selectedFriend.username}</span>
-                </header>
-
-                <div class="messages" bind:this={messagesContainer}>
-                    {#if loading}
-                        <p class="loading">Cargando mensajes...</p>
-                    {:else if messages.length === 0}
-                        <p class="empty">No hay mensajes aún</p>
-                    {:else}
-                        {#each messages as msg}
-                            <div class="message" class:own={msg.senderId === currentUserId}>
-                                <div class="content">{msg.content}</div>
-                                <span class="time">{formatTime(msg.createdAt)}</span>
-                            </div>
-                        {/each}
-                    {/if}
-                </div>
-
-                <form class="message-input" onsubmit={(e) => { e.preventDefault(); handleSendMessage(); }}>
-                    <input
-                        type="text"
-                        bind:value={newMessage}
-                        placeholder="Escribe un mensaje..."
-                        disabled={loading}
-                    />
-                    <button type="submit" disabled={!newMessage.trim() || loading}>
-                        Enviar
+                      </div>
+                      <span class="username" class:unread={currentView === 'MESSAGES' && unreadChats.has(friend.id)}>
+                        <span class="name-text" title={friend.username}>
+                          {friend.username}
+                        </span>
+                        {#if currentView === 'FRIENDS'}
+                          <span class="elo-label">{friend.elo || 0}</span>
+                        {/if}
+                      </span>
                     </button>
-                </form>
-            </main>
-        {/if}
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          </aside>
+          {:else}
+            <main class="chat-area full-width">
+              <header class="chat-header">
+                <button class="back-btn" onclick={() => selectedFriend = null}>
+                  ←
+                </button>
+                <div class="avatar">
+                  {#if selectedFriend.isGame}
+                    <div class="game-avatar-icon">🎮</div>
+                  {:else if selectedFriend.avatarUrl}
+                    <img src={getAvatarUrl(selectedFriend.avatarUrl)} alt={selectedFriend.username} class="avatar-img" />
+                  {:else}
+                    {selectedFriend.username?.charAt(0).toUpperCase() || '?'}
+                  {/if}
+                </div>
+                <span>{selectedFriend.username}</span>
+              </header>
 
-    </div>
+              <div class="messages" bind:this={messagesContainer}>
+                {#if selectedFriend.isGame}
+                  {#if gameMessages.length === 0}
+                    <p class="empty">No hay mensajes en la partida</p>
+                  {:else}
+                    {#each gameMessages as msg}
+                      <div class="message" class:own={msg.user === myUsername}>
+                        <div class="content">
+                            {#if msg.user !== myUsername}
+                                <small class="opponent-name">{msg.user}</small>
+                            {/if}
+                            <p>{msg.text}</p>
+                        </div>
+                      </div>
+                    {/each}
+                  {/if}
+                  {:else}
+                  {#if loading}
+                    <p class="loading">Cargando mensajes...</p>
+                  {:else if messages.length === 0}
+                    <p class="empty">No hay mensajes aún</p>
+                  {:else}
+                    {#each messages as msg}
+                      <div class="message" class:own={msg.senderId === currentUserId}>
+                        <div class="content">{msg.content}</div>
+                        <span class="time">{formatTime(msg.createdAt)}</span>
+                      </div>
+                    {/each}
+                  {/if}
+                {/if}
+              </div>
+              <form class="message-input" onsubmit={(e) => { 
+                e.preventDefault(); 
+                if (selectedFriend.isGame) {
+                  if (newMessage.trim()) {
+                    onSendGameChat(newMessage); // La prop que viene del archivo partida
+                    newMessage = ""; 
+                  }
+                } else {
+                  handleSendMessage(); // Tu función original para la API
+                }
+              }}>
+                <input
+                  type="text"
+                  bind:value={newMessage}
+                  placeholder="Escribe un mensaje..."
+                  disabled={!selectedFriend.isGame && loading}
+                />
+                <button type="submit" disabled={!newMessage.trim() || (!selectedFriend.isGame && loading)}>
+                  Enviar
+                </button>
+          </form>
+        </main>
+      {/if}
+   </div>
 </div>
 
 <style>
@@ -526,7 +635,24 @@ onDestroy(() => {
     align-items: center;
     width: 100%;
     font-size: 0.85rem;
+    overflow: hidden;
   }
+  
+  .name-text {
+  flex: 1;             /* Hace que el nombre ocupe todo el espacio disponible */
+  white-space: nowrap; /* Evita el salto de línea */
+  overflow: hidden;    /* Esconde lo que sobra */
+  text-overflow: ellipsis; /* Añade los "..." */
+  min-width: 0;        /* Truco vital para que flexbox permita encoger el texto */
+}
+
+  .opponent-name {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-bottom: 2px;
+    opacity: 0.8;
+} 
 
   .name-text {
         white-space: nowrap;
