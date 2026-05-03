@@ -377,7 +377,7 @@ $effect(() => {
                     {selectedFriend.username?.charAt(0).toUpperCase() || '?'}
                   {/if}
                 </div>
-                <span>{selectedFriend.isGame ? "Chat de Partida" : selectedFriend.username}</span>
+                <span>{selectedFriend.username}</span>
               </header>
 
               <div class="messages" bind:this={messagesContainer}>
