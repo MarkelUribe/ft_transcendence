@@ -1,4 +1,4 @@
-.PHONY: all dev up down rebuild ensure-env
+.PHONY: all dev up down rebuild ensure-env restore
 
 ENV_FILE := ./srcs/.env
 ENV_EXAMPLE := ./srcs/.env.example
@@ -67,3 +67,21 @@ rebuild: ensure-env
 	@echo "Construyendo sin caché..."
 	@podman-compose -f ./srcs/compose.yaml build --no-cache
 	@podman-compose -f ./srcs/compose.yaml up
+
+restore:
+	podman exec -i mariadb mariadb -u myuser -p'mypassword' -e "DROP DATABASE IF EXISTS transcendence; CREATE DATABASE transcendence;"
+	
+	@BACKUP_FILE=$$(ls srcs/backups/*.sql | sort -V | tail -1); \
+	if [ -z "$$BACKUP_FILE" ]; then \
+		echo "❌ No se encontró ningún backup en srcs/backups/"; \
+		exit 1; \
+	fi; \
+	echo "🚀 Restaurando desde: $$BACKUP_FILE"; \
+	podman cp $$BACKUP_FILE mariadb:/tmp/backup.sql && \
+	podman exec mariadb mariadb -u myuser -p'mypassword' transcendence -e "source /tmp/backup.sql"; \
+	echo "✅ Backup aplicado correctamente."
+
+restoreoldold:
+	podman exec -i mariadb mariadb -u myuser -p'mypassword' -e "DROP DATABASE IF EXISTS transcendence; CREATE DATABASE transcendence;"
+	ls srcs/backups | column -t | grep '\.sql' |  awk -F '_' '{ print $$2 }' | tr -d '\.sql' | sort -n | tail -1 | xargs -I {} grep {} <(ls ./srcs/backups | column -t | grep sql) | xargs -I {} podman cp {} mariadb:/tmp/backup.sql | xargs podman exec mariadb mariadb -u myuser -p'mypassword' transcendence -e "source /tmp/backup.sql" 
+	make

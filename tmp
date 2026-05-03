@@ -1,0 +1,39 @@
+uptime-kuma:
+  image: louislam/uptime-kuma:1
+  container_name: uptime-kuma
+  volumes:
+    - uptime-kuma-data:/app/data
+  ports:
+    - "3001:3001"
+  restart: always
+
+
+
+
+#!/bin/bash
+BACKUP_DIR="./backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+mkdir -p $BACKUP_DIR
+
+# Ejecuta el dump dentro del contenedor de Podman
+podman exec mariadb mariadb-dump -u root -p$(cat ./secrets/db_root_password.txt) transcendence > $BACKUP_DIR/db_backup_$TIMESTAMP.sql
+
+# Borrar backups de más de 7 días
+find $BACKUP_DIR -type f -mtime +7 -name "*.sql" -delete
+
+
+#!/bin/bash
+# 1. Limpiar todo lo roto
+make down
+podman volume rm srcs_mariadb_data
+
+# 2. Levantar la infraestructura limpia
+make up
+
+# 3. Restaurar el último backup (espera a que la DB esté Healthy)
+latest_backup=$(ls -t ./backups/*.sql | head -1)
+echo "Restaurando $latest_backup..."
+cat $latest_backup | podman exec -i mariadb mariadb -u root -p$(cat ./secrets/db_root_password.txt) transcendence
+
+
+
