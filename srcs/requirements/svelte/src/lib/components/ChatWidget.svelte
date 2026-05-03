@@ -38,7 +38,8 @@
     gameMessages = [], 
     myUsername = "",
     opponentName = "Oponente",
-    onSendGameChat 
+    onSendGameChat,
+    showGameChat
   } = $props();
 
   
@@ -72,12 +73,13 @@
       const lastMsg = gameMessages[gameMessages.length - 1];
 
       if (
-        lastMsg.user !== myUsername && 
-        selectedFriend?.id !== 'current-game-chat'
+        lastMsg.user !== myUsername && selectedFriend?.id !== 'current-game-chat'
       ) {
         unreadChats.add('current-game-chat');
         unreadChats = new Set(unreadChats);
-        hasNewActivity = true;
+        if (currentView !== 'MESSAGES') {
+          hasNewActivity = true;
+        }
       }
       lastKnownGameMsgCount = gameMessages.length;
     }
@@ -312,7 +314,7 @@ $effect(() => {
                   <p class="empty">No tienes amigos aún</p>
                 {:else}
                 <ul>
-                  {#if currentView === 'MESSAGES' && isInGame}
+                  {#if currentView === 'MESSAGES' && isInGame && showGameChat}
                     <li>
                       <button 
                         type="button" 
@@ -375,7 +377,7 @@ $effect(() => {
                     {selectedFriend.username?.charAt(0).toUpperCase() || '?'}
                   {/if}
                 </div>
-                <span>{selectedFriend.username}</span>
+                <span>{selectedFriend.isGame ? "Chat de Partida" : selectedFriend.username}</span>
               </header>
 
               <div class="messages" bind:this={messagesContainer}>
@@ -385,13 +387,15 @@ $effect(() => {
                   {:else}
                     {#each gameMessages as msg}
                       <div class="message" class:own={msg.user === myUsername}>
-                        <div class="content">
-                            {#if msg.user !== myUsername}
-                                <small class="opponent-name">{msg.user}</small>
-                            {/if}
-                            <p>{msg.text}</p>
-                        </div>
-                      </div>
+                    <div class="content">
+                        <!-- Solo mostramos el nombre si NO es nuestro mensaje -->
+                        {#if msg.user !== myUsername}
+                            <small class="opponent-name">{msg.user}</small>
+                        {/if}
+                        
+                        <p>{msg.text}</p>
+                    </div>
+                </div>
                     {/each}
                   {/if}
                   {:else}

@@ -281,34 +281,37 @@ onDestroy(() => socket?.disconnect());
 	}
 
 	.sidebar-right {
-        display: flex;
-        flex-direction: column;
-        width: 300px;
-        height: 560px; 
-        justify-content: space-between;
-		flex-shrink: 0;
-		margin-top: 106px;
-    }
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    height: 560px; 
+    justify-content: space-between;
+    flex-shrink: 0;
+    margin-top: 106px;
+}
 
-	.chat-sidebar {
-		flex: 1;
-		/*width: 300px;
-		height: 500px;*/
-		background: #e0e0e0;;
-		border: 1px solid #ccc;
-		border-radius: 12px;
-		display: flex;
-		flex-direction: column;
-		box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-		overflow: hidden;
-		margin-bottom: 20px;
-	}
-
+/* Este contenedor asegura que el widget ocupe todo el espacio superior */
+.chat-container-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Evita que el chat se salga de los límites */
+    margin-bottom: 20px;
+}
 	.sidebar-controls {
         display: flex;
         justify-content: center; 
         width: 100%;
     }
+	
+	:global(.chat-box.compact) {
+    position: relative !important;
+    bottom: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    box-shadow: none !important; /* Opcional: para que no doble sombra con la sidebar */
+}
 
 	.game-container {
 		display: flex;
@@ -577,123 +580,6 @@ onDestroy(() => socket?.disconnect());
 	}
 
 
-	.chat-header {
-		background: #d1d1d1;
-		padding: 12px;
-		font-weight: bold;
-		text-align: center;
-		border-bottom: 1px solid #bbb;
-		color: #555;
-		text-transform: uppercase;
-		letter-spacing: 1px;
-	}
-
-	.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Un poco más de espacio entre burbujas */
-    background: #f5f5f5;
-
-	.responsive-chat {
-    	position: fixed;
-        right: 20px;
-        bottom: 20px;
-        z-index: 1000;
-    }
-
-
-    @media (max-width: 1100px) {
-        .responsive-chat {
-            display: none; 
-        }
-    }
-}
-
-/* 2. EL CAMBIO CLAVE PARA EL SALTO DE LÍNEA */
-.message {
-    font-size: 0.85rem;
-    padding: 8px 12px;
-    border-radius: 12px;
-    margin: 2px 0;
-    line-height: 1.4;
-    max-width: 85%; /* Evita que el mensaje ocupe todo el ancho */
-    width: fit-content; /* El globo se ajusta al texto */
-    
-    /* ESTO EVITA EL SCROLL HORIZONTAL */
-    word-wrap: break-word;
-    word-break: break-word;
-    overflow-wrap: break-word;
-    white-space: pre-wrap; 
-}
-
-/* 3. DIFERENCIACIÓN DE BURBUJAS (Mío vs Otro) */
-/* Si usas la clase 'own' para tus mensajes */
-.message.own {
-    align-self: flex-end;
-    background: #2563eb;
-    color: white;
-    border-bottom-right-radius: 2px; /* Efecto colita de mensaje */
-}
-
-/* Si es el mensaje del amigo */
-.message:not(.own) {
-    align-self: flex-start;
-    background: #e4e6eb;
-    color: #000;
-    border-bottom-left-radius: 2px;
-}
-
-/* 4. AJUSTE DEL TEXTO INTERNO */
-.text {
-    display: inline; /* Para que no fuerce bloques extra */
-    color: inherit;  /* Para que use el blanco en 'own' y negro en el resto */
-}
-
-/* Limpieza del input para que no se vea gris viejo */
-.chat-input {
-    display: flex;
-    padding: 12px;
-    background: #ffffff; /* Blanco en vez de gris */
-    gap: 8px;
-    border-top: 1px solid #ddd;
-}
-
-.chat-input input {
-    flex: 1;
-    background: #f0f2f5;
-    border: 1px solid #ddd;
-    color: #333;
-    padding: 10px;
-    border-radius: 20px; /* Estilo píldora moderna */
-    outline: none;
-}
-
-	.chat-input button {
-		background: #999;
-		border: none;
-		color: white;
-		padding: 0 15px;
-		border-radius: 6px;
-		font-weight: bold;
-		cursor: pointer;
-		transition: transform 0.2s;
-	}
-
-	.chat-input button:hover {
-		transform: no;
-		background: #5c7cfa;
-	}
-
-	.responsive-chat {
-        position: fixed;
-        right: 20px;
-        bottom: 20px;
-        z-index: 1000;
-    }
-
 	/* Responsivo: Si la pantalla es estrecha, el chat se va abajo */
 	@media (max-width: 1100px) {
 		.game-layout {
@@ -705,10 +591,9 @@ onDestroy(() => socket?.disconnect());
 			width: 560px; /* Ancho del tablero (8 * 70px) */
 			height: 400px;
 		}
-		.responsive-chat {
-            display: none; 
-        }
 	}
+
+
 
 </style>
 
@@ -761,25 +646,27 @@ onDestroy(() => socket?.disconnect());
 		</div>
 	</div>
 	<div class="sidebar-right">
-		<aside class="chat-sidebar">
-			<div class="chat-header">GAME CHAT</div>
-			<div class="chat-messages">
-				{#each messages as msg}
-					<div class="message">
-						<span class="user">{msg.user}:</span>
-						<span class="text">{msg.text}</span>
-					</div>
-				{/each}
-			</div>
-			<div class="chat-input">
-				<input 
-					bind:value={newMessage} 
-					placeholder="Escribe..." 
-					on:keydown={(e) => e.key === 'Enter' && sendChat()}
-				/>
-				<button on:click={sendChat}>Send</button>
-			</div>
-		</aside>
+	<div class="chat-container-wrapper">
+		<ChatWidget 
+		showGameChat={myColor !== null}
+        isInGame={true} 
+        gameMessages={messages} 
+        opponentName={(myColor === 'w' ? black : white) || "Oponente"}
+        myUsername={(myColor === 'w' ? white : black) || "Yo"}
+        /* Pasamos el color al widget para que él sepa si bloquear el input internamente */
+        myColor={myColor} 
+        onSendGameChat={(text) => {
+            if (socket && socket.connected) {
+                socket.emit('sendMessage', {
+                    gameId: gameId,
+                    user: (myColor === 'w' ? white : black),
+                    text: text,
+                    color: myColor
+                });
+            }
+        	}}
+    		/>
+		</div>
 
 		<div class="sidebar-controls">
 			{#if myColor !== null}
@@ -808,19 +695,22 @@ onDestroy(() => socket?.disconnect());
 
 <div class="responsive-chat">
     <ChatWidget 
+		showGameChat={myColor !== null}
         isInGame={true} 
         gameMessages={messages} 
         opponentName={(myColor === 'w' ? black : white) || "Oponente"}
-    	myUsername={(myColor === 'w' ? white : black) || "Yo"}
+        myUsername={(myColor === 'w' ? white : black) || "Yo"}
+        /* Pasamos el color al widget para que él sepa si bloquear el input internamente */
+        myColor={myColor} 
         onSendGameChat={(text) => {
-        // Aquí SÍ usamos el socket de la partida
-        if (socket && socket.connected) {
-            socket.emit('sendMessage', {
-                gameId: gameId,
-                user: myUsername,
-                text: text
-            });
-        }
-    }}
+            if (socket && socket.connected) {
+                socket.emit('sendMessage', {
+                    gameId: gameId,
+                    user: (myColor === 'w' ? white : black),
+                    text: text,
+                    color: myColor
+                });
+            }
+        }}
     />
 </div>
