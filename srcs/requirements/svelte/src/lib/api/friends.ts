@@ -60,4 +60,10 @@ export class FriendsAPI {
       method: 'POST',
     });
   }
+
+  removeFriend(friendId: number) {
+    return this.fetchJSON(`/friends/deletefriend/${friendId}`, {
+      method: 'POST',
+    });
+  }
 }

@@ -1,46 +1,60 @@
 import {
 	WebSocketGateway,
 	WebSocketServer,
-	SubscribeMessage,
+	OnGatewayConnection,
 	OnGatewayDisconnect,
-	ConnectedSocket,
-	MessageBody,
+	SubscribeMessage,
 } from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
-import { FriendsService } from './friends.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
-export class FriendsGateway implements OnGatewayDisconnect {
+export class FriendsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
 	server: Server;
 
 	constructor(
-		private readonly friendsService: FriendsService,
-		private readonly jwtService: JwtService // <- inject JwtService
+		private readonly jwtService: JwtService,
 	) { }
+
+	private userRoom(userId: number) {
+		return `user:${userId}`;
+	}
 
 	handleConnection(client: Socket) {
 		const token = client.handshake.auth?.token;
-		if (!token) return client.disconnect();
+		if (!token) {
+			client.disconnect();
+			return;
+		}
 
 		try {
-			const payload = this.jwtService.verify(token); // decode JWT
-			client.data.userId = payload.sub; // store trusted player ID
+			const payload = this.jwtService.verify(token);
+			const userId = Number(payload.sub);
+			if (!Number.isFinite(userId)) {
+				client.disconnect();
+				return;
+			}
+			client.data.userId = userId;
+			client.join(this.userRoom(userId));
 		} catch {
 			client.disconnect();
 		}
 	}
 
-	@SubscribeMessage('getPendingRequestsForUser')
-	async getPendingRequestsForUser(@ConnectedSocket() client: Socket) {
-		const userId = client.data.userId;
-
-		if (!userId) { return client.disconnect(); }
-
-		const game = await this.friendsService.getPendingRequestsForUser(userId);
-
-		
+	handleDisconnect(_client: Socket) {
+		// No-op for now.
 	}
 
+	emitToUser(userId: number, event: string, payload: unknown) {
+		this.server.to(this.userRoom(userId)).emit(event, payload);
+	}
+
+	emitToUsers(userIds: number[], event: string, payload: unknown) {
+		for (const userId of userIds) {
+			this.emitToUser(userId, event, payload);
+		}
+	}
+
+	//@SubscribeMessage('friends:getPresence')
 }

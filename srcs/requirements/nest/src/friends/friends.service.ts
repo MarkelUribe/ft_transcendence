@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Friendship, FriendshipStatus } from './friendship.entity';
 import { User } from '../users/user.entity';
+import { FriendsGateway } from './friends.gateway';
 
 @Injectable()
 export class FriendsService {
@@ -16,7 +17,27 @@ export class FriendsService {
 	private readonly friendshipRepository: Repository<Friendship>,
 	@InjectRepository(User)
 	private readonly usersRepository: Repository<User>,
+	private readonly friendsGateway: FriendsGateway,
   ) { }
+
+	async areFriends(userId: number, otherUserId: number): Promise<boolean> {
+		if (userId === otherUserId) return false;
+		const existing = await this.friendshipRepository.findOne({
+			where: [
+				{
+					requester: { id: userId },
+					addressee: { id: otherUserId },
+					status: FriendshipStatus.ACCEPTED,
+				},
+				{
+					requester: { id: otherUserId },
+					addressee: { id: userId },
+					status: FriendshipStatus.ACCEPTED,
+				},
+			],
+		});
+		return !!existing;
+	}
 
   async sendFriendRequest(requesterId: number, targetUserId: number) {
 	if (requesterId === targetUserId) {
@@ -59,7 +80,13 @@ export class FriendsService {
 	});
 
 	// friendship is a single entity, so save() returns a single entity
-	return this.friendshipRepository.save(friendship);
+	const saved = await this.friendshipRepository.save(friendship);
+	this.friendsGateway.emitToUsers(
+		[requesterId, targetUserId],
+		'friends:requestChanged',
+		{ requestId: saved.id },
+	);
+	return saved;
   }
 
   async acceptFriendRequest(friendshipId: number, userId: number) {
@@ -81,13 +108,19 @@ export class FriendsService {
 	}
 
 	friendship.status = FriendshipStatus.ACCEPTED;
-	return this.friendshipRepository.save(friendship);
+	const saved = await this.friendshipRepository.save(friendship);
+	this.friendsGateway.emitToUsers(
+		[friendship.requester.id, friendship.addressee.id],
+		'friends:requestChanged',
+		{ requestId: saved.id },
+	);
+	return saved;
   }
 
   async rejectFriendRequest(friendshipId: number, userId: number) {
 	const friendship = await this.friendshipRepository.findOne({
 	  where: { id: friendshipId },
-	  relations: ['addressee'],
+	  relations: ['addressee', 'requester'],
 	});
 
 	if (!friendship) {
@@ -98,7 +131,14 @@ export class FriendsService {
 	  throw new ForbiddenException('You cannot reject this request.');
 	}
 
+	const requesterId = friendship.requester.id;
+	const addresseeId = friendship.addressee.id;
 	await this.friendshipRepository.remove(friendship);
+	this.friendsGateway.emitToUsers(
+		[requesterId, addresseeId],
+		'friends:requestChanged',
+		{ requestId: friendshipId },
+	);
   }
 
   async getFriendsForUser(userId: number) {
@@ -148,5 +188,10 @@ export class FriendsService {
 		}
 
 		await this.friendshipRepository.remove(friendships);
+		this.friendsGateway.emitToUsers(
+			[userId, friendId],
+			'friends:friendshipChanged',
+			{},
+		);
 	}
 }
