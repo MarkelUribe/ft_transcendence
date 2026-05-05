@@ -8,6 +8,7 @@ import { User } from '../users/user.entity';
 @Injectable()
 export class GameService
 {
+	private chatHistories: Map<string, Array<{ user: string, text: string }>> = new Map();
 	constructor(
 		@InjectRepository(Game) private readonly gameRepo: Repository<Game>,
 		@InjectRepository(User) private readonly userRepo: Repository<User>,
@@ -59,7 +60,9 @@ export class GameService
 		return { gameId: game.id, fen: game.fen };
 	}
 
-	async deleteGame(id: string): Promise<void> { await this.gameRepo.delete(id); }
+	async deleteGame(id: string): Promise<void> { 
+		this.chatHistories.delete(id);
+		await this.gameRepo.delete(id); }
 
 	private async eloGivingLogic(game: Game, winner: 'w' | 'b' | 'd') {
 		const K = 32;
@@ -135,4 +138,14 @@ export class GameService
 
 		return this.gameRepo.save(game);
 	}
+
+	addMessage(gameId: string, message: { user: string, text: string }) {
+        const history = this.chatHistories.get(gameId) || [];
+        history.push(message);
+        this.chatHistories.set(gameId, history);
+    }
+
+    getChatHistory(gameId: string) {
+        return this.chatHistories.get(gameId) || [];
+    }
 }

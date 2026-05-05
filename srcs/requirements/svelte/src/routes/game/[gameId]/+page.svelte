@@ -4,6 +4,7 @@ import { page } from '$app/stores';
 import { io, type Socket } from 'socket.io-client';
 import { ChessAPI } from '$lib/api/chess';
 import { goto } from '$app/navigation';
+import ChatWidget from '../../../lib/components/ChatWidget.svelte';
 
 let gameId = '';
 let board: (string | null)[][] = [];
@@ -22,6 +23,7 @@ let pendingPromotionMove: { from: string, to: string } | null = null;
 
 let socket: Socket;
 let api: ChessAPI;
+
 
 $: display = myColor === 'b' ? board.map(r => [...r].reverse()).reverse() : board;
 
@@ -198,6 +200,16 @@ onMount(async () =>
 		});
 	});
 
+	socket.on('chatHistory', (history: Array<{ user: string, text: string }>) => {
+        messages = history; 
+        scrollToBottom();
+    });
+	
+	socket.on('chatMessage', (msg: { user: string, text: string }) => {
+        messages = [...messages, msg];
+        scrollToBottom();
+    });
+
 	socket.on('gameState', setState);
 	socket.on('moveMade', setState);
 	socket.on('ended', (msg: any) =>
@@ -224,18 +236,88 @@ function getPromotionPieces(color: 'w' | 'b')
 	return ['q', 'r', 'b', 'n'];
 }
 
+let newMessage = "";
+    let messages: Array<{user: string, text: string}> = [];
+
+    $: myUsername = (myColor === 'w' ? white : black) || "Yo";
+
+    function sendChat() {
+        if (newMessage.trim()) {
+            const payload = {
+                gameId,
+                user: myUsername,
+                text: newMessage
+            };
+
+            socket.emit('sendMessage', payload);
+            
+            newMessage = ""; 
+
+            scrollToBottom();
+        }
+    }
+
+    function scrollToBottom() {
+        setTimeout(() => {
+            const container = document.querySelector('.chat-messages');
+            if (container) container.scrollTop = container.scrollHeight;
+        }, 50);
+    }
+
 onDestroy(() => socket?.disconnect());
 
 </script>
 
 <style>
 
+	.game-layout {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-start;
+		justify-content: center;
+		gap: 50px;
+		padding: 20px;
+		width: 100%;
+	}
+
+	.sidebar-right {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    height: 560px; 
+    justify-content: space-between;
+    flex-shrink: 0;
+    margin-top: 106px;
+}
+
+/* Este contenedor asegura que el widget ocupe todo el espacio superior */
+.chat-container-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Evita que el chat se salga de los límites */
+    margin-bottom: 20px;
+}
+	.sidebar-controls {
+        display: flex;
+        justify-content: center; 
+        width: 100%;
+    }
+	
+	:global(.chat-box.compact) {
+    position: relative !important;
+    bottom: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    box-shadow: none !important; /* Opcional: para que no doble sombra con la sidebar */
+}
+
 	.game-container {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		min-height: 100vh;
 	}
 
 	.board {
@@ -497,63 +579,104 @@ onDestroy(() => socket?.disconnect());
 		}
 	}
 
+
+	/* Responsivo: Si la pantalla es estrecha, el chat se va abajo */
+	@media (max-width: 1100px) {
+		.game-layout {
+			flex-direction: column;
+			height: auto;
+			padding-top: 100px;
+		}
+		.chat-sidebar {
+			width: 560px; /* Ancho del tablero (8 * 70px) */
+			height: 400px;
+		}
+	}
+
+
+
 </style>
 
-<div class="game-container">
+<div class="game-layout">
+	<div class="game-container">
 
-	<div class="turn-container">
-		{#if promotion && myColor}
-			<div class="turn-indicator promotion-bar {myColor === turn ? 'my-turn' : ''}">
-				{#each getPromotionPieces(myColor) as p}
-					<button on:click={() => handlePromotionChoice(p)}>
-						<img src={getPieceImage(p)} />
+		<div class="turn-container">
+			{#if promotion && myColor}
+				<div class="turn-indicator promotion-bar {myColor === turn ? 'my-turn' : ''}">
+					{#each getPromotionPieces(myColor) as p}
+						<button on:click={() => handlePromotionChoice(p)}>
+							<img src={getPieceImage(p)} />
+						</button>
+					{/each}
+				</div>
+			{:else}
+				<div class="turn-indicator {myColor === turn ? 'my-turn' : ''}">
+					<span class="dot"></span>
+					<span class="turn-text">
+						{turn === myColor ? 'Your Turn!' : turn === 'w'? white + "'s turn" : black + "'s turn"}
+					</span>
+				</div>
+			{/if}
+		</div>
+
+		<div class="board">
+			{#each display as row, r}
+				{#each row as cell, c}
+					<button
+						type="button"
+						class="square {( (r + c) % 2 === 0 ? 'light' : 'dark' )}"
+						class:selected={selected === coordFromDisplay(r, c)}
+						on:click={() => handleSquareClick(r, c)}
+					>
+						{#if cell}
+							<img class="piece" src={getPieceImage(cell)} alt={cell} />
+						{/if}
 					</button>
 				{/each}
-			</div>
-		{:else}
-			<div class="turn-indicator {myColor === turn ? 'my-turn' : ''}">
-				<span class="dot"></span>
-				<span class="turn-text">
-					{turn === myColor ? 'Your Turn!' : turn === 'w'? white + "'s turn" : black + "'s turn"}
-				</span>
-			</div>
-		{/if}
-	</div>
-
-	<div class="board">
-		{#each display as row, r}
-			{#each row as cell, c}
-				<button
-					type="button"
-					class="square {( (r + c) % 2 === 0 ? 'light' : 'dark' )}"
-					class:selected={selected === coordFromDisplay(r, c)}
-					on:click={() => handleSquareClick(r, c)}
-				>
-					{#if cell}
-						<img class="piece" src={getPieceImage(cell)} alt={cell} />
-					{/if}
-				</button>
 			{/each}
-		{/each}
 
-		{#if gameOver}
-		<div class="modal">
-			<div class="modal-box">
-			<h2>{resultText}</h2>
-			<button on:click={goHome}>Return to home</button>
+			{#if gameOver}
+			<div class="modal">
+				<div class="modal-box">
+				<h2>{resultText}</h2>
+				<button on:click={goHome}>Return to home</button>
+				</div>
 			</div>
+			{/if}
 		</div>
-		{/if}
 	</div>
+	<div class="sidebar-right">
+	<div class="chat-container-wrapper">
+		<ChatWidget 
+		showGameChat={myColor !== null}
+        isInGame={true} 
+        gameMessages={messages} 
+        opponentName={(myColor === 'w' ? black : white) || "Oponente"}
+        myUsername={(myColor === 'w' ? white : black) || "Yo"}
+        /* Pasamos el color al widget para que él sepa si bloquear el input internamente */
+        myColor={myColor} 
+        onSendGameChat={(text) => {
+            if (socket && socket.connected) {
+                socket.emit('sendMessage', {
+                    gameId: gameId,
+                    user: (myColor === 'w' ? white : black),
+                    text: text,
+                    color: myColor
+                });
+            }
+        	}}
+    		/>
+		</div>
 
-	<div class="controls">
-		{#if myColor !== null}
-		<button class="surrender-btn" on:click={() => showConfirm = true}>
-			🏳️ Surrender
-		</button>
-		{:else}
-		<button class="surrender-btn" on:click={goHome}> Return to home </button>
-		{/if}
+		<div class="sidebar-controls">
+			{#if myColor !== null}
+				<button class="surrender-btn" on:click={() => showConfirm = true}>
+					🏳️ Surrender
+				</button>
+			{:else}
+				<button class="surrender-btn" on:click={goHome}> Return to home </button>
+			{/if}
+		</div>
 	</div>
 
 	{#if showConfirm}
@@ -561,16 +684,33 @@ onDestroy(() => socket?.disconnect());
 			<div class="confirm-box">
 				<h2>Are you sure?</h2>
 				<p>You will lose the game.</p>
-
 				<div class="actions">
-					<button class="cancel" on:click={() => showConfirm = false}>
-						Cancel
-					</button>
-					<button class="confirm" on:click={confirmSurrender}>
-						Yes, surrender
-					</button>
+					<button class="cancel" on:click={() => showConfirm = false}>Cancel</button>
+					<button class="confirm" on:click={confirmSurrender}>Yes, surrender</button>
 				</div>
 			</div>
 		</div>
 	{/if}
+</div>
+
+<div class="responsive-chat">
+    <ChatWidget 
+		showGameChat={myColor !== null}
+        isInGame={true} 
+        gameMessages={messages} 
+        opponentName={(myColor === 'w' ? black : white) || "Oponente"}
+        myUsername={(myColor === 'w' ? white : black) || "Yo"}
+        /* Pasamos el color al widget para que él sepa si bloquear el input internamente */
+        myColor={myColor} 
+        onSendGameChat={(text) => {
+            if (socket && socket.connected) {
+                socket.emit('sendMessage', {
+                    gameId: gameId,
+                    user: (myColor === 'w' ? white : black),
+                    text: text,
+                    color: myColor
+                });
+            }
+        }}
+    />
 </div>

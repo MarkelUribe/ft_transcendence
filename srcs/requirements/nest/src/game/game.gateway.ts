@@ -76,6 +76,9 @@ export class GameGateway implements OnGatewayConnection{
 				black: game.black,
 				status: game.status
 			});
+
+			const history = this.gameService.getChatHistory(gameId);
+            client.emit('chatHistory', history);
 		}
 		catch { client.emit('error', { message: 'Game not found' }); }
 	}
@@ -143,4 +146,22 @@ export class GameGateway implements OnGatewayConnection{
 		}
 		catch { client.emit('error', { message: 'Surrender failed' }); }
 	}
+
+	@SubscribeMessage('sendMessage')
+    async handleSendMessage(
+        @ConnectedSocket() client: Socket,
+        @MessageBody() data: { gameId: string; user: string; text: string }
+    ) {
+        const { gameId, user, text } = data;
+
+        const userId = client.data.userId;
+        if (!userId) return;
+
+		this.gameService.addMessage(gameId, { user, text });
+
+        this.server.to(gameId).emit('chatMessage', {
+            user,
+            text
+        });
+    }
 }
