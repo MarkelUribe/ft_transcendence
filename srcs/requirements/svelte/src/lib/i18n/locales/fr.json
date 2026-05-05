@@ -1,0 +1,91 @@
+{
+    "home.welcome": "Bienvenue sur Chess Arena",
+    "home.logged_in": "Bonjour, {name} ! Prêt à jouer ?",
+    "home.guest_info": "Jouez aux échecs, consultez vos historiques et améliorez votre stratégie. Choisissez votre activité ci-dessous :",
+    "home.play": "Jouer",
+    "home.searching": "Recherche... (Cliquer pour annuler)",
+    "home.play_bot": "Jouer contre le Bot",
+    "home.logout": "Déconnexion",
+    "home.login": "Connexion",
+
+  "nav": {
+    "home": "Accueil",
+    "profile": "Profil",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "S'inscrire"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "register": "S'inscrire",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "email": "E-mail",
+    "confirmPassword": "Confirmer le mot de passe",
+    "loginButton": "Se connecter",
+    "registerButton": "S'inscrire",
+    "noAccount": "Pas de compte ?",
+    "hasAccount": "Déjà un compte ?",
+    "loginSuccess": "Connexion réussie",
+    "loginFailed": "Échec de la connexion",
+    "registerSuccess": "Inscription réussie",
+    "registerFailed": "Échec de l'inscription",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+    "unexpectedError": "Erreur inattendue"
+  },
+  "game": {
+    "searching": "Recherche d'un adversaire...",
+    "waiting": "En attente d'un adversaire",
+    "yourTurn": "À votre tour",
+    "opponentTurn": "Tour de l'adversaire",
+    "win": "Vous avez gagné !",
+    "lose": "Vous avez perdu",
+    "draw": "Match nul",
+    "playAgain": "Rejouer",
+    "resign": "Abandonner",
+    "offerDraw": "Proposer nul"
+  },
+  "matchmaking": {
+    "searching": "Recherche d'une partie...",
+    "found": "Partie trouvée !",
+    "cancelled": "Recherche annulée"
+  },
+  "friends": {
+    "title": "Amis",
+    "addFriend": "Ajouter un ami",
+    "friendId": "ID de l'ami",
+    "add": "Ajouter",
+    "requests": "Demandes d'ami",
+    "incoming": "Reçues",
+    "outgoing": "Envoyées",
+    "accept": "Accepter",
+    "reject": "Refuser",
+    "cancel": "Annuler",
+    "noFriends": "Pas encore d'amis",
+    "addSuccess": "Ami ajouté avec succès",
+    "addFailed": "Échec de l'ajout d'ami",
+    "requestSent": "Demande d'ami envoyée",
+    "requestAccepted": "Demande acceptée",
+    "requestRejected": "Demande refusée"
+  },
+  "profile": {
+    "title": "Profil",
+    "username": "Nom d'utilisateur",
+    "elo": "ELO",
+    "changeAvatar": "Changer l'avatar",
+    "save": "Enregistrer",
+    "saved": "Enregistré avec succès"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer"
+  }
+}

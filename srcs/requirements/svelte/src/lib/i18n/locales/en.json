@@ -1,0 +1,91 @@
+{
+  "home.welcome": "Welcome to Chess Arena",
+    "home.logged_in": "Hello, {name}! Ready to play?",
+    "home.guest_info": "Play chess, review your game logs, and improve your strategy. Choose what you want to do below:",
+    "home.play": "Play",
+    "home.searching": "Searching... (Click to cancel)",
+    "home.play_bot": "Play Against Bot",
+    "home.logout": "Logout",
+    "home.login": "Login",
+    
+  "nav": {
+    "home": "Home",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register"
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "register": "Sign Up",
+    "username": "Username",
+    "password": "Password",
+    "email": "Email",
+    "confirmPassword": "Confirm Password",
+    "loginButton": "Log In",
+    "registerButton": "Sign Up",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginSuccess": "Logged in successfully",
+    "loginFailed": "Log in failed",
+    "registerSuccess": "Registered successfully",
+    "registerFailed": "Registration failed",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "unexpectedError": "Unexpected error"
+  },
+  "game": {
+    "searching": "Searching for opponent...",
+    "waiting": "Waiting for opponent",
+    "yourTurn": "Your turn",
+    "opponentTurn": "Opponent's turn",
+    "win": "You Win!",
+    "lose": "You Lose",
+    "draw": "Draw",
+    "playAgain": "Play Again",
+    "resign": "Resign",
+    "offerDraw": "Offer Draw"
+  },
+  "matchmaking": {
+    "searching": "Searching for a game...",
+    "found": "Game found!",
+    "cancelled": "Search cancelled"
+  },
+  "friends": {
+    "title": "Friends",
+    "addFriend": "Add Friend",
+    "friendId": "Friend ID",
+    "add": "Add",
+    "requests": "Friend Requests",
+    "incoming": "Incoming",
+    "outgoing": "Outgoing",
+    "accept": "Accept",
+    "reject": "Reject",
+    "cancel": "Cancel",
+    "noFriends": "No friends yet",
+    "addSuccess": "Friend added successfully",
+    "addFailed": "Failed to add friend",
+    "requestSent": "Friend request sent",
+    "requestAccepted": "Friend request accepted",
+    "requestRejected": "Friend request rejected"
+  },
+  "profile": {
+    "title": "Profile",
+    "username": "Username",
+    "elo": "ELO",
+    "changeAvatar": "Change Avatar",
+    "save": "Save",
+    "saved": "Saved successfully"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close"
+  }
+}

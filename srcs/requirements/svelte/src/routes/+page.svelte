@@ -5,7 +5,8 @@
 	import { FriendsAPI } from '$lib/api/friends';
 	import { handleButtonClick, searching } from '$lib/Matchmaking';
 	import ChatWidget from '../lib/components/ChatWidget.svelte';
-	
+	import { t } from 'svelte-i18n';
+
 	let username = '';
 	let isLoggedIn = false;
 
@@ -354,10 +355,10 @@
 
 
 <div class="container">
-	<h1>Welcome to Chess Arena</h1>
+	<h1>{$t('home.welcome')}</h1>
 	<p>
 		{#if isLoggedIn}
-			Hello, {username}! Ready to play?
+			{$t('home.logged_in', { values: { name: username } })}
 		{:else}
 			Play chess, review your game logs, and improve your strategy. Choose what you want to do below:
 		{/if}
@@ -367,12 +368,12 @@
 			<button
 				class="button {$searching ? 'searching' : 'idle'}"
 				on:click={handleButtonClick}>
-				{$searching ? 'Searching... (Click to cancel)' : 'Play'}
+				{$searching ? $t('home.searching') : $t('home.play')}
 			</button>
-			<button class="button" on:click={handlePlayBot}>Play Against Bot</button>
-			<button class="button" on:click={handleLogout}>Logout</button>
+			<button class="button" on:click={handlePlayBot}>{$t('home.play_bot')}</button>
+			<button class="button" on:click={handleLogout}>{$t('home.logout')}</button>
 		{:else}
-			<button class="button" on:click={handleLogin}>Login</button>
+			<button class="button" on:click={handleLogin}>{$t('home.login')}</button>
 		{/if}
 	</div>
 

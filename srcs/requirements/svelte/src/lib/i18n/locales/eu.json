@@ -1,0 +1,91 @@
+{
+  "home.welcome": "Ongi etorri Chess Arenara",
+    "home.logged_in": "Kaixo, {name}! Jokatzeko prest?",
+    "home.guest_info": "Xakean jokatu, zure partidak aztertu eta zure estrategia hobetu. Aukeratu zer egin nahi duzun:",
+    "home.play": "Jokatu",
+    "home.searching": "Bilatzen... (Ezeztatzeko sakatu)",
+    "home.play_bot": "Bot-aren aurka jokatu",
+    "home.logout": "Saioa itxi",
+    "home.login": "Saioa hasi",
+
+  "nav": {
+    "home": "Hasiera",
+    "profile": "Profila",
+    "logout": "Saioa Itxi",
+    "login": "Hasi Saioa",
+    "register": "Erregistratu"
+  },
+  "auth": {
+    "login": "Hasi Saioa",
+    "logout": "Itxi Saioa",
+    "register": "Erregistratu",
+    "username": "Erabiltzaile izena",
+    "password": "Pasahitza",
+    "email": "Posta elektronikoa",
+    "confirmPassword": "Pasahitza Berretsi",
+    "loginButton": "Sartu",
+    "registerButton": "Erregistratu",
+    "noAccount": "Ez daukazu konturik?",
+    "hasAccount": "Kontu bat daukazu?",
+    "loginSuccess": "Ondo sartu da",
+    "loginFailed": "Errorea saioa hastean",
+    "registerSuccess": "Ondo erregistratu da",
+    "registerFailed": "Errorea erregistroan",
+    "passwordsDoNotMatch": "Pasahitzak ez datoz bat",
+    "unexpectedError": "Errore ezezaguna"
+  },
+  "game": {
+    "searching": "Aurkariaren bila...",
+    "waiting": "Aurkarria zain",
+    "yourTurn": "Zure txanda",
+    "opponentTurn": "Aurkariaren txanda",
+    "win": "Irabazi duzu!",
+    "lose": "Galdu egin duzu",
+    "draw": "Berditik",
+    "playAgain": "Berriz Play",
+    "resign": "Eseri",
+    "offerDraw": "Berdi eskaini"
+  },
+  "matchmaking": {
+    "searching": "Partida baten bila...",
+    "found": "Partida aurkituta!",
+    "cancelled": "Bilaketa bertan behera"
+  },
+  "friends": {
+    "title": "Lagunak",
+    "addFriend": "Lagun Gehitu",
+    "friendId": "Lagunaren IDa",
+    "add": "Gehitu",
+    "requests": "Lagun eskaerak",
+    "incoming": "Jasotakoak",
+    "outgoing": "Bidaliak",
+    "accept": "Onartu",
+    "reject": "Ukatu",
+    "cancel": "Ezeztatu",
+    "noFriends": "Oraindik ez dago lagunik",
+    "addSuccess": "Lagun ondo gehituta",
+    "addFailed": "Errorea laguna gehitzean",
+    "requestSent": "Lagun eskaera bidali da",
+    "requestAccepted": "Eskera onartu da",
+    "requestRejected": "Eskera ukatu da"
+  },
+  "profile": {
+    "title": "Profila",
+    "username": "Erabiltzaile izena",
+    "elo": "ELO",
+    "changeAvatar": "Aldatu Avatar",
+    "save": "Gorde",
+    "saved": "Ondo gorde da"
+  },
+  "common": {
+    "loading": "Kargatzen...",
+    "error": "Errorea",
+    "success": "Arrakasta",
+    "cancel": "Ezeztatu",
+    "confirm": "Berretsi",
+    "save": "Gorde",
+    "delete": "Ezabatu",
+    "edit": "Editatu",
+    "close": "Itxi"
+  }
+}
