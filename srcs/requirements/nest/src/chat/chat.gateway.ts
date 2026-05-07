@@ -18,7 +18,7 @@ export class ChatGateway implements OnGatewayDisconnect {
   constructor(
     private readonly chatService: ChatService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   handleConnection(client: Socket) {
     const token = client.handshake.auth?.token;
@@ -26,7 +26,13 @@ export class ChatGateway implements OnGatewayDisconnect {
 
     try {
       const payload = this.jwtService.verify(token);
-      client.data.userId = payload.sub;
+      const userId = Number(payload.sub);
+      if (!Number.isFinite(userId)) return client.disconnect();
+
+      client.data.userId = userId;
+
+      // THIS is what makes your FriendsGateway room-emits work:
+      client.join(`user:${userId}`);
     } catch {
       client.disconnect();
     }
@@ -115,7 +121,7 @@ export class ChatGateway implements OnGatewayDisconnect {
     return { success: true };
   }
 
-  handleDisconnect(client: Socket) {}
+  handleDisconnect(client: Socket) { }
 
   findSocketByPlayerId(playerId: number): Socket | undefined {
     const socketsMap = this.server?.sockets?.sockets || (this.server?.sockets as any);

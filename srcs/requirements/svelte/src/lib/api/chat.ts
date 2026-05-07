@@ -31,6 +31,10 @@ export function initChatSocket() {
     window.dispatchEvent(new CustomEvent('chat:messageSent', { detail: data }));
   });
 
+  chatSocket.on('friends:refresh', (data) => {
+    window.dispatchEvent(new CustomEvent('friends:refresh', { detail: data }));
+  });
+
   return chatSocket;
 }
 

@@ -1,83 +1,91 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import { goto } from '$app/navigation';
-  import { FriendsAPI } from '$lib/api/friends';
-  import { initChatSocket, sendMessage, getConversation, disconnectChat } from '$lib/api/chat';
-  import { browser } from '$app/environment';
+  import { onMount, onDestroy } from "svelte";
+  import { goto } from "$app/navigation";
+  import { FriendsAPI } from "$lib/api/friends";
+  import {
+    initChatSocket,
+    sendMessage,
+    getConversation,
+    disconnectChat,
+  } from "$lib/api/chat";
+  import { browser } from "$app/environment";
 
-
-  const BACKEND_URL = 'https://localhost:3000';
+  const BACKEND_URL = "https://localhost:3000";
 
   //let { compact = true } = $props();
   let messagesContainer = $state();
 
   let lastMessageTimes = $state<{ [key: number]: string }>({});
 
-  type SidebarView = 'FRIENDS' | 'MESSAGES';
+  type SidebarView = "FRIENDS" | "MESSAGES";
 
-  let currentView = $state('MESSAGES');
+  let currentView = $state("MESSAGES");
 
   let filteredFriends = $derived(
-    currentView === 'FRIENDS' 
-        ? [...friends].sort((a, b) => {
-           
-            const eloA = Number(a.elo) || 0;
-            const eloB = Number(b.elo) || 0;
-            return eloB - eloA; // De mayor a menor
-          }) 
-        : [...friends].sort((a, b) => {
+    currentView === "FRIENDS"
+      ? [...friends].sort((a, b) => {
+          const eloA = Number(a.elo) || 0;
+          const eloB = Number(b.elo) || 0;
+          return eloB - eloA; // De mayor a menor
+        })
+      : [...friends].sort((a, b) => {
           const dateA = new Date(a.last_message_at || 0).getTime();
           const dateB = new Date(b.last_message_at || 0).getTime();
           return dateB - dateA;
-        })
+        }),
   );
 
-  let { 
+  let {
     compact = true,
-    isInGame = false, 
-    gameMessages = [], 
+    isInGame = false,
+    gameMessages = [],
     myUsername = "",
     opponentName = "Oponente",
     onSendGameChat,
-    showGameChat
+    showGameChat,
   } = $props();
 
-  
+  let friendsApi: FriendsAPI | null = null;
+  let incomingRequests = $state([]);
+  let outgoingRequests = $state([]);
+
   let friends: any[] = $state([]);
   let selectedFriend: any = $state(null);
   let messages: any[] = $state([]);
-  let newMessage = $state('');
+  let newMessage = $state("");
   let loading = $state(false);
-  let error = $state('');
+  let error = $state("");
+  let expandedFriendId = $state<number | null>(null);
 
   let currentUserId = $state<number | null>(null);
 
   let lastKnownGameMsgCount = $state(
-    typeof window !== 'undefined' 
-    ? Number(localStorage.getItem('game_msg_count') || 0) 
-    : 0
+    typeof window !== "undefined"
+      ? Number(localStorage.getItem("game_msg_count") || 0)
+      : 0,
   );
 
-
-  let unreadChats = $state(new Set(
-    typeof window !== 'undefined' 
-    ? JSON.parse(localStorage.getItem('unread_chats') || '[]') 
-    : []
-  ));
+  let unreadChats = $state(
+    new Set(
+      typeof window !== "undefined"
+        ? JSON.parse(localStorage.getItem("unread_chats") || "[]")
+        : [],
+    ),
+  );
 
   let hasNewActivity = $state(false);
-
 
   $effect(() => {
     if (gameMessages.length > lastKnownGameMsgCount) {
       const lastMsg = gameMessages[gameMessages.length - 1];
 
       if (
-        lastMsg.user !== myUsername && selectedFriend?.id !== 'current-game-chat'
+        lastMsg.user !== myUsername &&
+        selectedFriend?.id !== "current-game-chat"
       ) {
-        unreadChats.add('current-game-chat');
+        unreadChats.add("current-game-chat");
         unreadChats = new Set(unreadChats);
-        if (currentView !== 'MESSAGES') {
+        if (currentView !== "MESSAGES") {
           hasNewActivity = true;
         }
       }
@@ -86,84 +94,92 @@
   });
 
   function moverAmigoAlPrincipio(friendId: number) {
-    const index = friends.findIndex(f => f.id == friendId);
+    const index = friends.findIndex((f) => f.id == friendId);
     if (index !== -1) {
       const friendToMove = friends[index];
-      friends = [friendToMove, ...friends.filter(f => f.id != friendId)];
+      friends = [friendToMove, ...friends.filter((f) => f.id != friendId)];
     }
   }
 
-
   function getAvatarUrl(avatarUrl: string | null): string {
-    if (!avatarUrl) return '';
-    if (avatarUrl.startsWith('http')) return avatarUrl;
+    if (!avatarUrl) return "";
+    if (avatarUrl.startsWith("http")) return avatarUrl;
     return `${BACKEND_URL}${avatarUrl}`;
   }
 
   onMount(async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      goto('/login');
+      goto("/login");
       return;
     }
 
-    const savedTimes = localStorage.getItem('chat_times');
+    const savedTimes = localStorage.getItem("chat_times");
     if (savedTimes) {
       lastMessageTimes = JSON.parse(savedTimes);
     }
 
-    const savedUnreads = localStorage.getItem('unread_chats');
+    const savedUnreads = localStorage.getItem("unread_chats");
     if (savedUnreads) {
-        unreadChats = new Set(JSON.parse(savedUnreads));
+      unreadChats = new Set(JSON.parse(savedUnreads));
     }
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(token.split(".")[1]));
       currentUserId = payload.sub;
     } catch {
-      goto('/login');
+      goto("/login");
       return;
     }
 
     initChatSocket();
 
     try {
-      const api = new FriendsAPI(token);
-      const fetchedFriends = await api.getFriends();
+      friendsApi = new FriendsAPI(token);
+      const fetchedFriends = await friendsApi.getFriends();
 
-      friends = fetchedFriends.map(f => ({
+      friends = fetchedFriends.map((f) => ({
         ...f,
-        last_message_at: lastMessageTimes[f.id] || null
+        last_message_at: lastMessageTimes[f.id] || null,
       }));
-      
-      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      const payload = JSON.parse(atob(token.split(".")[1]));
       currentUserId = payload.sub;
+
+      await refreshFriendsAndRequests();
     } catch (e: any) {
       error = e.message;
     }
 
-    window.addEventListener('chat:newMessage', handleNewMessage);
+    window.addEventListener("chat:newMessage", handleNewMessage);
+    window.addEventListener('friends:refresh', refreshFriendsAndRequests);
+    
   });
 
-onDestroy(() => {
+  onDestroy(() => {
     if (browser) {
-      window.removeEventListener('chat:newMessage', handleNewMessage);
+      window.removeEventListener("chat:newMessage", handleNewMessage);
+      window.removeEventListener('friends:refresh', refreshFriendsAndRequests);
       disconnectChat();
+
     }
   });
 
   function handleNewMessage(e: CustomEvent) {
     const message = e.detail;
-    
-    const friendId = message.senderId === currentUserId ? message.receiverId : message.senderId;
+
+    const friendId =
+      message.senderId === currentUserId
+        ? message.receiverId
+        : message.senderId;
 
     const now = new Date().toISOString();
 
     lastMessageTimes[friendId] = now;
 
-    if (currentView !== 'MESSAGES') {
-            hasNewActivity = true;
-        }
+    if (currentView !== "MESSAGES") {
+      hasNewActivity = true;
+    }
 
     if (selectedFriend && selectedFriend.id == friendId) {
       messages = [...messages, message];
@@ -172,7 +188,7 @@ onDestroy(() => {
       unreadChats = new Set(unreadChats);
     }
 
-    friends = friends.map(f => {
+    friends = friends.map((f) => {
       if (f.id == friendId) return { ...f, last_message_at: now };
       return f;
     });
@@ -188,7 +204,8 @@ onDestroy(() => {
     if (friend.isGame) {
       messages = [];
       lastKnownGameMsgCount = gameMessages.length;
-      return; 
+      loading = false;
+      return;
     }
 
     try {
@@ -205,12 +222,12 @@ onDestroy(() => {
     if (!newMessage.trim() || !selectedFriend) return;
 
     if (selectedFriend.isGame) {
-    if (onSendGameChat) {
-      onSendGameChat(newMessage.trim());
-      newMessage = '';
+      if (onSendGameChat) {
+        onSendGameChat(newMessage.trim());
+        newMessage = "";
+      }
+      return;
     }
-    return;
-  }
 
     const now = new Date().toISOString();
 
@@ -220,18 +237,20 @@ onDestroy(() => {
       lastMessageTimes[selectedFriend.id] = now;
       lastMessageTimes = { ...lastMessageTimes };
 
-      friends = friends.map(f => {
+      friends = friends.map((f) => {
         if (f.id === selectedFriend.id) return { ...f, last_message_at: now };
         return f;
       });
 
-      messages = [...messages, {
-        senderId: currentUserId,
-        content: newMessage.trim(),
-        createdAt: new Date().toISOString(),
-      }];
-      newMessage = '';
-
+      messages = [
+        ...messages,
+        {
+          senderId: currentUserId,
+          content: newMessage.trim(),
+          createdAt: new Date().toISOString(),
+        },
+      ];
+      newMessage = "";
     } catch (e: any) {
       error = e.message;
     }
@@ -239,7 +258,7 @@ onDestroy(() => {
 
   function formatTime(dateStr: string) {
     const date = new Date(dateStr);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
   function scrollToBottom() {
@@ -248,33 +267,156 @@ onDestroy(() => {
     }
   }
 
+  /* Markel's fcuntions from old centre friends box: */
+
+  let newFriendId = $state("");
+  let addFriendError = $state("");
+  let addFriendSuccess = $state("");
+  let requestsError = $state("");
+
+  async function refreshFriendsAndRequests() {
+    if (!friendsApi) return;
+
+    requestsError = "";
+
+    try {
+      const [friendsData, pending] = await Promise.all([
+        friendsApi.getFriends(),
+        friendsApi.getPendingRequests(),
+      ]);
+
+      friends = friendsData ?? [];
+      incomingRequests = pending?.incoming ?? [];
+      outgoingRequests = pending?.outgoing ?? [];
+    } catch (err) {
+      console.error("Failed to load friends or requests", err);
+      requestsError = "Could not load friend requests.";
+    }
+  }
+
+  function onFriendClick(friend: any) {
+    if (currentView === "MESSAGES") {
+      selectFriend(friend);
+      return;
+    }
+    expandedFriendId = expandedFriendId === friend.id ? null : friend.id;
+  }
+
+  function handleLogin() {
+    goto("/login");
+  }
+
+  function handlePlayBot() {
+    goto("/match_making/bot");
+  }
+
+  async function handleNewFriend() {
+    if (!friendsApi || !newFriendId.trim()) return;
+
+    addFriendError = "";
+    addFriendSuccess = "";
+
+    const id = Number(newFriendId);
+    if (Number.isNaN(id)) {
+      addFriendError = "Friend ID must be a number.";
+      return;
+    }
+
+    try {
+      await friendsApi.sendFriendRequest(id);
+      addFriendSuccess = "Friend request sent!";
+      newFriendId = "";
+      await refreshFriendsAndRequests();
+    } catch (err) {
+      console.error("Failed to send friend request", err);
+      if (err instanceof Error && err.message) {
+        addFriendError = err.message;
+      } else {
+        addFriendError = "Could not send friend request.";
+      }
+    }
+  }
+
+  async function handleAcceptRequest(requestId: number) {
+    if (!friendsApi) return;
+    try {
+      await friendsApi.acceptFriendRequest(requestId);
+      await refreshFriendsAndRequests();
+    } catch (err) {
+      console.error("Failed to accept friend request", err);
+      requestsError =
+        err instanceof Error && err.message
+          ? err.message
+          : "Could not accept friend request.";
+    }
+  }
+
+  async function handleRejectRequest(requestId: number) {
+    if (!friendsApi) return;
+    try {
+      await friendsApi.rejectFriendRequest(requestId);
+      await refreshFriendsAndRequests();
+    } catch (err) {
+      console.error("Failed to reject friend request", err);
+      requestsError =
+        err instanceof Error && err.message
+          ? err.message
+          : "Could not reject friend request.";
+    }
+  }
+
+  async function handleRemoveFriend(friendId: number) {
+    if (!friendsApi) return;
+    try {
+      await friendsApi.removeFriend(friendId);
+      await refreshFriendsAndRequests();
+      if (selectedFriend?.id === friendId) selectedFriend = null;
+      if (expandedFriendId === friendId) expandedFriendId = null;
+    } catch (err) {
+      console.error("Failed to remove friend", err);
+    }
+  }
+
+  function handleInviteFriend(friendId: number) {
+    // Dispatch event — your matchmaking/social controller can listen for this.
+    window.dispatchEvent(
+      new CustomEvent("social:invite", { detail: { friendId } }),
+    );
+  }
+
   $effect(() => {
     const data = JSON.stringify(lastMessageTimes);
-    localStorage.setItem('chat_times', data);
+    localStorage.setItem("chat_times", data);
   });
 
   $effect(() => {
-    localStorage.setItem('unread_chats', JSON.stringify(Array.from(unreadChats)));
-});
+    localStorage.setItem(
+      "unread_chats",
+      JSON.stringify(Array.from(unreadChats)),
+    );
+  });
 
-$effect(() => {
-    localStorage.setItem('game_msg_count', lastKnownGameMsgCount.toString());
-});
+  $effect(() => {
+    localStorage.setItem("game_msg_count", lastKnownGameMsgCount.toString());
+  });
 
-$effect(() => {
+  $effect(() => {
     if (gameMessages.length > lastKnownGameMsgCount) {
-        const lastMsg = gameMessages[gameMessages.length - 1];
+      const lastMsg = gameMessages[gameMessages.length - 1];
 
-        if (lastMsg.user !== myUsername && selectedFriend?.id !== 'current-game-chat') {
-            unreadChats.add('current-game-chat');
-            unreadChats = new Set(unreadChats); // Notifica el cambio al Set
-        } else if (selectedFriend?.id === 'current-game-chat') {
-            lastKnownGameMsgCount = gameMessages.length;
-        }
+      if (
+        lastMsg.user !== myUsername &&
+        selectedFriend?.id !== "current-game-chat"
+      ) {
+        unreadChats.add("current-game-chat");
+        unreadChats = new Set(unreadChats); // Notifica el cambio al Set
+      } else if (selectedFriend?.id === "current-game-chat") {
+        lastKnownGameMsgCount = gameMessages.length;
+      }
     }
-});
+  });
 
-$effect(() => {
+  $effect(() => {
     const _msgNormal = messages;
     const _msgGame = gameMessages;
     const _friend = selectedFriend;
@@ -286,161 +428,248 @@ $effect(() => {
 </script>
 
 <div class="chat-box" class:compact>
-    <div class="chat-container">
-        
-        {#if !selectedFriend}
-            <aside class="friends-list full-width">
-                <div class="sidebar-wrapper">
-                    <div class="tabs">
-                        <button 
-                            class:active={currentView === 'FRIENDS'} 
-                            onclick={() => currentView = 'FRIENDS'}
-                        >
-                            Friends
-                        </button>
+  <div class="chat-container">
+    {#if !selectedFriend}
+      <aside class="friends-list full-width">
+        <div class="sidebar-wrapper">
+          <div class="tabs">
+            <button
+              class:active={currentView === "FRIENDS"}
+              onclick={() => (currentView = "FRIENDS")}
+            >
+              Friends
+            </button>
 
-                        <button
-                            class:active={currentView === 'MESSAGES'}
-                            onclick={() => { currentView = 'MESSAGES'; hasNewActivity = false; }}
-                        >
-                            Messages
-                            {#if hasNewActivity && currentView !== 'MESSAGES'}
-                              <span class="notification-dot"></span>
-                            {/if}
-                        </button>
-                    </div>
-                </div>
-                {#if friends.length === 0 && !isInGame}
-                  <p class="empty">No tienes amigos aún</p>
-                {:else}
-                <ul>
-                  {#if currentView === 'MESSAGES' && isInGame && showGameChat}
-                    <li>
-                      <button 
-                        type="button" 
-                        class="friend-item-btn game-highlight" 
-                        onclick={() => { 
-                          selectFriend({ 
-                            id: 'current-game-chat', 
-                            username: opponentName || "Oponente",
-                            isGame: true 
-                          }); 
-                        }}
-                      >
-                        <div class="avatar game-avatar">
-                          🎮
-                        </div>
-                        <span class="username" class:unread={unreadChats.has('current-game-chat')}>
-                          <span class="name-text">Chat de Partida</span>
-                        </span>
-                      </button>
-                    </li>
-                  {/if}
-                  {#each filteredFriends as friend}
-                  <li>
-                    <button type="button" class="friend-item-btn" 
-                      class:only-view={currentView === 'FRIENDS'}
-                      onclick={() => currentView === 'MESSAGES' ? selectFriend(friend) : null}>
-                      <div class="avatar">
-                        {#if friend.avatarUrl}
-                            <img src={getAvatarUrl(friend.avatarUrl)} alt={friend.username} class="avatar-img" />
-                        {:else}
-                            {friend.username?.charAt(0).toUpperCase() || '?'}
-                        {/if}
-                      </div>
-                      <span class="username" class:unread={currentView === 'MESSAGES' && unreadChats.has(friend.id)}>
-                        <span class="name-text" title={friend.username}>
-                          {friend.username}
-                        </span>
-                        {#if currentView === 'FRIENDS'}
-                          <span class="elo-label">{friend.elo || 0}</span>
-                        {/if}
-                      </span>
+            <button
+              class:active={currentView === "MESSAGES"}
+              onclick={() => {
+                currentView = "MESSAGES";
+                hasNewActivity = false;
+              }}
+            >
+              Messages
+              {#if hasNewActivity && currentView !== "MESSAGES"}
+                <span class="notification-dot"></span>
+              {/if}
+            </button>
+          </div>
+        </div>
+
+        <!-- Add friends box -->
+        {#if currentView === "FRIENDS"}
+          <div class="add-friend-form">
+            <input
+              class="add-friend-input"
+              type="text"
+              placeholder="Enter friend user ID"
+              bind:value={newFriendId}
+              onkeydown={(e) => e.key === "Enter" && handleNewFriend()}
+            />
+            <button class="small-button" onclick={handleNewFriend}>Add</button>
+          </div>
+          {#if addFriendError}
+            <p class="friends-message error">{addFriendError}</p>
+          {:else if addFriendSuccess}
+            <p class="friends-message success">{addFriendSuccess}</p>
+          {/if}
+          {#if requestsError}
+            <p class="friends-message error" style="margin-top: 0.5rem;">
+              {requestsError}
+            </p>
+          {/if}
+
+          <div style="  border-bottom: 1px solid #a2a2a2;padding-bottom: 2px;">
+            {#if incomingRequests.length != 0}
+              <div class="request-section-title">Incoming requests</div>
+              {#each incomingRequests as req}
+                <div class="request-item">
+                  <span>{req.requester.username}</span>
+                  <div class="request-actions">
+                    <button
+                      class="request-button-accept"
+                      onclick={() => handleAcceptRequest(req.id)}
+                    >
+                      Accept
                     </button>
-                  </li>
-                {/each}
-              </ul>
+                    <button
+                      class="request-button-reject"
+                      onclick={() => handleRejectRequest(req.id)}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              {/each}
             {/if}
-          </aside>
-          {:else}
-            <main class="chat-area full-width">
-              <header class="chat-header">
-                <button class="back-btn" onclick={() => selectedFriend = null}>
-                  ←
-                </button>
-                <div class="avatar">
-                  {#if selectedFriend.isGame}
-                    <div class="game-avatar-icon">🎮</div>
-                  {:else if selectedFriend.avatarUrl}
-                    <img src={getAvatarUrl(selectedFriend.avatarUrl)} alt={selectedFriend.username} class="avatar-img" />
-                  {:else}
-                    {selectedFriend.username?.charAt(0).toUpperCase() || '?'}
-                  {/if}
-                </div>
-                <span>{selectedFriend.username}</span>
-              </header>
+          </div>
+        {/if}
 
-              <div class="messages" bind:this={messagesContainer}>
-                {#if selectedFriend.isGame}
-                  {#if gameMessages.length === 0}
-                    <p class="empty">No hay mensajes en la partida</p>
-                  {:else}
-                    {#each gameMessages as msg}
-                      <div class="message" class:own={msg.user === myUsername}>
-                    <div class="content">
-                        <!-- Solo mostramos el nombre si NO es nuestro mensaje -->
-                        {#if msg.user !== myUsername}
-                            <small class="opponent-name">{msg.user}</small>
-                        {/if}
-                        
-                        <p>{msg.text}</p>
-                    </div>
-                </div>
-                    {/each}
-                  {/if}
-                  {:else}
-                  {#if loading}
-                    <p class="loading">Cargando mensajes...</p>
-                  {:else if messages.length === 0}
-                    <p class="empty">No hay mensajes aún</p>
-                  {:else}
-                    {#each messages as msg}
-                      <div class="message" class:own={msg.senderId === currentUserId}>
-                        <div class="content">{msg.content}</div>
-                        <span class="time">{formatTime(msg.createdAt)}</span>
-                      </div>
-                    {/each}
-                  {/if}
-                {/if}
-              </div>
-              <form class="message-input" onsubmit={(e) => { 
-                e.preventDefault(); 
-                if (selectedFriend.isGame) {
-                  if (newMessage.trim()) {
-                    onSendGameChat(newMessage); // La prop que viene del archivo partida
-                    newMessage = ""; 
-                  }
-                } else {
-                  handleSendMessage(); // Tu función original para la API
-                }
-              }}>
-                <input
-                  type="text"
-                  bind:value={newMessage}
-                  placeholder="Escribe un mensaje..."
-                  disabled={!selectedFriend.isGame && loading}
-                />
-                <button type="submit" disabled={!newMessage.trim() || (!selectedFriend.isGame && loading)}>
-                  Enviar
+        {#if friends.length === 0 && !isInGame}
+          <p class="empty">No tienes amigos aún</p>
+        {:else}
+          <ul>
+            {#if currentView === "MESSAGES" && isInGame && showGameChat}
+              <li>
+                <button
+                  type="button"
+                  class="friend-item-btn game-highlight"
+                  onclick={() => {
+                    selectFriend({
+                      id: "current-game-chat",
+                      username: opponentName || "Oponente",
+                      isGame: true,
+                    });
+                  }}
+                >
+                  <div class="avatar game-avatar">🎮</div>
+                  <span
+                    class="username"
+                    class:unread={unreadChats.has("current-game-chat")}
+                  >
+                    <span class="name-text">Chat de Partida</span>
+                  </span>
                 </button>
-          </form>
-        </main>
-      {/if}
-   </div>
+              </li>
+            {/if}
+
+            {#each filteredFriends as friend}
+              <li>
+                <button
+                  type="button"
+                  class="friend-item-btn"
+                  class:only-view={currentView === "FRIENDS"}
+                  onclick={() => onFriendClick(friend)}
+                >
+                  <div class="avatar">
+                    {#if friend.avatarUrl}
+                      <img
+                        src={getAvatarUrl(friend.avatarUrl)}
+                        alt={friend.username}
+                        class="avatar-img"
+                      />
+                    {:else}
+                      {friend.username?.charAt(0).toUpperCase() || "?"}
+                    {/if}
+                  </div>
+                  <span
+                    class="username"
+                    class:unread={currentView === "MESSAGES" &&
+                      unreadChats.has(friend.id)}
+                  >
+                    <span class="name-text" title={friend.username}>
+                      {friend.username}
+                    </span>
+                    {#if currentView === "FRIENDS"}
+                      <span class="elo-label">{friend.elo || 0}</span>
+                    {/if}
+                    {#if currentView === "FRIENDS" && expandedFriendId === friend.id}
+                      <div class="friend-actions">
+                        <button
+                          class="small-button"
+                          onclick={() => handleInviteFriend(friend.id)}
+                          >Invite</button
+                        >
+                        <button
+                          class="request-button-reject"
+                          onclick={() => handleRemoveFriend(friend.id)}
+                          >Remove</button
+                        >
+                      </div>
+                    {/if}
+                  </span>
+                </button>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </aside>
+    {:else}
+      <main class="chat-area full-width">
+        <header class="chat-header">
+          <button class="back-btn" onclick={() => (selectedFriend = null)}>
+            ←
+          </button>
+          <div class="avatar">
+            {#if selectedFriend.isGame}
+              <div class="game-avatar-icon">🎮</div>
+            {:else if selectedFriend.avatarUrl}
+              <img
+                src={getAvatarUrl(selectedFriend.avatarUrl)}
+                alt={selectedFriend.username}
+                class="avatar-img"
+              />
+            {:else}
+              {selectedFriend.username?.charAt(0).toUpperCase() || "?"}
+            {/if}
+          </div>
+          <span>{selectedFriend.username}</span>
+        </header>
+
+        <div class="messages" bind:this={messagesContainer}>
+          {#if selectedFriend.isGame}
+            {#if gameMessages.length === 0}
+              <p class="empty">No hay mensajes en la partida</p>
+            {:else}
+              {#each gameMessages as msg}
+                <div class="message" class:own={msg.user === myUsername}>
+                  <div class="content">
+                    <!-- Solo mostramos el nombre si NO es nuestro mensaje -->
+                    {#if msg.user !== myUsername}
+                      <small class="opponent-name">{msg.user}</small>
+                    {/if}
+
+                    <p>{msg.text}</p>
+                  </div>
+                </div>
+              {/each}
+            {/if}
+          {:else if loading}
+            <p class="loading">Cargando mensajes...</p>
+          {:else if messages.length === 0}
+            <p class="empty">No hay mensajes aún</p>
+          {:else}
+            {#each messages as msg}
+              <div class="message" class:own={msg.senderId === currentUserId}>
+                <div class="content">{msg.content}</div>
+                <span class="time">{formatTime(msg.createdAt)}</span>
+              </div>
+            {/each}
+          {/if}
+        </div>
+        <form
+          class="message-input"
+          onsubmit={(e) => {
+            e.preventDefault();
+            if (selectedFriend.isGame) {
+              if (newMessage.trim()) {
+                onSendGameChat(newMessage); // La prop que viene del archivo partida
+                newMessage = "";
+              }
+            } else {
+              handleSendMessage(); // Tu función original para la API
+            }
+          }}
+        >
+          <input
+            type="text"
+            bind:value={newMessage}
+            placeholder="Escribe un mensaje..."
+            disabled={!selectedFriend.isGame && loading}
+          />
+          <button
+            type="submit"
+            disabled={!newMessage.trim() || (!selectedFriend.isGame && loading)}
+          >
+            Enviar
+          </button>
+        </form>
+      </main>
+    {/if}
+  </div>
 </div>
 
 <style>
-    .chat-box.compact {
+  .chat-box.compact {
     width: 300px;
     height: 450px;
     position: fixed;
@@ -458,8 +687,8 @@ $effect(() => {
 
   .chat-box * {
     box-sizing: border-box;
-}
-  
+  }
+
   .messages {
     flex: 1;
     overflow-y: auto;
@@ -469,85 +698,105 @@ $effect(() => {
     padding: 1rem;
     max-height: 100%;
   }
-  
+
   .chat-container {
-        display: block;
-        width: 100%;
-        height: 100%;
-    }
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 
-    .full-width {
-        width: 100% !important;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
+  .full-width {
+    width: 100% !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
 
+  .friend-item-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: left;
+  }
 
-    .friend-item-btn {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 6px 10px;
-        border: none;
-        background: none;
-        cursor: pointer;
-        border-bottom: 1px solid #f0f0f0;
-        text-align: left;
-    }
+  .friend-item-btn:hover {
+    background-color: #f9f9f9;
+  }
 
-    .friend-item-btn:hover {
-        background-color: #f9f9f9;
-    }
+  .friend-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.35rem 0 0.6rem 0;
+    align-items: center;
+  }
+  .friend-actions .small-button {
+    padding: 0.35rem 0.8rem;
+    background: linear-gradient(180deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border-radius: 8px;
+    border: none;
+  }
+  .friend-actions .request-button-reject {
+    padding: 0.32rem 0.7rem;
+    background: linear-gradient(180deg, #e04b4b, #c23131);
+    color: #fff;
+    border-radius: 8px;
+    border: none;
+  }
 
-    .back-btn {
-        background: none;
-        border: none;
-        font-size: 1rem;
-        cursor: pointer;
-        padding: 5px 10px;
-        margin-right: 5px;
-    }
+  .back-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-right: 5px;
+  }
 
-    .back-btn:hover {
-        color: #007bff;
-    }
+  .back-btn:hover {
+    color: #007bff;
+  }
 
-    .sidebar-wrapper {
-        margin-bottom: 10px;
-    }
+  .sidebar-wrapper {
+    margin-bottom: 10px;
+  }
 
-    .tabs {
-        display: flex;
-        width: 100%;
-        border-bottom: 1px solid #ddd;
-        margin-bottom: 1rem;
-        gap: 5px;
-    }
+  .tabs {
+    display: flex;
+    width: 100%;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1rem;
+    gap: 5px;
+  }
 
-    .tabs button {
-        flex: 1;
-        padding: 8px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: #888888; 
-        transition: all 0.2s ease-in-out;
-        border-bottom: 3px solid transparent;
-    }
+  .tabs button {
+    flex: 1;
+    padding: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #888888;
+    transition: all 0.2s ease-in-out;
+    border-bottom: 3px solid transparent;
+  }
 
-    .tabs button.active {
-        color: #000000;
-        border-bottom: 2px solid #000000;
-    }
+  .tabs button.active {
+    color: #000000;
+    border-bottom: 2px solid #000000;
+  }
 
-    .tabs button:hover:not(.active) {
-        color: #444444;
-        background-color: rgba(0, 0, 0, 0.03);
-    }
+  .tabs button:hover:not(.active) {
+    color: #444444;
+    background-color: rgba(0, 0, 0, 0.03);
+  }
 
   .notification-dot {
     position: static;
@@ -563,27 +812,33 @@ $effect(() => {
   }
 
   @keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0.3; }
-    100% { opacity: 1; }
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+    100% {
+      opacity: 1;
+    }
   }
 
-    .elo-label {
-        margin-left: auto;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #666;
-        padding-right: 5px;
-        white-space: nowrap;
-    }
+  .elo-label {
+    margin-left: auto;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #666;
+    padding-right: 5px;
+    white-space: nowrap;
+  }
 
-    .elo-label::after {
-        content: ' ELO';
-        font-size: 0.7rem;
-        font-weight: 400;
-        color: #888;
-        margin-left: 2px;
-    }
+  .elo-label::after {
+    content: " ELO";
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #888;
+    margin-left: 2px;
+  }
 
   .friends-list {
     width: 280px;
@@ -614,7 +869,6 @@ $effect(() => {
     transition: background 0.3s ease;
   }
 
-
   .avatar {
     flex-shrink: 0;
     width: 40px;
@@ -641,14 +895,14 @@ $effect(() => {
     font-size: 0.85rem;
     overflow: hidden;
   }
-  
+
   .name-text {
-  flex: 1;             /* Hace que el nombre ocupe todo el espacio disponible */
-  white-space: nowrap; /* Evita el salto de línea */
-  overflow: hidden;    /* Esconde lo que sobra */
-  text-overflow: ellipsis; /* Añade los "..." */
-  min-width: 0;        /* Truco vital para que flexbox permita encoger el texto */
-}
+    flex: 1; /* Hace que el nombre ocupe todo el espacio disponible */
+    white-space: nowrap; /* Evita el salto de línea */
+    overflow: hidden; /* Esconde lo que sobra */
+    text-overflow: ellipsis; /* Añade los "..." */
+    min-width: 0; /* Truco vital para que flexbox permita encoger el texto */
+  }
 
   .opponent-name {
     display: block;
@@ -656,13 +910,13 @@ $effect(() => {
     font-weight: bold;
     margin-bottom: 2px;
     opacity: 0.8;
-} 
+  }
 
   .name-text {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   .chat-area {
     flex: 1;
@@ -674,7 +928,7 @@ $effect(() => {
     font-size: 0.85rem;
     font-weight: 600;
     color: #333;
-}
+  }
 
   .chat-header {
     display: flex;
@@ -770,7 +1024,8 @@ $effect(() => {
     cursor: not-allowed;
   }
 
-  .empty, .loading {
+  .empty,
+  .loading {
     color: #888;
     text-align: center;
     padding: 2rem;
@@ -779,5 +1034,135 @@ $effect(() => {
   .unread {
     font-weight: bold;
     color: #000; /* O un color más llamativo para resaltar */
+  }
+
+  /* Markel's friend stuff style: */
+
+  /* Add-friend box (dark chat theme) */
+  .add-friend-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .add-friend-input {
+    flex: 1;
+    padding: 0.45rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid #a7a7a7;
+    background: #e2e2e2;
+    color: #2b2b2b;
+    font-size: 0.9rem;
+  }
+  .add-friend-input::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .small-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .friends-message {
+    font-size: 0.85rem;
+    margin: 0.2rem 0;
+  }
+
+  .friends-message.error {
+    color: #ffb3b3;
+  }
+
+  .friends-message.success {
+    color: #b3ffcb;
+  }
+
+  /* Small action button (match chat send button style) */
+  .small-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #43cea2, #185a9d);
+    color: #fff;
+    transition: all 0.2s ease;
+  }
+  .small-button:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Messages for success/error (subtle, on dark bg) */
+  .friends-message {
+    font-size: 0.85rem;
+    margin: 0.25rem 0;
+  }
+  .friends-message.error {
+    color: #ff9b9b;
+  }
+  .friends-message.success {
+    color: #b3f6c8;
+  }
+
+  /* Request list headings */
+  .request-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #454545;
+  }
+
+  /* Request item layout */
+  .request-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    font-size: 0.9rem;
+    color: #414141;
+  }
+
+  /* Action buttons for requests */
+  .request-actions {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .request-button-accept,
+  .request-button-reject {
+    padding: 0.32rem 0.6rem;
+    font-size: 0.82rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+  }
+
+  /* colors tuned for dark theme */
+  .request-button-accept {
+    background: linear-gradient(180deg, #2ea64a 0%, #19963a 100%);
+    box-shadow: 0 6px 14px rgba(25, 150, 58, 0.12);
+  }
+  .request-button-accept:hover {
+    transform: translateY(-2px);
+  }
+
+  .request-button-reject {
+    background: linear-gradient(180deg, #e04b4b 0%, #c23131 100%);
+    box-shadow: 0 6px 14px rgba(194, 49, 49, 0.12);
+  }
+  .request-button-reject:hover {
+    transform: translateY(-2px);
+  }
+
+  .button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .button.searching {
+    background: linear-gradient(90deg, #ff512f, #dd2476);
+    animation: pulse 1.2s infinite;
+  }
+
+  .button.idle {
+    background: linear-gradient(90deg, #24c6dc, #514a9d);
   }
 </style>
