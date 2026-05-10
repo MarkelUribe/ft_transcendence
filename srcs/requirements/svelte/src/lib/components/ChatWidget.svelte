@@ -201,6 +201,29 @@ onDestroy(() => {
     }
   }
 
+  function getDateLabel(dateStr: string) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    if (msgDate.getTime() === today.getTime()) {
+        return 'Hoy';
+    } else if (msgDate.getTime() === yesterday.getTime()) {
+        return 'Ayer'; // Aquí luego pondremos $t('chat.yesterday')
+    } else {
+        return date.toLocaleDateString(undefined, { 
+            day: 'numeric', 
+            month: 'short',
+            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+        });
+    }
+  }
+
   async function handleSendMessage() {
     if (!newMessage.trim() || !selectedFriend) return;
 
@@ -404,7 +427,15 @@ $effect(() => {
                   {:else if messages.length === 0}
                     <p class="empty">No hay mensajes aún</p>
                   {:else}
-                    {#each messages as msg}
+                    {#each messages as msg, i}
+                      {@const currentDate = new Date(msg.createdAt).toDateString()}
+                      {@const prevDate = i > 0 ? new Date(messages[i - 1].createdAt).toDateString() : null}
+
+                      {#if currentDate !== prevDate}
+                        <div class="date-divider">
+                          <span>{getDateLabel(msg.createdAt)}</span>
+                        </div>
+                      {/if}
                       <div class="message" class:own={msg.senderId === currentUserId}>
                         <div class="content">{msg.content}</div>
                         <span class="time">{formatTime(msg.createdAt)}</span>
@@ -780,4 +811,21 @@ $effect(() => {
     font-weight: bold;
     color: #000; /* O un color más llamativo para resaltar */
   }
+
+  .date-divider {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+    width: 100%;
+  }
+
+  .date-divider span {
+    background-color: #333; /* Color oscuro tipo tablero de ajedrez */
+    color: #888;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
 </style>

@@ -71,6 +71,11 @@
     username = "";
     password = "";
 
+    friends = [];
+    messages = [];
+    lastMessageTimes = {};
+    selectedFriend = null;
+
     window.dispatchEvent(new CustomEvent('auth-changed', { detail: { status: 'loggedOut' } }));
   }
 </script>

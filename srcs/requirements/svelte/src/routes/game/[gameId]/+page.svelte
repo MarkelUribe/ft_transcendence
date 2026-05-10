@@ -700,7 +700,6 @@ onDestroy(() => socket?.disconnect());
         gameMessages={messages} 
         opponentName={(myColor === 'w' ? black : white) || "Oponente"}
         myUsername={(myColor === 'w' ? white : black) || "Yo"}
-        /* Pasamos el color al widget para que él sepa si bloquear el input internamente */
         myColor={myColor} 
         onSendGameChat={(text) => {
             if (socket && socket.connected) {
