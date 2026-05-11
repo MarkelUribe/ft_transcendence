@@ -166,7 +166,6 @@ export class GameService
 			this.gameRepo.save(game);
 		}
 	
-
 		return game;
 	}
 

@@ -114,7 +114,6 @@ export class GameGateway implements OnGatewayConnection{
 			if (game.status === 'ended')
 			{
 				this.server.to(gameId).emit('ended', {looser: game.looser});
-				await this.gameService.deleteGame(gameId);
 			}
 			else
 			{
@@ -162,8 +161,6 @@ export class GameGateway implements OnGatewayConnection{
 			if (!game) return ;
 
 			this.server.to(gameId).emit('ended', {looser: game.looser});
-
-			await this.gameService.deleteGame(gameId);
 		}
 		catch { client.emit('error', { message: 'Surrender failed' }); }
 	}

@@ -12,8 +12,11 @@ let turn: 'w' | 'b' = 'w';
 let myColor: 'w' | 'b' | null = null;
 let gameOver = false;
 let resultText = '';
+
 let logs: any[] = [];
 let currentMoveIndex = 0;
+let moveFrom: string | null = null;
+let moveTo: string | null = null;
 
 let white: string | null = null
 let black: string | null = null
@@ -85,6 +88,10 @@ function goToMove(index: number)
 
 	board = parseFen(move.fen);
 	turn = move.fen.split(' ')[1] as 'w' | 'b';
+
+	selected = null;
+	moveFrom = move.from ?? null;
+	moveTo = move.to ?? null;
 }
 
 function updateState(move: any)
@@ -94,6 +101,9 @@ function updateState(move: any)
 	currentMoveIndex = logs.length - 1;
 	board = parseFen(move.fen);
 	turn = move.fen.split(' ')[1] as 'w' | 'b';
+
+	moveFrom = move.from ?? null;
+	moveTo = move.to ?? null;
 }
 
 function handleEnd(msg: any)
@@ -300,565 +310,628 @@ function getTurnText(turn: 'w' | 'b', myColor: 'w' | 'b' | null, white: string, 
 }
 
 onDestroy(() => socket?.disconnect());
-
 </script>
 
-<style>
+<div class="page">
+	<div class="game-container">
+				<div class="top-bar">
+					<div class="turn-container">
+						{#if promotion && myColor}
+							<div class="turn-indicator promotion-bar {myColor === turn ? 'my-turn' : ''}">
+								{#each getPromotionPieces(myColor) as p}
+									<button type="button" on:click={() => handlePromotionChoice(p)}>
+										<img src={getPieceImage(p)} alt={p} />
+									</button>
+								{/each}
+							</div>
+						{:else}
+							<div class="turn-indicator {myColor === turn ? 'my-turn' : ''}" class:review={uiMode === 'review'}>
+								<span class="dot"></span>
+								<span class="turn-text">{getTurnText(turn, myColor, white, black, uiMode)}</span>
+							</div>
+						{/if}
+					</div>
+				</div>
+
+			<div class="game-layout">
+				<div class="board-area">
+					<div class="chess-board">
+						{#each display as row, r}
+							{#each row as cell, c}
+								<button
+									type="button"
+									class="square {(r + c) % 2 === 0 ? 'light' : 'dark'}"
+									class:selected={selected === coordFromDisplay(r, c)}
+									class:move-highlight={
+										coordFromDisplay(r, c) === moveFrom ||
+										coordFromDisplay(r, c) === moveTo
+									}
+									on:click={() => handleSquareClick(r, c)}
+								>
+
+									{#if cell}
+										<img
+											class="piece"
+											src={getPieceImage(cell)}
+											alt={cell}
+										/>
+									{/if}
+
+									{#if r === 7}
+										<span class="coord file">
+											{myColor === 'b'
+												? String.fromCharCode(104 - c)
+												: String.fromCharCode(97 + c)}
+										</span>
+									{/if}
+
+									{#if c === 0}
+										<span class="coord rank">
+											{myColor === 'b' ? r + 1 : 8 - r}
+										</span>
+									{/if}
+
+								</button>
+							{/each}
+						{/each}
+					</div>
+				</div>
+				<div class="side-area">
+					<div class="logs-panel card shadow-sm h-100">
+
+						<div class="card-body p-0 logs-list">
+
+							{#each groupMoves(logs.slice(1)) as move, i}
+								<div class="log-row d-flex align-items-center px-3 py-2">
+
+									<span class="move-number text-muted">
+										{move.number}.
+									</span>
+
+									<button
+										class="move-btn white-move"
+										class:active-move={currentMoveIndex === i * 2 + 1}
+										on:click={() => goToMove(i * 2 + 1)}
+									>
+										{move.white?.san}
+									</button>
+
+									<button
+										class="move-btn black-move"
+										class:active-move={currentMoveIndex === i * 2 + 2}
+										on:click={() => goToMove(i * 2 + 2)}
+									>
+										{move.black?.san}
+									</button>
+
+								</div>
+							{/each}
 
-	.game-container {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 100vh;
-	}
-
-	.board {
-		display: grid;
-		flex-shrink: 0;
-
-		width: min(60vw, 70vh);
-		aspect-ratio: 1 / 1;
-
-		grid-template-columns: repeat(8, 1fr);
-		grid-template-rows: repeat(8, 1fr);
-
-		border-radius: 10px;
-		box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-		flex: 1;
-	}
-
-	.square {
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		border: none;
-		padding: 0;
-	}
-
-	.square img {
-		width: 80%;
-		height: 80%;
-		object-fit: contain;
-	}
-
-	.square.selected::before {
-		content: "";
-		position: absolute;
-		inset: 0;
-		background: rgba(62, 58, 24, 0.42);
-		z-index: 1;
-		pointer-events: none;
-	}
-
-	.square.selected {
-		box-shadow: inset 0 0 0 0px rgb(0, 255, 42);
-	}
-
-	.light {
-		background: #f0d9b5; /* beige */
-	}
-
-	.dark {
-		background: #b58863; /* brown */
-	}
-
-	.controls {
-		text-align: center;
-		margin-top: 1rem;
-	}
-
-	img.piece {
-		width: 100%;
-		height: 100%;
-		user-select: none;
-		pointer-events: none;
-	}
-
-	.modal {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: rgba(0,0,0,0.6);
-
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		z-index: 1000;
-	}
-
-	.modal-box {
-		background: rgb(252, 252, 252);
-		padding: 30px 40px;
-		border-radius: 12px;
-		text-align: center;
-		box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-	}
-
-	.modal-box h2 {
-		margin-bottom: 20px;
-		color: black;
-	}
-
-	.modal-box button {
-		padding: 10px 20px;
-		font-size: 16px;
-		cursor: pointer;
-	}
-
-	@keyframes float {
-		0%, 100% { transform: translateY(0px) rotate(0deg); }
-		50% { transform: translateY(-20px) rotate(15deg); }
-	}
-
-	/* Container that keeps layout consistent */
-	.turn-container {
-		width: min(60vw, 85vh);
-		height: 90px;
-		aspect-ratio: 1 / 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		margin: 0.5rem auto;
-		flex: 0 0 auto;
-	}
-
-	/* Turn indicator styles remain the same */
-	.turn-indicator {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		padding: 1.5vh 3vw;
-		border-radius: 1vh;
-		background: #333;
-		transition: all 0.3s ease;
-		width: 100%;
-		justify-content: center;
-		min-height: 55px; /* ensures consistent height */
-	}
-
-	.turn-indicator .turn-text {
-		font-size: clamp(1.5rem, 3.5vw, 3rem);
-		font-weight: bold; /* optional, makes it stand out */
-	}
-
-	/* My-turn effect */
-	.turn-indicator.my-turn {
-		background: linear-gradient(135deg, #33ff0193, #64dd17);
-		color: black;
-		font-weight: bold;
-	}
-
-	/* Promotion bar inherits turn-indicator styles */
-	.turn-indicator.promotion-bar {
-		padding: 10px 10px;
-		background: linear-gradient(135deg, #33ff0193, #64dd17);
-		justify-content: center;
-		gap: 10px; /* spacing for pieces */
-	}
-
-	/* Buttons inside promotion */
-	.turn-indicator.promotion-bar button {
-		background: none;
-		border: 2px solid transparent;
-		border-radius: 10px;
-		cursor: pointer;
-		padding: 5px;
-		transition: all 0.2s ease;
-	}
-
-	.turn-indicator.promotion-bar button:hover {
-		border-color: white;
-		background: rgba(255, 255, 255, 0.1);
-	}
-
-	.turn-indicator.promotion-bar img {
-		width: 50px;
-		height: 50px;
-		object-fit: contain;
-	}
-
-	.turn-indicator.review {
-		background: #ff4d4d;
-		color: white;
-	}
-
-	/* force text white inside review mode */
-	.turn-indicator.review .turn-text {
-		color: white;
-	}
-
-	/* dot also adapts */
-	.turn-indicator.review .dot {
-		background: white;
-	}
-
-	/* Animation */
-	@keyframes pulse {
-		0% { transform: scale(1); }
-		50% { transform: scale(1.05); }
-		100% { transform: scale(1); }
-	}
-
-	.surrender-btn {
-		background: linear-gradient(135deg, #ff4d4d, #b30000);
-		color: white;
-		border: none;
-		padding: 10px 18px;
-		border-radius: 8px;
-		font-weight: bold;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-	}
-
-	.surrender-btn:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 6px 14px rgba(0,0,0,0.4);
-	}
-
-	.surrender-btn:active {
-		transform: scale(0.96);
-	}
-
-	/* OVERLAY */
-	.confirm-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0,0,0,0.6);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 100;
-	}
-
-	/* MODAL */
-	.confirm-box {
-		background: #1e1e1e;
-		color: white;
-		padding: 24px;
-		border-radius: 12px;
-		text-align: center;
-		box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-		animation: pop 0.2s ease;
-	}
-
-	.confirm-box h2 {
-		margin-bottom: 10px;
-	}
-
-	.confirm-box p {
-		color: #ccc;
-		margin-bottom: 20px;
-	}
-
-	/* ACTION BUTTONS */
-	.actions {
-		display: flex;
-		gap: 10px;
-		justify-content: center;
-	}
-
-	.cancel {
-		background: #444;
-		color: white;
-		border: none;
-		padding: 8px 14px;
-		border-radius: 6px;
-		cursor: pointer;
-	}
-
-	.confirm {
-		background: #ff4d4d;
-		color: white;
-		border: none;
-		padding: 8px 14px;
-		border-radius: 6px;
-		font-weight: bold;
-		cursor: pointer;
-	}
-
-	/* POP ANIMATION */
-	@keyframes pop {
-		from {
-			transform: scale(0.8);
-			opacity: 0;
-		}
-		to {
-			transform: scale(1);
-			opacity: 1;
-		}
-	}
-
-	.main-row {
-		display: flex;
-		gap: 20px;
-		height: min(60vw, 85vh);
-	}
-
-	/* 📱 Mobile */
-	@media (max-width: 900px) {
-		.main-row {
-			flex-direction: column;
-			align-items: center;
-		}
-	}
-
-	.left-panel {
-		display: flex;
-		flex-direction: column;
-		height: 100%; /* 👈 total height now controlled here */
-	}
-
-	.logs-panel {
-		width: min(25vw, 260px);
-		height: 100%;
-
-		font-size: clamp(1rem, 1.5vw, 1.3rem);
-
-		background: #2b2b2b;
-		color: white;
-		padding: 10px;
-		border-radius: 8px;
-
-		display: flex;
-		flex-direction: column;
-	}
-
-	.logs-panel h3 {
-		margin-bottom: 10px;
-		text-align: center;
-	}
-	
-	.logs-list {
-		flex: 1;
-		overflow-y: auto;
-	}
-
-	.log-row {
-		display: grid;
-		grid-template-columns: 30px 1fr 1fr;
-		gap: 20px;
-		padding: 4px;
-		cursor: pointer;
-		user-select: none;
-		font-size: 1.1em;
-	}
-
-	.log-row:hover {
-		background: #3a3a3a;
-	}
-
-	.move-number {
-		color: #888;
-		font-size: 0.9em;
-		text-align: right;
-	}
-
-	.white {
-		font-weight: bold;
-	}
-
-	.black {
-		color: #ccc;
-	}
-
-	.move-controls {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 5px;
-		margin-top: 10px;
-	}
-
-	.nav-btn {
-		padding: 12px;
-		font-size: 1.1rem;
-		border-radius: 12px;
-		flex: 1; /* 👈 THIS makes them expand */
-	}
-
-	button:disabled {
-		opacity: 0.8;
-		cursor: not-allowed;
-	}
-
-	.coord {
-		position: absolute;
-		font-size: clamp(0.8rem, 1vw, 1rem);
-		font-weight: bold;
-		opacity: 0.7;
-		pointer-events: none;
-	}
-
-	/* bottom letters */
-	.coord.file {
-		bottom: 2px;
-		right: 4px;
-	}
-
-	/* left numbers */
-	.coord.rank {
-		top: 2px;
-		left: 4px;
-	}
-
-	.light .coord {
-		color: #444;
-	}
-
-	.dark .coord {
-		color: #eee;
-	}
-
-</style>
-
-<div class="game-container">
-
-	<div class="turn-container">
-		{#if promotion && myColor}
-			<div class="turn-indicator promotion-bar {myColor === turn ? 'my-turn' : ''}">
-				{#each getPromotionPieces(myColor) as p}
-					<button on:click={() => handlePromotionChoice(p)}>
-						<img src={getPieceImage(p)} />
-					</button>
-				{/each}
-			</div>
-		{:else}
-			<div
-				class="turn-indicator {myColor === turn ? 'my-turn' : ''}"
-				class:review={uiMode === 'review'}
-			>
-				<span class="dot"></span>
-				<span class="turn-text">
-					{getTurnText(turn, myColor, white, black, uiMode)}
-				</span>
-			</div>
-		{/if}
-	</div>
-	<div class="main-row">
-
-		<!-- LEFT SIDE -->
-		<div class="left-panel">
-			<!-- BOARD -->
-			<div class="board">
-				{#each display as row, r}
-					{#each row as cell, c}
-						<button
-							type="button"
-							class="square {( (r + c) % 2 === 0 ? 'light' : 'dark' )}"
-							class:selected={selected === coordFromDisplay(r, c)}
-							on:click={() => handleSquareClick(r, c)}
-						>
-							{#if cell}
-								<img class="piece" src={getPieceImage(cell)} alt={cell} />
-							{/if}
-
-							<!-- FILE LETTER -->
-							{#if r === 7}
-								<span class="coord file">
-									{myColor === 'b'
-										? String.fromCharCode(104 - c)
-										: String.fromCharCode(97 + c)}
-								</span>
-							{/if}
-
-							<!-- RANK NUMBER -->
-							{#if c === 0}
-								<span class="coord rank">
-									{myColor === 'b' ? r + 1 : 8 - r}
-								</span>
-							{/if}
-						</button>
-					{/each}
-				{/each}
-
-				{#if gameOver}
-					<div class="modal">
-						<div class="modal-box">
-							<h2>{resultText}</h2>
-							<button on:click={goHome}>Return to home</button>
 						</div>
 					</div>
-				{/if}
+				</div>
 			</div>
 
-
-		</div>
-
-		<!-- RIGHT SIDE (LOGS) -->
-		<div class="logs-panel">
-			<h3>Moves</h3>
-
-			<div class="logs-list">
-				{#each groupMoves(logs.slice(1)) as move, i}
-					<div class="log-row">
-						<span class="move-number">{move.number}.</span>
-
-						<div on:click={() => goToMove(i * 2 + 1)}>
-							<span class="white">{move.white?.san}</span>
-						</div>
-
-						<div on:click={() => goToMove(i * 2 + 2)}>
-							<span class="black">{move.black?.san}</span>
-						</div>
+			<div class="bottom-bar">
+				<div class="bottom-spacer">
+					<div class="controls">
+						{#if myColor !== null}
+							<button class="surrender-btn" on:click={() => showConfirm = true}>
+								🏳️ Surrender
+							</button>
+						{:else}
+							<button class="surrender-btn" on:click={goHome}>
+								Return to home
+							</button>
+						{/if}
 					</div>
-				{/each}
-			</div>
+				</div>
 
-			<div class="move-controls">
-				<button class="nav-btn" on:click={goToStart} disabled={currentMoveIndex <= 0}>
-					◀◀
-				</button>
-
-				<button class="nav-btn" on:click={prevMove} disabled={currentMoveIndex <= 0}>
-					◀
-				</button>
-
-				<button class="nav-btn" on:click={nextMove} disabled={currentMoveIndex >= logs.length - 1}>
-					▶
-				</button>
-
-				<button class="nav-btn" on:click={goToEnd} disabled={currentMoveIndex >= logs.length - 1}>
-					▶▶
-				</button>
-			</div>
-		</div>
-
-	</div>
-
-				<!-- CONTROLS -->
-			<div class="controls">
-				{#if myColor !== null}
-					<button class="surrender-btn" on:click={() => showConfirm = true}>
-						🏳️ Surrender
-					</button>
-				{:else}
-					<button class="surrender-btn" on:click={goHome}>
-						Return to home
-					</button>
-				{/if}
+				<div class="move-controls-panel">
+					<button class="nav-btn" on:click={goToStart} disabled={currentMoveIndex <= 0}>◀◀</button>
+					<button class="nav-btn" on:click={prevMove} disabled={currentMoveIndex <= 0}>◀</button>
+					<button class="nav-btn" on:click={nextMove} disabled={currentMoveIndex >= logs.length - 1}>▶</button>
+					<button class="nav-btn" on:click={goToEnd} disabled={currentMoveIndex >= logs.length - 1}>▶▶</button>
+				</div>
 			</div>
 
 			{#if showConfirm}
-				<div class="confirm-overlay">
-					<div class="confirm-box">
-						<h2>Are you sure?</h2>
-						<p>You will lose the game.</p>
-
-						<div class="actions">
-							<button class="cancel" on:click={() => showConfirm = false}>
+			<div class="modal">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5>Confirm Surrender</h5>
+						</div>
+						<div class="modal-body">
+							Are you sure? You will lose the game.
+						</div>
+						<div class="modal-footer">
+							<button class="btn-secondary" on:click={() => showConfirm = false}>
 								Cancel
 							</button>
-							<button class="confirm" on:click={confirmSurrender}>
+							<button class="btn-danger" on:click={confirmSurrender}>
 								Yes, surrender
 							</button>
 						</div>
 					</div>
 				</div>
+			</div>
+			<div class="modal-backdrop"></div>
 			{/if}
+
+			{#if gameOver}
+			<div class="modal">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5>Game Over</h5>
+						</div>
+						<div class="modal-body">
+							{resultText}
+						</div>
+						<div class="modal-footer">
+							<button class="btn-secondary" on:click={goHome}>
+								Return to home
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-backdrop"></div>
+			{/if}
+	</div>
 </div>
+
+<style>
+
+.page {
+	min-height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.game-container {
+	width: min(90vw, 1300px);
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.game-layout {
+	display: flex;
+	align-items: stretch;
+	width: 100%;
+	height: min(70vh, 50vw);
+}
+
+.board-area {
+	width: min(90vw, 70vh);
+	aspect-ratio: 1 / 1;
+	flex: 1;
+}
+
+.side-area {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.logs-panel {
+	background: #2b2f33;
+	border-radius: 5px;
+	box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+	border: 1px solid rgba(255,255,255,0.05);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	height: 100%;
+}
+
+.logs-list {
+	height: min(70vh, 50vw);
+	overflow-y: auto;
+	flex: 1;
+}
+
+.logs-list::-webkit-scrollbar {
+	width: 10px;
+}
+
+.logs-list::-webkit-scrollbar-thumb {
+	background: rgba(113, 113, 113);
+	border-radius: 3px;
+}
+
+.log-row {
+	display: grid;
+	grid-template-columns: clamp(28px, 3vw, 160px) 1fr 1fr;
+	align-items: center;
+
+	padding: clamp(4px, 0.6vw, 16px) clamp(6px, 1vw, 24px);
+	font-size: clamp(1rem, 1.5vw, 10rem);
+
+	border-bottom: 1px solid rgba(255,255,255,0.04);
+	transition: background 0.15s ease;
+}
+
+.log-row:hover {
+	background: rgba(255,255,255,0.05);
+}
+
+.move-number {
+	color: #888;
+	font-size: clamp(1rem, 1.5vw, 10rem);
+	min-width: 30px;
+}
+
+.active-move {
+	background: #4dabf7;
+	color: #fff !important;
+	box-shadow: 0 0 0 1px rgb(193, 193, 193);
+}
+
+.move-btn {
+	border: none;
+	background: transparent;
+
+	text-align: left;
+	border-radius: 6px;
+
+	transition: all 0.15s ease;
+
+	font-size: inherit;
+	padding: clamp(2px, 0.4vw, 6px);
+}
+
+.white-move {
+	color: #ffffff;
+	font-weight: 600;
+}
+
+.black-move {
+	color: #c9c9c9;
+}
+
+.top-bar {
+	background: #ccc;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 clamp(40px, 6vh, 80px);
+	width: 100%;
+}
+
+.turn-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+}
+
+.turn-indicator {
+	display: inline-flex;
+	align-items: center;
+	gap: clamp(10px, 1vw, 16px);
+	padding: clamp(10px, 1vw, 16px) clamp(14px, 2vw, 20px);
+	border-radius: 999px;
+	background: rgba(0, 0, 0, 0.1);
+	color: #1f2937;
+	font-weight: 700;
+	font-size: clamp(0.95rem, 1vw, 1.1rem);
+	transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.turn-indicator.my-turn {
+	background: linear-gradient(135deg, #4dabf7 0%, #2563eb 100%);
+	color: #fff;
+}
+
+.turn-indicator.review {
+	opacity: 0.95;
+}
+
+.dot {
+	width: clamp(10px, 1vw, 14px);
+	height: clamp(10px, 1vw, 14px);
+	border-radius: 50%;
+	background: #4dabf7;
+	box-shadow: 0 0 0 5px rgba(77, 173, 247, 0.22);
+}
+
+.turn-text {
+	white-space: nowrap;
+	font-size: clamp(0.9rem, 1vw, 1.1rem);
+}
+
+.promotion-bar {
+	background: rgba(255, 255, 255, 0.16);
+	padding: clamp(8px, 0.8vw, 12px) clamp(10px, 1vw, 14px);
+}
+
+.promotion-bar button {
+	background: rgba(255, 255, 255, 0.22);
+	border: none;
+	border-radius: 14px;
+	padding: clamp(6px, 0.8vw, 10px);
+	cursor: pointer;
+	transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.promotion-bar button:hover {
+	background: rgba(255, 255, 255, 0.32);
+	transform: translateY(-1px);
+}
+
+.promotion-bar img {
+	width: clamp(28px, 2.5vw, 36px);
+	height: clamp(28px, 2.5vw, 36px);
+}
+
+.bottom-bar {
+	display: flex;
+	width: 100%;
+	align-items: center;
+	background: #ccc;
+	flex: 0 0 clamp(30px, 4vh, 60px);
+}
+
+.surrender-btn {
+	background: #dc3545;
+	color: white;
+
+	border: none;
+	padding: 6px 12px;
+	border-radius: 6px;
+
+	font-size: 0.9rem;
+
+	transition: all 0.15s ease;
+}
+
+.surrender-btn:hover {
+	background: #c82333;
+	transform: translateY(-1px);
+}
+
+.surrender-btn:active {
+	transform: scale(0.98);
+}
+
+.bottom-spacer {
+	width: min(70vh, 50vw);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.move-controls-panel {
+	height: 95%;
+	width: 95%;
+	flex: 1;
+	display: flex;
+	justify-content: space-between;
+	gap: 4px;
+}
+
+.chess-board {
+	width: 100%;
+	height: 100%;
+	aspect-ratio: 1 / 1;
+
+	display: grid;
+	grid-template-columns: repeat(8, 1fr);
+	grid-template-rows: repeat(8, 1fr);
+
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.square {
+	position: relative;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.light {
+	background: #f0d9b5;
+}
+
+.dark {
+	background: #b58863;
+}
+
+.square.selected::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.3);
+	pointer-events: none;
+}
+
+.piece {
+	width: 80%;
+	height: 80%;
+	object-fit: contain;
+	pointer-events: none;
+	z-index: 2;
+}
+
+.coord {
+	position: absolute;
+	font-size: 0.7rem;
+	font-weight: bold;
+	opacity: 0.7;
+	pointer-events: none;
+}
+
+.file {
+	bottom: 2px;
+	right: 4px;
+}
+
+.rank {
+	top: 2px;
+	left: 4px;
+}
+
+.move-highlight::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: rgba(255, 255, 0, 0.25); /* yellow */
+	pointer-events: none;
+	z-index: 1;
+}
+
+.nav-btn {
+	flex: 1;
+	border: none;
+	padding: 6px 10px;
+	border-radius: 5px;
+
+	background: #2b2f33;
+	color: white;
+
+	transition: all 0.15s ease;
+}
+
+.nav-btn:hover {
+	background: #3a3f45;
+}
+
+.nav-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.modal {
+	position: fixed;
+	inset: 0;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	z-index: 9999;
+}
+
+.modal-backdrop {
+	position: fixed;
+	inset: 0;
+
+	background: rgba(0,0,0,0.65);
+	backdrop-filter: blur(4px);
+
+	z-index: 9998;
+}
+
+.modal-dialog {
+	width: min(90vw, 400px);
+}
+
+.modal-content {
+	background: #2b2f33;
+	color: white;
+
+	border-radius: 14px;
+	border: 1px solid rgba(255,255,255,0.08);
+
+	box-shadow:
+		0 10px 40px rgba(0,0,0,0.45),
+		0 0 0 1px rgba(255,255,255,0.03);
+
+	overflow: hidden;
+
+	animation: modalPop 0.18s ease;
+}
+
+.modal-header {
+	padding: 18px 20px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	font-size: 1.25rem;
+	font-weight: 700;
+	background: #dc3545;
+	color: #fff;
+}
+
+.modal-header h5 {
+	margin: 0;
+	font-size: inherit;
+}
+
+.modal-body {
+	padding: 20px;
+	color: #d4d4d4;
+}
+
+.modal-footer {
+	display: flex;
+	gap: 10px;
+
+	border-top: 1px solid rgba(255,255,255,0.06);
+	padding: 14px 20px;
+}
+
+.modal-footer .btn-secondary,
+.modal-footer .btn-danger {
+	flex: 1;
+	padding: 12px 0;
+	font-weight: 700;
+	border: none;
+	border-radius: 10px;
+	cursor: pointer;
+	transition: background 0.15s ease;
+}
+
+.modal-footer .btn-secondary {
+	background: #4b5563;
+	color: #fff;
+}
+
+.modal-footer .btn-secondary:hover {
+	background: #5b6470;
+}
+
+.modal-footer .btn-danger {
+	background: #dc3545;
+	color: #fff;
+}
+
+.modal-footer .btn-danger:hover {
+	background: #c82333;
+}
+
+@media (max-width: 768px) {
+
+	.game-container {
+		width: 100%;
+	}
+
+	.game-layout {
+		height: auto;
+		flex-direction: column;
+		width: 100%;
+		align-items: center;
+	}
+
+	.board-area {
+		width: 100%;
+		max-width: 100vw;
+		display: flex;
+		flex: 0 0 auto;
+	}
+
+	.side-area {
+		display: none;
+	}
+}
+
+</style>
