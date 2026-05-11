@@ -10,38 +10,67 @@ async function startMatchmaking() {
 	searching.set(true);
 
 	const token = localStorage.getItem("token");
-
+	if (!token) {searching.set(false);return;}
 	const game = await getExistingGame(token);
-	if (game?.gameId) return goto(`/game/${game.gameId}`);
-
-	socket = io('https://localhost:3000', { auth: { token } });
-
-	socket.on('connect', () => {
-		socket.emit('joinQueue');
-	});
-
-	socket.on('waiting', () => {
-	});
-
-	socket.on('matched', (data: { gameId: string }) => {
+	if (game?.gameId) {
 		searching.set(false);
-		goto(`/game/${data.gameId}`);
+		return goto(`/game/${game.gameId}`);
+	}
+
+	const s = initMatchmakingSocket();
+	if (!s) {
+		searching.set(false);
+		return;
+	}
+
+	s.emit("joinQueue");
+}
+
+export function initMatchmakingSocket() {
+	const token = localStorage.getItem("token");
+	if (!token) return null;
+
+	if (socket) return socket;
+
+	socket = io("https://localhost:3000", { auth: { token }, transports: ["websocket"] });
+
+	socket.on("matched", ({ gameId }: { gameId: string }) => {
+		searching.set(false);
+		goto(`/game/${gameId}`);
 	});
 
-	socket.on('disconnect', () => {
-		searching.set(false);
+	socket.on("match:inviteError", (e) => console.error("Invite error:", e));
+	socket.on("match:inviteSent", (e) => console.log("Invite sent:", e));
+
+	socket.on("match:inviteReceived", (inv) => {
+		window.dispatchEvent(new CustomEvent("match:inviteReceived", { detail: inv }));
 	});
+
+	socket.on("match:pendingInvites", (invites) => {
+		window.dispatchEvent(new CustomEvent("match:pendingInvites", { detail: invites }));
+	});
+
+	return socket;
+}
+
+export function inviteFriend(friendId: number) {
+	initMatchmakingSocket()?.emit("inviteFriend", { friendId });
 }
 
 function cancelMatchmaking() {
-	if (!socket) return;
-	socket.emit('leaveQueue');
-	socket.disconnect();
-	socket = null;
+	socket?.emit("leaveQueue");
 	searching.set(false);
 }
 
 export function handleButtonClick() {
 	if (get(searching)) cancelMatchmaking();
 	else startMatchmaking();
+}
+
+export function acceptInvite(inviteId: string) {
+	initMatchmakingSocket()?.emit("acceptInvite", { inviteId });
+}
+
+export function rejectInvite(inviteId: string) {
+	initMatchmakingSocket()?.emit("rejectInvite", { inviteId });
 }

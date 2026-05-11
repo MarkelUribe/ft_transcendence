@@ -378,7 +378,6 @@
   }
 
   function handleInviteFriend(friendId: number) {
-    // Dispatch event — your matchmaking/social controller can listen for this.
     window.dispatchEvent(
       new CustomEvent("social:invite", { detail: { friendId } }),
     );
