@@ -64,14 +64,33 @@ export class GameService
 			.createQueryBuilder('game')
 			.leftJoinAndSelect('game.white', 'white')
 			.leftJoinAndSelect('game.black', 'black')
-			.where('white.id = :id OR black.id = :id', { id: idNum })
-			.getOne();
+		.where('(white.id = :id OR black.id = :id) AND game.status = :status', {
+			id: idNum,
+			status: 'active',
+		})
+		.getOne();
 
-		if (!game) return null;
-		return { gameId: game.id};
+		if (!game)
+			return null;
+
+		return { gameId: game.id };
+	}
+
+	async findLastGamesByPlayer(playerId: number, limit: number): Promise<Game[]> {
+		if (limit <= 0) throw new BadRequestException('Limit must be greater than zero');
+
+		return this.gameRepo
+			.createQueryBuilder('game')
+			.leftJoinAndSelect('game.white', 'white')
+			.leftJoinAndSelect('game.black', 'black')
+			.where('white.id = :id OR black.id = :id', { id: playerId })
+			.orderBy('game.createdAt', 'DESC')
+			.limit(limit)
+			.getMany();
 	}
 
 	async deleteGame(id: string): Promise<void> { await this.gameRepo.delete(id); }
+
 
 	private async eloGivingLogic(game: Game, winner: 'w' | 'b' | 'd') {
 		const K = 32;
@@ -91,15 +110,19 @@ export class GameService
 			scoreWhite = 1;
 			scoreBlack = 0;
 			game.looser = game.black.id;
+			game.status = 'checkmate';
 		}
 		else if (winner === 'b')	
 		{
 			scoreWhite = 0;
 			scoreBlack = 1;
 			game.looser = game.white.id;
+			game.status = 'checkmate';
 		}
-
-		game.status = 'ended'
+		else
+		{
+			game.status = 'stalemate';
+		}
 
 		game.white.elo = Math.max(0, Math.round(whiteElo + K * (scoreWhite - expectedWhite)));
 		game.black.elo = Math.max(0, Math.round(blackElo + K * (scoreBlack - expectedBlack)));
@@ -172,6 +195,8 @@ export class GameService
 	async surrender(id: string, userId: number)
 	{
 		const game = await this.findOne(id);
+
+		if (game.status === 'ended') return null;
 
 		if (game.white.id !== userId && game.black.id !== userId) return null;
 

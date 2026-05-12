@@ -72,8 +72,12 @@ function setState(state: any)
 
 	white = state.white.username;
 	black = state.black.username;
-
+		
 	myColor = null;
+
+	if (state.status === 'ended')
+		return;
+
 	if (id === String(state.white.id)) myColor = 'w';
 	if (id === String(state.black.id)) myColor = 'b';
 }
@@ -415,7 +419,7 @@ onDestroy(() => socket?.disconnect());
 			<div class="bottom-bar">
 				<div class="bottom-spacer">
 					<div class="controls">
-						{#if myColor !== null}
+						{#if myColor !== null && !gameOver}
 							<button class="surrender-btn" on:click={() => showConfirm = true}>
 								🏳️ Surrender
 							</button>

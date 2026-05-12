@@ -14,7 +14,7 @@ export class Game {
   black: User;
 
   @Column({ type: 'varchar', default: 'active' })
-  status: 'active' | 'ended';
+  status: 'active' | 'ended' | 'checkmate' | 'stalemate';
 
   @CreateDateColumn()
   createdAt: Date;

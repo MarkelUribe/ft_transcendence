@@ -94,6 +94,56 @@ export class GameGateway implements OnGatewayConnection{
 		catch { client.emit('error', { message: 'Game not found' }); }
 	}
 
+	@SubscribeMessage('getMatchHistory')
+	async handleGetMatchHistory(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { limit?: number })
+	{
+		const userId = client.data.userId;
+		const limit = data?.limit ?? 10;
+
+		if (!userId)
+		{
+			client.emit('error', { message: 'Unauthorized' });
+			return;
+		}
+
+		if (limit <= 0)
+		{
+			client.emit('error', { message: 'Limit must be greater than zero' });
+			return;
+		}
+
+		try
+		{
+			const games = await this.gameService.findLastGamesByPlayer(Number(userId), limit);
+
+			client.emit('matchHistory', {
+				games: games.map(game => ({
+					gameId: game.id,
+					white: {
+						id: game.white.id,
+						username: game.white.username,
+						avatarUrl: game.white.avatarUrl,
+					},
+					black: {
+						id: game.black.id,
+						username: game.black.username,
+						avatarUrl: game.black.avatarUrl,
+					},
+					status: game.status,
+					looser: game.looser,
+					createdAt: game.createdAt,
+					updatedAt: game.updatedAt,
+				})),
+			});
+		}
+		catch (err)
+		{
+			client.emit('error', { message: 'Unable to load match history' });
+		}
+	}
+
 	@SubscribeMessage('proposeMove')
 	async handleProposeMove(
 		@ConnectedSocket() client: Socket,
@@ -109,31 +159,34 @@ export class GameGateway implements OnGatewayConnection{
 
 		try
 		{
+
 			const game = await this.gameService.makeMove(gameId, from, to, userId, promotion);
 
 			if (game.status === 'ended')
+				return ;
+			if (game.status === 'checkmate' || game.status === 'stalemate')
 			{
-				this.server.to(gameId).emit('ended', {looser: game.looser});
+				game.status = 'ended';
+				await this.gameRepo.save(game);
+				return this.server.to(gameId).emit('ended', {looser: game.looser});
 			}
-			else
+
+			const move = await this.moveRepo.findOne(
 			{
-				const move = await this.moveRepo.findOne(
-				{
-					where: { game: { id: gameId } },
-					order: { id: 'DESC' },
-				});
+				where: { game: { id: gameId } },
+				order: { id: 'DESC' },
+			});
 
-				if (!move) { throw new Error('Move was not created'); }
+			if (!move) { throw new Error('Move was not created'); }
 
-				this.server.to(gameId).emit('moveMade',
-				{
-					from: move.from,
-					to: move.to,
-					san: move.san,
-					promotion: move.promotion,
-					fen: move.fen,
-				});
-			}
+			this.server.to(gameId).emit('moveMade',
+			{
+				from: move.from,
+				to: move.to,
+				san: move.san,
+				promotion: move.promotion,
+				fen: move.fen,
+			});
 		}
 		catch
 		{
@@ -160,6 +213,8 @@ export class GameGateway implements OnGatewayConnection{
 
 			if (!game) return ;
 
+			game.status = 'ended';
+			await this.gameRepo.save(game);
 			this.server.to(gameId).emit('ended', {looser: game.looser});
 		}
 		catch { client.emit('error', { message: 'Surrender failed' }); }
