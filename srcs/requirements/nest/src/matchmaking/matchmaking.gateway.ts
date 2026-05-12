@@ -11,7 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { MatchmakingService } from './matchmaking.service';
 import { BadRequestException } from '@nestjs/common';
 
-@WebSocketGateway({cors: { origin: '*' }})
+@WebSocketGateway({ cors: { origin: '*' } })
 export class MatchmakingGateway implements OnGatewayDisconnect {
 	@WebSocketServer()
 	server: Server;
@@ -19,7 +19,7 @@ export class MatchmakingGateway implements OnGatewayDisconnect {
 	constructor(
 		private readonly matchmakingService: MatchmakingService,
 		private readonly jwtService: JwtService // <- inject JwtService
-	) {}
+	) { }
 
 	handleConnection(client: Socket) {
 		const token = client.handshake.auth?.token;
@@ -157,6 +157,30 @@ export class MatchmakingGateway implements OnGatewayDisconnect {
 	handleLeaveQueue(@ConnectedSocket() client: Socket) {
 		const playerId = client.data.userId;
 		if (playerId) this.matchmakingService.leaveQueue(playerId);
+	}
+
+	@SubscribeMessage('friends:getActivity')
+	async handleFriendsGetActivity(@ConnectedSocket() client: Socket) {
+		const userId = Number(client.data.userId);
+		if (!userId) return client.disconnect();
+
+		const friendIds = await this.matchmakingService.getFriendIdsForUser(userId);
+
+		const rows = await Promise.all(friendIds.map(async (friendId) => {
+			const [sockets, gameId] = await Promise.all([
+				this.server.in(this.userRoom(friendId)).allSockets(),
+				this.matchmakingService.getGameIdForUser(friendId),
+			]);
+
+			return {
+				userId: friendId,
+				online: sockets.size > 0,                  // “online” == connected to matchmaking socket
+				inQueue: this.matchmakingService.isInQueue(friendId),
+				gameId,                                    // null if not in a game
+			};
+		}));
+
+		return rows;
 	}
 
 	handleDisconnect(client: Socket) {

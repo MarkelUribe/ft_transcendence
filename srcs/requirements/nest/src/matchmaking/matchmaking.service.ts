@@ -163,4 +163,18 @@ export class MatchmakingService
 
 		return { status: 'matched' };
 	}
+
+	isInQueue(userId: number) {
+		return this.queue.some(p => p.id === String(userId));
+	}
+
+	async getFriendIdsForUser(userId: number) {
+		const friends = await this.friendsService.getFriendsForUser(userId);
+		return friends.map(f => f.id);
+	}
+
+	async getGameIdForUser(userId: number) {
+		const g = await this.gameService.findByPlayer(userId);
+		return g?.gameId ?? null;
+	}
 }

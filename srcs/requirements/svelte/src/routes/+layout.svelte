@@ -12,6 +12,10 @@
 		inviteFriend,
 	} from "$lib/Matchmaking";
 	import InviteModal from "$lib/components/InviteModal.svelte";
+	import {
+		startFriendsActivityPolling,
+		stopFriendsActivityPolling,
+	} from "$lib/Matchmaking";
 
 	function onSocialInvite(e: Event) {
 		const friendId = Number((e as CustomEvent).detail?.friendId);
@@ -46,11 +50,18 @@
 
 	onMount(() => {
 		if (!browser) return;
-		window.addEventListener("match:inviteReceived", onInviteReceived as EventListener);
+		window.addEventListener(
+			"match:inviteReceived",
+			onInviteReceived as EventListener,
+		);
 		window.addEventListener("auth-changed", onAuthChanged as EventListener);
-		window.addEventListener("social:invite", onSocialInvite as EventListener);
+		window.addEventListener(
+			"social:invite",
+			onSocialInvite as EventListener,
+		);
 
 		if (localStorage.getItem("token")) initMatchmakingSocket();
+		startFriendsActivityPolling();
 	});
 
 	onDestroy(() => {
@@ -67,6 +78,7 @@
 			"match:inviteReceived",
 			onInviteReceived as EventListener,
 		);
+		stopFriendsActivityPolling();
 	});
 
 	let { children } = $props();
@@ -82,4 +94,4 @@
 
 {@render children()}
 
-<InviteModal invite={invite} onAccept={accept} onDecline={decline} />
+<InviteModal {invite} onAccept={accept} onDecline={decline} />

@@ -6,11 +6,20 @@ import { writable, get } from 'svelte/store';
 let socket: Socket | null = null;
 export const searching = writable(false);
 
+let friendsActivityTimer: ReturnType<typeof setInterval> | null = null;
+
+export type FriendActivity = {
+	userId: number;
+	online: boolean;
+	inQueue: boolean;
+	gameId: string | null;
+};
+
 async function startMatchmaking() {
 	searching.set(true);
 
 	const token = localStorage.getItem("token");
-	if (!token) {searching.set(false);return;}
+	if (!token) { searching.set(false); return; }
 	const game = await getExistingGame(token);
 	if (game?.gameId) {
 		searching.set(false);
@@ -73,4 +82,25 @@ export function acceptInvite(inviteId: string) {
 
 export function rejectInvite(inviteId: string) {
 	initMatchmakingSocket()?.emit("rejectInvite", { inviteId });
+}
+
+export function startFriendsActivityPolling(intervalMs = 5000) {
+	if (friendsActivityTimer) return;
+
+	const tick = () => {
+		const s = initMatchmakingSocket();
+		if (!s) return;
+
+		s.emit("friends:getActivity", (rows: FriendActivity[]) => {
+			window.dispatchEvent(new CustomEvent("friends:activity", { detail: rows }));
+		});
+	};
+
+	tick();
+	friendsActivityTimer = setInterval(tick, intervalMs);
+}
+
+export function stopFriendsActivityPolling() {
+	if (friendsActivityTimer) clearInterval(friendsActivityTimer);
+	friendsActivityTimer = null;
 }

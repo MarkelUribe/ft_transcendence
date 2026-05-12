@@ -9,6 +9,8 @@
     disconnectChat,
   } from "$lib/api/chat";
   import { browser } from "$app/environment";
+  import type { FriendActivity } from "$lib/Matchmaking";
+  import { page } from "$app/stores";
 
   const BACKEND_URL = "https://localhost:3000";
 
@@ -47,7 +49,6 @@
 
   let friendsApi: FriendsAPI | null = null;
   let incomingRequests = $state([]);
-  let outgoingRequests = $state([]);
 
   let friends: any[] = $state([]);
   let selectedFriend: any = $state(null);
@@ -75,6 +76,8 @@
 
   let hasNewActivity = $state(false);
 
+  let activityById = $state<Record<number, FriendActivity>>({});
+
   $effect(() => {
     if (gameMessages.length > lastKnownGameMsgCount) {
       const lastMsg = gameMessages[gameMessages.length - 1];
@@ -93,18 +96,15 @@
     }
   });
 
-  function moverAmigoAlPrincipio(friendId: number) {
-    const index = friends.findIndex((f) => f.id == friendId);
-    if (index !== -1) {
-      const friendToMove = friends[index];
-      friends = [friendToMove, ...friends.filter((f) => f.id != friendId)];
-    }
-  }
-
   function getAvatarUrl(avatarUrl: string | null): string {
     if (!avatarUrl) return "";
     if (avatarUrl.startsWith("http")) return avatarUrl;
     return `${BACKEND_URL}${avatarUrl}`;
+  }
+
+  function onFriendsActivity(e: Event) {
+    const rows = (e as CustomEvent).detail as FriendActivity[];
+    activityById = Object.fromEntries(rows.map((r) => [r.userId, r]));
   }
 
   onMount(async () => {
@@ -152,16 +152,22 @@
     }
 
     window.addEventListener("chat:newMessage", handleNewMessage);
-    window.addEventListener('friends:refresh', refreshFriendsAndRequests);
-    
+    window.addEventListener("friends:refresh", refreshFriendsAndRequests);
+    window.addEventListener(
+      "friends:activity",
+      onFriendsActivity as EventListener,
+    );
   });
 
   onDestroy(() => {
     if (browser) {
       window.removeEventListener("chat:newMessage", handleNewMessage);
-      window.removeEventListener('friends:refresh', refreshFriendsAndRequests);
+      window.removeEventListener("friends:refresh", refreshFriendsAndRequests);
+      window.removeEventListener(
+        "friends:activity",
+        onFriendsActivity as EventListener,
+      );
       disconnectChat();
-
     }
   });
 
@@ -287,7 +293,6 @@
 
       friends = friendsData ?? [];
       incomingRequests = pending?.incoming ?? [];
-      outgoingRequests = pending?.outgoing ?? [];
     } catch (err) {
       console.error("Failed to load friends or requests", err);
       requestsError = "Could not load friend requests.";
@@ -300,14 +305,6 @@
       return;
     }
     expandedFriendId = expandedFriendId === friend.id ? null : friend.id;
-  }
-
-  function handleLogin() {
-    goto("/login");
-  }
-
-  function handlePlayBot() {
-    goto("/match_making/bot");
   }
 
   async function handleNewFriend() {
@@ -532,51 +529,84 @@
             {/if}
 
             {#each filteredFriends as friend}
-              <li>
+              <li class="friend-li">
                 <button
                   type="button"
                   class="friend-item-btn"
                   class:only-view={currentView === "FRIENDS"}
                   onclick={() => onFriendClick(friend)}
                 >
-                  <div class="avatar">
-                    {#if friend.avatarUrl}
-                      <img
-                        src={getAvatarUrl(friend.avatarUrl)}
-                        alt={friend.username}
-                        class="avatar-img"
-                      />
-                    {:else}
-                      {friend.username?.charAt(0).toUpperCase() || "?"}
+                  <div class="friend-left">
+                    <div class="avatar">
+                      {#if friend.avatarUrl}
+                        <img
+                          src={getAvatarUrl(friend.avatarUrl)}
+                          alt={friend.username}
+                          class="avatar-img"
+                        />
+                      {:else}
+                        {friend.username?.charAt(0).toUpperCase() || "?"}
+                      {/if}
+
+                      <span
+                        class="presence-dot"
+                        class:presence-online={!!activityById[friend.id]
+                          ?.online || !!activityById[friend.id]?.gameId}
+                        class:presence-offline={!activityById[friend.id]
+                          ?.online && !activityById[friend.id]?.gameId}
+                      ></span>
+                    </div>
+
+                    {#if activityById[friend.id]?.gameId}
+                      <span class="in-game-text">In game</span>
                     {/if}
                   </div>
+
                   <span
                     class="username"
                     class:unread={currentView === "MESSAGES" &&
                       unreadChats.has(friend.id)}
                   >
-                    <span class="name-text" title={friend.username}>
-                      {friend.username}
-                    </span>
+                    <span class="name-text" title={friend.username}
+                      >{friend.username}</span
+                    >
                     {#if currentView === "FRIENDS"}
                       <span class="elo-label">{friend.elo || 0}</span>
                     {/if}
-                    {#if currentView === "FRIENDS" && expandedFriendId === friend.id}
-                      <div class="friend-actions">
-                        <button
-                          class="small-button"
-                          onclick={() => handleInviteFriend(friend.id)}
-                          >Invite</button
-                        >
-                        <button
-                          class="request-button-reject"
-                          onclick={() => handleRemoveFriend(friend.id)}
-                          >Remove</button
-                        >
-                      </div>
-                    {/if}
                   </span>
                 </button>
+
+                {#if currentView === "FRIENDS" && expandedFriendId === friend.id}
+                  <div class="friend-actions-row">
+                    {#if activityById[friend.id]?.gameId && activityById[friend.id].gameId !== $page.params.gameId}
+                      <button
+                        type="button"
+                        class="small-button action-button"
+                        onclick={() =>
+                          goto(`/game/${activityById[friend.id].gameId}`)}
+                      >
+                        Spectate
+                      </button>
+                    {/if}
+                    {#if !activityById[friend.id]?.gameId}
+                      <button
+                        type="button"
+                        class="small-button action-button"
+                        onclick={() => handleInviteFriend(friend.id)}
+                      >
+                        Invite
+                      </button>
+                    {/if}
+
+                    <button
+                      type="button"
+                      class="request-button-reject action-button"
+                      onclick={() => handleRemoveFriend(friend.id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                {/if}
               </li>
             {/each}
           </ul>
@@ -911,12 +941,6 @@
     opacity: 0.8;
   }
 
-  .name-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   .chat-area {
     flex: 1;
     display: flex;
@@ -937,15 +961,6 @@
     border-bottom: 1px solid #f0f0f0;
     background-color: #fff;
     min-height: 40px;
-  }
-
-  .messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
   }
 
   .message {
@@ -980,7 +995,6 @@
   .message-input {
     display: flex;
     gap: 0.5rem;
-    padding: 1rem;
     border-top: 1px solid #333;
     width: 100%;
     font-size: 0.85rem;
@@ -1054,23 +1068,6 @@
   }
   .add-friend-input::placeholder {
     color: rgba(255, 255, 255, 0.45);
-  }
-
-  .small-button:hover {
-    transform: translateY(-1px);
-  }
-
-  .friends-message {
-    font-size: 0.85rem;
-    margin: 0.2rem 0;
-  }
-
-  .friends-message.error {
-    color: #ffb3b3;
-  }
-
-  .friends-message.success {
-    color: #b3ffcb;
   }
 
   /* Small action button (match chat send button style) */
@@ -1151,17 +1148,75 @@
     transform: translateY(-2px);
   }
 
-  .button:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  .friend-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
   }
 
-  .button.searching {
-    background: linear-gradient(90deg, #ff512f, #dd2476);
-    animation: pulse 1.2s infinite;
+  .avatar {
+    position: relative; /* needed for the dot */
   }
 
-  .button.idle {
-    background: linear-gradient(90deg, #24c6dc, #514a9d);
+  .presence-dot {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    border: 2px solid #fff;
+  }
+
+  .presence-online {
+    background-color: #00ff00; /* reuse your existing green */
+  }
+
+  .presence-offline {
+    background-color: #e04b4b; /* reuse your existing red */
+  }
+
+  .in-game-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+  }
+
+  .spectate-inline {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8rem;
+    transform: none; /* avoids the hover “jump” next to the avatar */
+  }
+  .friends-list li.friend-li {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0; /* main row already has padding */
+  }
+
+  .friend-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0 10px 10px 60px; /* indent under the name (40 avatar + gap) */
+  }
+
+  .friend-actions-row .action-button {
+    padding: 0.32rem 0.7rem;
+    font-size: 0.82rem;
+    border-radius: 10px;
+  }
+
+  .friend-actions-row .small-button {
+    background: linear-gradient(180deg, #2563eb, #1d4ed8);
+  }
+
+  .friend-actions-row .small-button:hover,
+  .friend-actions-row .request-button-reject:hover {
+    transform: none;
+    filter: brightness(1.05);
   }
 </style>
