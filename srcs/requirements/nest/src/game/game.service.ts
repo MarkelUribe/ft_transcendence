@@ -30,12 +30,14 @@ export class GameService
 		const black = isSwap ? player1 : player2;
 
 		const game = await this.gameRepo.save(
-			this.gameRepo.create({
-				white,
-				black,
-				status: 'active',
-				looser: -1,
-			})
+		this.gameRepo.create({
+			white,
+			black,
+			status: 'active',
+			looser: -1,
+			whiteElo: white.elo,
+			blackElo: black.elo,
+		})
 		);
 
 		await this.moveRepo.save(

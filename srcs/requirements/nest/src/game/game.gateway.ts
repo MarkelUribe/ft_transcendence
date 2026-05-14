@@ -125,11 +125,13 @@ export class GameGateway implements OnGatewayConnection{
 						id: game.white.id,
 						username: game.white.username,
 						avatarUrl: game.white.avatarUrl,
+						elo: game.whiteElo,
 					},
 					black: {
 						id: game.black.id,
 						username: game.black.username,
 						avatarUrl: game.black.avatarUrl,
+						elo: game.blackElo,
 					},
 					status: game.status,
 					looser: game.looser,
@@ -168,7 +170,7 @@ export class GameGateway implements OnGatewayConnection{
 			{
 				game.status = 'ended';
 				await this.gameRepo.save(game);
-				return this.server.to(gameId).emit('ended', {looser: game.looser});
+				return this.server.to(gameId).emit('ended', { looser: game.looser });
 			}
 
 			const move = await this.moveRepo.findOne(
@@ -215,7 +217,7 @@ export class GameGateway implements OnGatewayConnection{
 
 			game.status = 'ended';
 			await this.gameRepo.save(game);
-			this.server.to(gameId).emit('ended', {looser: game.looser});
+			this.server.to(gameId).emit('ended', { looser: game.looser });
 		}
 		catch { client.emit('error', { message: 'Surrender failed' }); }
 	}

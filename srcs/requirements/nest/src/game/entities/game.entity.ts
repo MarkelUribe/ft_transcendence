@@ -22,9 +22,15 @@ export class Game {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column('text')
+  @Column('int', { default: -1 })
   looser: number;
 
   @OneToMany(() => Move, (move) => move.game, { cascade: true })
   moves: Move[];
+
+  @Column('int', { default: 0 })
+  whiteElo: number;
+
+  @Column('int', { default: 0 })
+  blackElo: number;
 }
