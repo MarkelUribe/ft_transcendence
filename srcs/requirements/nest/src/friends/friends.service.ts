@@ -72,7 +72,6 @@ export class FriendsService {
 			}
 		}
 
-		// IMPORTANT: pass a single object to create(), not multiple args
 		const friendship = this.friendshipRepository.create({
 			requester,
 			addressee,
@@ -110,7 +109,7 @@ export class FriendsService {
 		friendship.status = FriendshipStatus.ACCEPTED;
 		const saved = await this.friendshipRepository.save(friendship);
 		this.friendsGateway.emitToUsers(
-			[friendship.requester.id, friendship.addressee.id], // use appropriate ids for the call site
+			[friendship.requester.id, friendship.addressee.id],
 			'friends:refresh',
 			{}
 		);
@@ -135,7 +134,7 @@ export class FriendsService {
 		const addresseeId = friendship.addressee.id;
 		await this.friendshipRepository.remove(friendship);
 		this.friendsGateway.emitToUsers(
-			[requesterId, addresseeId], // use appropriate ids for the call site
+			[requesterId, addresseeId],
 			'friends:refresh',
 			{}
 		);

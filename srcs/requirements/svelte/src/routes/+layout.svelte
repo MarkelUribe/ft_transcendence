@@ -1,4 +1,5 @@
 <script lang="ts">
+	import "bootstrap/dist/css/bootstrap.min.css";
 	import favicon from "$lib/assets/favicon.svg";
 	import Default from "$lib/Default.svelte";
 	import Music from "$lib/Music.svelte";
@@ -16,6 +17,7 @@
 		startFriendsActivityPolling,
 		stopFriendsActivityPolling,
 	} from "$lib/Matchmaking";
+	import Header from "$lib/components/Header.svelte";
 
 	function onSocialInvite(e: Event) {
 		const friendId = Number((e as CustomEvent).detail?.friendId);
@@ -54,6 +56,7 @@
 			"match:inviteReceived",
 			onInviteReceived as EventListener,
 		);
+		  void import("bootstrap/dist/js/bootstrap.bundle.min.js");
 		window.addEventListener("auth-changed", onAuthChanged as EventListener);
 		window.addEventListener(
 			"social:invite",
@@ -89,8 +92,9 @@
 </svelte:head>
 
 <Music />
-<UserAvatar />
 <Default />
+
+<Header />
 
 {@render children()}
 

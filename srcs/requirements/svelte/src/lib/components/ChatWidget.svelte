@@ -273,8 +273,6 @@
     }
   }
 
-  /* Markel's fcuntions from old centre friends box: */
-
   let newFriendId = $state("");
   let addFriendError = $state("");
   let addFriendSuccess = $state("");
@@ -1156,7 +1154,7 @@
   }
 
   .avatar {
-    position: relative; /* needed for the dot */
+    position: relative;
   }
 
   .presence-dot {
@@ -1170,11 +1168,11 @@
   }
 
   .presence-online {
-    background-color: #00ff00; /* reuse your existing green */
+    background-color: #00ff00;
   }
 
   .presence-offline {
-    background-color: #e04b4b; /* reuse your existing red */
+    background-color: #e04b4b;
   }
 
   .in-game-text {
@@ -1187,21 +1185,21 @@
   .spectate-inline {
     padding: 0.25rem 0.6rem;
     font-size: 0.8rem;
-    transform: none; /* avoids the hover “jump” next to the avatar */
+    transform: none;
   }
   .friends-list li.friend-li {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    padding: 0; /* main row already has padding */
+    padding: 0;
   }
 
   .friend-actions-row {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    padding: 0 10px 10px 60px; /* indent under the name (40 avatar + gap) */
+    padding: 0 10px 10px 60px;
   }
 
   .friend-actions-row .action-button {

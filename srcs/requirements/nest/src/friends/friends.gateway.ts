@@ -48,23 +48,21 @@ export class FriendsGateway implements OnGatewayConnection, OnGatewayDisconnect 
 		// No-op for now.
 	}
 
-emitToUser(userId: number, event: string, payload: unknown) {
-  // emit on default namespace (existing behavior)
-  this.server.to(this.userRoom(userId)).emit(event, payload);
+	emitToUser(userId: number, event: string, payload: unknown) {
+		// emit on default namespace (existing behavior)
+		this.server.to(this.userRoom(userId)).emit(event, payload);
 
-  // also emit on the '/chat' namespace so clients connected there receive it
-  try {
-    this.server.of('/chat').to(this.userRoom(userId)).emit(event, payload);
-  } catch (err) {
-    // noop - safe fallback if namespace doesn't exist
-  }
-}
+		// also emit on the '/chat' namespace so clients connected there receive it
+		try {
+			this.server.of('/chat').to(this.userRoom(userId)).emit(event, payload);
+		} catch (err) {
+			// noop - safe fallback if namespace doesn't exist
+		}
+	}
 
-emitToUsers(userIds: number[], event: string, payload: unknown) {
-  for (const userId of userIds) {
-    this.emitToUser(userId, event, payload);
-  }
-}
-
-	//@SubscribeMessage('friends:getPresence')
+	emitToUsers(userIds: number[], event: string, payload: unknown) {
+		for (const userId of userIds) {
+			this.emitToUser(userId, event, payload);
+		}
+	}
 }

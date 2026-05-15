@@ -97,9 +97,9 @@
     type="button"
     on:click={() => goto('/profile')}
     style="
-      position: fixed;
+      /* position: fixed;
       top: 1rem;
-      left: 1rem;
+      left: 1rem; */
       border-radius: 9999px;
       padding: 0.4rem 0.7rem 0.4rem 0.4rem;
       border: 2px solid rgba(255, 255, 255, 0.8);
@@ -107,16 +107,17 @@
       background: rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      /* gap: 0.6rem; */
       z-index: 1000;
       color: #fff;
+      width: 130%;
     "
     aria-label="Go to profile"
   >
     <div
       style="
-        width: 64px;
-        height: 64px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         overflow: hidden;
         flex-shrink: 0;
