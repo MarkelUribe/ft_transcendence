@@ -96,13 +96,13 @@ export class GameGateway implements OnGatewayConnection{
 
 	@SubscribeMessage('getMatchHistory')
 	async handleGetMatchHistory(
-		@ConnectedSocket() client: Socket,
-		@MessageBody() data: { limit?: number })
+	@ConnectedSocket() client: Socket,
+	@MessageBody() data: { userId?: number; limit?: number })
 	{
-		const userId = client.data.userId;
+		const requestedUserId = data?.userId ?? client.data.userId;
 		const limit = data?.limit ?? 10;
 
-		if (!userId)
+		if (!requestedUserId)
 		{
 			client.emit('error', { message: 'Unauthorized' });
 			return;
@@ -116,28 +116,28 @@ export class GameGateway implements OnGatewayConnection{
 
 		try
 		{
-			const games = await this.gameService.findLastGamesByPlayer(Number(userId), limit);
+			const games = await this.gameService.findLastGamesByPlayer(Number(requestedUserId), limit);
 
 			client.emit('matchHistory', {
-				games: games.map(game => ({
-					gameId: game.id,
-					white: {
-						id: game.white.id,
-						username: game.white.username,
-						avatarUrl: game.white.avatarUrl,
-						elo: game.whiteElo,
-					},
-					black: {
-						id: game.black.id,
-						username: game.black.username,
-						avatarUrl: game.black.avatarUrl,
-						elo: game.blackElo,
-					},
-					status: game.status,
-					looser: game.looser,
-					createdAt: game.createdAt,
-					updatedAt: game.updatedAt,
-				})),
+			games: games.map(game => ({
+				gameId: game.id,
+				white: {
+				id: game.white.id,
+				username: game.white.username,
+				avatarUrl: game.white.avatarUrl,
+				elo: game.whiteElo,
+				},
+				black: {
+				id: game.black.id,
+				username: game.black.username,
+				avatarUrl: game.black.avatarUrl,
+				elo: game.blackElo,
+				},
+				status: game.status,
+				looser: game.looser,
+				createdAt: game.createdAt,
+				updatedAt: game.updatedAt,
+			})),
 			});
 		}
 		catch (err)
