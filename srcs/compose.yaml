@@ -86,10 +86,13 @@ services:
     depends_on:
       frontend: 
         condition: service_healthy
+    ports:
+      - "8080:8080"
     networks:
       - transcendence_net
     volumes:
       - ./requirements/backuper/tools:/usr/local/bin:Z 
+      - ./requirements/backuper/srcs/index.html:/var/www/html/index.html:Z 
       - ./backups:/backups:Z
       - mariadb_data:/var/lib/mysql
       - ../secrets/db_password.txt:/run/secrets/db_password:ro,Z
