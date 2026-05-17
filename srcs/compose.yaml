@@ -103,6 +103,11 @@ services:
       - ../secrets/ssl/localhost.key:/run/secrets/ssl_key:ro,Z
       - ../secrets/ssl/localhost.crt:/run/secrets/ssl_cert:ro,Z
       - ../secrets/ssl/localhost.key:/run/secrets/ssl_key:ro,Z
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     command: bash /usr/local/bin/entrypoint.sh
 
 volumes:
