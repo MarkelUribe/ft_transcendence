@@ -756,27 +756,6 @@
     background-color: #f9f9f9;
   }
 
-  .friend-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin: 0.35rem 0 0.6rem 0;
-    align-items: center;
-  }
-  .friend-actions .small-button {
-    padding: 0.35rem 0.8rem;
-    background: linear-gradient(180deg, #2563eb, #1d4ed8);
-    color: #fff;
-    border-radius: 8px;
-    border: none;
-  }
-  .friend-actions .request-button-reject {
-    padding: 0.32rem 0.7rem;
-    background: linear-gradient(180deg, #e04b4b, #c23131);
-    color: #fff;
-    border-radius: 8px;
-    border: none;
-  }
-
   .back-btn {
     background: none;
     border: none;
@@ -1182,11 +1161,6 @@
     white-space: nowrap;
   }
 
-  .spectate-inline {
-    padding: 0.25rem 0.6rem;
-    font-size: 0.8rem;
-    transform: none;
-  }
   .friends-list li.friend-li {
     display: flex;
     flex-direction: column;

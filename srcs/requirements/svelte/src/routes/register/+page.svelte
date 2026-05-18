@@ -98,18 +98,6 @@
     transform: translateY(-2px) scale(1.03);
     box-shadow: 0 6px 20px rgba(0,0,0,0.4);
   }
-
-  .floating-piece {
-    position: absolute;
-    font-size: 2.5rem;
-    animation: float 6s ease-in-out infinite;
-    opacity: 0.3;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-15px) rotate(15deg); }
-  }
 </style>
 
 <div class="login-container">
