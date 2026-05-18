@@ -1,1 +1,0 @@
-Reminder: do healthchecks in building and running stages
