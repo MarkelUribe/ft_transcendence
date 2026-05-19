@@ -4,7 +4,8 @@
 		font-family: 'Segoe UI', Roboto, sans-serif;
 		background: linear-gradient(135deg, #1e3c72, #2a5298);
 		color: #fff;
-		overflow: hidden;
+		overflow-x: hidden;
+  		overflow-y: auto;
 	}
 
 	.floating-piece {

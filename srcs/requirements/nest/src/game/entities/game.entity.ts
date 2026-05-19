@@ -1,13 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { User } from '../../users/user.entity';
+import { Move } from './move.entity';
 
 @Entity('games')
 export class Game {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column('text')
-  fen: string;
 
   @ManyToOne(() => User, { eager: true })
   white: User;
@@ -16,7 +14,7 @@ export class Game {
   black: User;
 
   @Column({ type: 'varchar', default: 'active' })
-  status: 'active' | 'ended';
+  status: 'active' | 'ended' | 'checkmate' | 'stalemate';
 
   @CreateDateColumn()
   createdAt: Date;
@@ -24,6 +22,15 @@ export class Game {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column('text')
+  @Column('int', { default: -1 })
   looser: number;
+
+  @OneToMany(() => Move, (move) => move.game, { cascade: true })
+  moves: Move[];
+
+  @Column('int', { default: 0 })
+  whiteElo: number;
+
+  @Column('int', { default: 0 })
+  blackElo: number;
 }

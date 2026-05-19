@@ -115,6 +115,9 @@ export class MatchmakingService
 	{
 		if (this.queue.some(p => p.id === playerId)) throw new BadRequestException('Already in queue');
 
+		const activeGame = await this.gameService.findByPlayer(Number(playerId));
+		if (activeGame) throw new BadRequestException('Already in an active game');
+
 		const player = await this.usersService.findOne(Number(playerId));
 
 		if (!player) throw new NotFoundException('User not found');

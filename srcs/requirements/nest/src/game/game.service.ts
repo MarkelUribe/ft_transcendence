@@ -3,6 +3,7 @@ import { Chess } from 'chess.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
+import { Move } from './entities/move.entity';
 import { User } from '../users/user.entity';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class GameService
 	constructor(
 		@InjectRepository(Game) private readonly gameRepo: Repository<Game>,
 		@InjectRepository(User) private readonly userRepo: Repository<User>,
+		@InjectRepository(Move) private moveRepo: Repository<Move>,
 	) {}
 
 	async createGame(whiteId: string, blackId: string): Promise<Game>
@@ -21,22 +23,34 @@ export class GameService
 
 		if (!player1 || !player2) { throw new NotFoundException('User not found'); }
 
-		const chess = new Chess();
+		const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 		const isSwap = Math.random() < 0.5;
 
 		const white = isSwap ? player2 : player1;
 		const black = isSwap ? player1 : player2;
 
-		const game = this.gameRepo.create({
-			fen: chess.fen(),
+		const game = await this.gameRepo.save(
+		this.gameRepo.create({
 			white,
 			black,
 			status: 'active',
-			looser: -1
-		} as Partial<Game>);
+			looser: -1,
+			whiteElo: white.elo,
+			blackElo: black.elo,
+		})
+		);
 
-		return this.gameRepo.save(game);
+		await this.moveRepo.save(
+		{
+			game,
+			from: '',
+			to: '',
+			san: 'start',
+			fen: fen,
+		});
+
+		return game;
 	}
 
 	async findOne(id: string): Promise<Game>
@@ -46,23 +60,42 @@ export class GameService
 		return game;
 	}
 
-	async findByPlayer(playerId: number): Promise<{ gameId: string; fen: string } | null>
+	async findByPlayer(playerId: number): Promise<{ gameId: string;} | null>
 	{
 		const idNum = playerId;
 		const game = await this.gameRepo
 			.createQueryBuilder('game')
 			.leftJoinAndSelect('game.white', 'white')
 			.leftJoinAndSelect('game.black', 'black')
-			.where('white.id = :id OR black.id = :id', { id: idNum })
-			.getOne();
+		.where('(white.id = :id OR black.id = :id) AND game.status = :status', {
+			id: idNum,
+			status: 'active',
+		})
+		.getOne();
 
-		if (!game) return null;
-		return { gameId: game.id, fen: game.fen };
+		if (!game)
+			return null;
+
+		return { gameId: game.id };
+	}
+
+	async findLastGamesByPlayer(playerId: number, limit: number): Promise<Game[]> {
+		if (limit <= 0) throw new BadRequestException('Limit must be greater than zero');
+
+		return this.gameRepo
+			.createQueryBuilder('game')
+			.leftJoinAndSelect('game.white', 'white')
+			.leftJoinAndSelect('game.black', 'black')
+			.where('white.id = :id OR black.id = :id', { id: playerId })
+			.orderBy('game.createdAt', 'DESC')
+			.limit(limit)
+			.getMany();
 	}
 
 	async deleteGame(id: string): Promise<void> { 
 		this.chatHistories.delete(id);
 		await this.gameRepo.delete(id); }
+
 
 	private async eloGivingLogic(game: Game, winner: 'w' | 'b' | 'd') {
 		const K = 32;
@@ -82,15 +115,19 @@ export class GameService
 			scoreWhite = 1;
 			scoreBlack = 0;
 			game.looser = game.black.id;
+			game.status = 'checkmate';
 		}
 		else if (winner === 'b')	
 		{
 			scoreWhite = 0;
 			scoreBlack = 1;
 			game.looser = game.white.id;
+			game.status = 'checkmate';
 		}
-
-		game.status = 'ended'
+		else
+		{
+			game.status = 'stalemate';
+		}
 
 		game.white.elo = Math.max(0, Math.round(whiteElo + K * (scoreWhite - expectedWhite)));
 		game.black.elo = Math.max(0, Math.round(blackElo + K * (scoreBlack - expectedBlack)));
@@ -106,29 +143,67 @@ export class GameService
 		if (game.white.id === userId) turnId = 'w';
 		if (game.black.id === userId) turnId = 'b';
 
-		const turn = game.fen.split(' ')[1]; // w or b
+		const lastMove = await this.moveRepo.findOne({
+			where: { game: { id } },
+			order: { id: 'DESC' },
+		});
 
+		const currentFen = lastMove ? lastMove.fen : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNQkq - 0 1';
+
+		const turn = currentFen.split(' ')[1]; // w or b
+	
 		if (turn !== turnId) throw new BadRequestException("Bro dont cheat");
 
-		const chess = new Chess(game.fen);
+		const chess = new Chess(currentFen);
 
 		const move = chess.move({ from, to, promotion } as any);
 
 		if (!move) throw new BadRequestException('Invalid move');
 
-		game.fen = chess.fen();
+		const fenAfter = chess.fen();
 
-		if (chess.isCheckmate()) {
+		const newMove = this.moveRepo.create({
+			game,
+			from,
+			to,
+			promotion,
+			san: move.san,
+			fen: fenAfter,
+		});
+
+		await this.moveRepo.save(newMove);
+
+		console.log('New move:', {
+			from,
+			to,
+			san: move.san,
+			fenAfter,
+		});
+
+		if (!game.moves) game.moves = [];
+		game.moves.push(newMove);
+
+		if (chess.isCheckmate())
+		{
 			this.eloGivingLogic(game, turnId as 'w' | 'b');
-		} else if (chess.isDraw()) {
-			this.eloGivingLogic(game, 'd');
+			this.gameRepo.save(game);
 		}
-		return this.gameRepo.save(game);
+		else if (chess.isDraw())
+		{
+			this.eloGivingLogic(game, 'd');
+			this.gameRepo.save(game);
+		}
+	
+		return game;
 	}
 
 	async surrender(id: string, userId: number)
 	{
 		const game = await this.findOne(id);
+
+		if (game.status === 'ended') return null;
+
+		if (game.white.id !== userId && game.black.id !== userId) return null;
 
 		let winner = '';
 		if (game.white.id === userId) winner = 'b';
@@ -148,4 +223,10 @@ export class GameService
     getChatHistory(gameId: string) {
         return this.chatHistories.get(gameId) || [];
     }
+	getMoves(gameId: string) {
+		return this.moveRepo.find({
+			where: { game: { id: gameId } },
+			order: { id: 'ASC' },
+		});
+	}
 }

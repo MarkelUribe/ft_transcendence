@@ -12,6 +12,7 @@ import { BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
+import { Move } from './entities/move.entity';
 import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({ cors: { origin: '*' } })
@@ -23,7 +24,9 @@ export class GameGateway implements OnGatewayConnection{
 		private readonly gameService: GameService,
 		private readonly jwtService: JwtService,
 		@InjectRepository(Game)
-		private readonly gameRepo: Repository<Game>,) {}
+		private readonly gameRepo: Repository<Game>,
+		@InjectRepository(Move)
+		private readonly moveRepo: Repository<Move>,) {}
 
 	async handleConnection(client: Socket)
 	{
@@ -68,19 +71,82 @@ export class GameGateway implements OnGatewayConnection{
 		{
 			const game = await this.gameService.findOne(gameId);
 
-			client.emit('gameState',
+			const moves = await this.moveRepo.find(
 			{
+				where: { game: { id: gameId } },
+				order: { id: 'ASC' },
+			});
+
+			client.emit('gameState', {
 				gameId: game.id,
-				fen: game.fen,
 				white: game.white,
 				black: game.black,
-				status: game.status
+				status: game.status,
+				moves: moves.map(m => ({
+					from: m.from,
+					to: m.to,
+					san: m.san,
+					promotion: m.promotion,
+					fen: m.fen,
+				})),
 			});
 
 			const history = this.gameService.getChatHistory(gameId);
             client.emit('chatHistory', history);
 		}
 		catch { client.emit('error', { message: 'Game not found' }); }
+	}
+
+	@SubscribeMessage('getMatchHistory')
+	async handleGetMatchHistory(
+	@ConnectedSocket() client: Socket,
+	@MessageBody() data: { userId?: number; limit?: number })
+	{
+		const requestedUserId = data?.userId ?? client.data.userId;
+		const limit = data?.limit ?? 10;
+
+		if (!requestedUserId)
+		{
+			client.emit('error', { message: 'Unauthorized' });
+			return;
+		}
+
+		if (limit <= 0)
+		{
+			client.emit('error', { message: 'Limit must be greater than zero' });
+			return;
+		}
+
+		try
+		{
+			const games = await this.gameService.findLastGamesByPlayer(Number(requestedUserId), limit);
+
+			client.emit('matchHistory', {
+			games: games.map(game => ({
+				gameId: game.id,
+				white: {
+				id: game.white.id,
+				username: game.white.username,
+				avatarUrl: game.white.avatarUrl,
+				elo: game.whiteElo,
+				},
+				black: {
+				id: game.black.id,
+				username: game.black.username,
+				avatarUrl: game.black.avatarUrl,
+				elo: game.blackElo,
+				},
+				status: game.status,
+				looser: game.looser,
+				createdAt: game.createdAt,
+				updatedAt: game.updatedAt,
+			})),
+			});
+		}
+		catch (err)
+		{
+			client.emit('error', { message: 'Unable to load match history' });
+		}
 	}
 
 	@SubscribeMessage('proposeMove')
@@ -98,28 +164,38 @@ export class GameGateway implements OnGatewayConnection{
 
 		try
 		{
+
 			const game = await this.gameService.makeMove(gameId, from, to, userId, promotion);
 
-			await this.gameRepo.save(game);
-
 			if (game.status === 'ended')
+				return ;
+			if (game.status === 'checkmate' || game.status === 'stalemate')
 			{
-				this.server.to(gameId).emit('ended', {looser: game.looser});
-				await this.gameService.deleteGame(gameId);
+				game.status = 'ended';
+				await this.gameRepo.save(game);
+				return this.server.to(gameId).emit('ended', { looser: game.looser });
 			}
-			else
+
+			const move = await this.moveRepo.findOne(
 			{
-				this.server.to(gameId).emit('moveMade', {
-					gameId: game.id,
-					fen: game.fen,
-					white: game.white,
-					black: game.black
-				});
-			}
+				where: { game: { id: gameId } },
+				order: { id: 'DESC' },
+			});
+
+			if (!move) { throw new Error('Move was not created'); }
+
+			this.server.to(gameId).emit('moveMade',
+			{
+				from: move.from,
+				to: move.to,
+				san: move.san,
+				promotion: move.promotion,
+				fen: move.fen,
+			});
 		}
-		catch (err)
+		catch
 		{
-			const reason = err instanceof BadRequestException ? err.message : 'Invalid move';
+			const reason = 'Invalid move';
 			console.log('Move error:', reason);
 			client.emit('moveRejected', { reason });
 		}
@@ -140,9 +216,11 @@ export class GameGateway implements OnGatewayConnection{
 
 			const game = await this.gameService.surrender(gameId, userId);
 
-			this.server.to(gameId).emit('ended', {looser: game.looser});
+			if (!game) return ;
 
-			await this.gameService.deleteGame(gameId);
+			game.status = 'ended';
+			await this.gameRepo.save(game);
+			this.server.to(gameId).emit('ended', { looser: game.looser });
 		}
 		catch { client.emit('error', { message: 'Surrender failed' }); }
 	}

@@ -2,8 +2,6 @@
 	import "bootstrap/dist/css/bootstrap.min.css";
 	import favicon from "$lib/assets/favicon.svg";
 	import Default from "$lib/Default.svelte";
-	import Music from "$lib/Music.svelte";
-	import UserAvatar from "$lib/UserAvatar.svelte";
 	import { onMount, onDestroy } from "svelte";
 	import { browser } from "$app/environment";
 	import {
@@ -18,6 +16,7 @@
 		stopFriendsActivityPolling,
 	} from "$lib/Matchmaking";
 	import Header from "$lib/components/Header.svelte";
+	import Footer from "$lib/components/Footer.svelte";
 
 	function onSocialInvite(e: Event) {
 		const friendId = Number((e as CustomEvent).detail?.friendId);
@@ -91,11 +90,20 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<Music />
 <Default />
 
-<Header />
-
-{@render children()}
+<div class="app-shell">
+  <Header />
+  <main class="app-main">
+    {@render children()}
+  </main>
+  <Footer />
+</div>
 
 <InviteModal {invite} onAccept={accept} onDecline={decline} />
+
+
+<style>
+  .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+  .app-main { flex: 1; }
+</style>
