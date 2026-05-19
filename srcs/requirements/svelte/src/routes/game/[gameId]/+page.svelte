@@ -13,6 +13,9 @@ let myColor: 'w' | 'b' | null = null;
 let gameOver = false;
 let resultText = '';
 
+let whiteTime;
+let blackTime;
+
 let logs: any[] = [];
 let currentMoveIndex = 0;
 let moveFrom: string | null = null;
@@ -68,6 +71,9 @@ function setState(state: any)
 
 	const id = localStorage.getItem('id');
 
+	whiteTime = lastMove.whiteTimeMs;
+	blackTime = lastMove.blackTimeMs;
+
 	currentMoveIndex = logs.length - 1;
 
 	white = state.white.username;
@@ -96,18 +102,23 @@ function goToMove(index: number)
 	selected = null;
 	moveFrom = move.from ?? null;
 	moveTo = move.to ?? null;
+	whiteTime = move.whiteTimeMs;
+	blackTime = move.blackTimeMs;
 }
 
-function updateState(move: any)
+function updateState(msg: any)
 {
-	logs = [...logs, move]; // append move
+	logs = [...logs, msg.move]; // append move
 
 	currentMoveIndex = logs.length - 1;
-	board = parseFen(move.fen);
-	turn = move.fen.split(' ')[1] as 'w' | 'b';
+	board = parseFen(msg.move.fen);
+	turn = msg.move.fen.split(' ')[1] as 'w' | 'b';
 
-	moveFrom = move.from ?? null;
-	moveTo = move.to ?? null;
+	moveFrom = msg.move.from ?? null;
+	moveTo = msg.move.to ?? null;
+
+	whiteTime = msg.move.whiteTimeMs;
+	blackTime = msg.move.blackTimeMs;
 }
 
 function handleEnd(msg: any)
@@ -313,11 +324,36 @@ function getTurnText(turn: 'w' | 'b', myColor: 'w' | 'b' | null, white: string, 
 	return `${black}'s turn`;
 }
 
+function formatTime(ms: number)
+{
+	const totalSeconds =
+		Math.ceil(ms / 1000);
+
+	const minutes =
+		Math.floor(totalSeconds / 60);
+
+	const seconds =
+		totalSeconds % 60;
+
+	return `${minutes}:${seconds
+		.toString()
+		.padStart(2, '0')}`;
+}
+
 onDestroy(() => socket?.disconnect());
 </script>
 
 <div class="page">
 	<div class="game-container">
+		<div class="clock">
+			White:
+			{formatTime(whiteTime)}
+		</div>
+
+		<div class="clock">
+			Black:
+			{formatTime(blackTime)}
+		</div>
 				<div class="top-bar">
 					<div class="turn-container">
 						{#if promotion && myColor}
@@ -493,10 +529,12 @@ onDestroy(() => socket?.disconnect());
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	padding: 1rem;
+	box-sizing: border-box;
 }
 
 .game-container {
-	width: min(90vw, 1300px);
+	width: min(1300px, 100%);
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
@@ -504,67 +542,99 @@ onDestroy(() => socket?.disconnect());
 
 .game-layout {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: stretch;
+	justify-content: center;
+	gap: 10px;
+
 	width: 100%;
-	height: min(70vh, 50vw);
 }
 
 .board-area {
-	width: min(90vw, 70vh);
+	flex: 0 1 min(80vw, 80vh);
 	aspect-ratio: 1 / 1;
-	flex: 1;
+
+	width: 100%;
+	max-width: 800px;
+	min-width: 250px;
 }
 
 .side-area {
-	flex: 1;
+	flex: 1 1 300px;
+
 	display: flex;
 	flex-direction: column;
-	min-height: 0;
+
+	min-width: 250px;
+	min-height: 250px;
 }
 
 .logs-panel {
 	background: #2b2f33;
-	border-radius: 5px;
+	border-radius: 10px;
 	box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 	border: 1px solid rgba(255,255,255,0.05);
-	overflow: hidden;
+
 	display: flex;
 	flex-direction: column;
-	min-height: 0;
+
 	height: 100%;
+	max-height: 80vh;
+	overflow: hidden;
 }
 
 .logs-list {
-	height: min(70vh, 50vw);
-	overflow-y: auto;
 	flex: 1;
+	overflow-y: auto;
 }
 
 .logs-list::-webkit-scrollbar {
-	width: 10px;
+	width: 0.625rem;
 }
 
 .logs-list::-webkit-scrollbar-thumb {
-	background: rgba(113, 113, 113);
-	border-radius: 3px;
+	background: rgb(113 113 113);
+	border-radius: 0.2rem;
 }
 
 .log-row {
 	display: grid;
-	grid-template-columns: clamp(28px, 3vw, 160px) 1fr 1fr;
-	align-items: center;
 
-	padding: clamp(4px, 0.6vw, 16px) clamp(6px, 1vw, 24px);
-	font-size: clamp(1rem, 1.5vw, 10rem);
+	/* better scaling columns */
+	grid-template-columns:
+		minmax(5rem, auto)
+		minmax(0, 1fr)
+		minmax(0, 1fr);
+
+	align-items: start;
+
+	gap: 0.75rem;
+
+	padding: 0.75rem 1rem;
+
+	font-size: 1rem;
+	line-height: 1.5;
 
 	border-bottom: 1px solid rgba(255,255,255,0.04);
 	transition: background 0.15s ease;
+
+	/* IMPORTANT */
+	min-width: 0;
+	height: auto;
+}
+
+.log-row > * {
+	min-width: 0;
+
+	/* allows wrapping */
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
 }
 
 .log-row:hover {
 	background: rgba(255,255,255,0.05);
 }
-
 .move-number {
 	color: #888;
 	font-size: clamp(1rem, 1.5vw, 10rem);
@@ -705,7 +775,7 @@ onDestroy(() => socket?.disconnect());
 }
 
 .bottom-spacer {
-	width: min(70vh, 50vw);
+	width: 800px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -913,14 +983,14 @@ onDestroy(() => socket?.disconnect());
 	background: #c82333;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
 
 	.game-container {
-		width: 100%;
+		max-width: 800px;
 	}
 
 	.game-layout {
-		height: auto;
+		height: 70%;
 		flex-direction: column;
 		width: 100%;
 		align-items: center;
@@ -935,6 +1005,10 @@ onDestroy(() => socket?.disconnect());
 
 	.side-area {
 		display: none;
+	}
+
+	.bottom-spacer {
+		width: 50%;
 	}
 }
 

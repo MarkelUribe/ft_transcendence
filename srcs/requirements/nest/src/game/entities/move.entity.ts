@@ -23,4 +23,10 @@ export class Move {
 
   @Column({ default: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', })
   fen: string;
+
+  @Column('bigint')
+  whiteTimeMs: number;
+
+  @Column('bigint')
+  blackTimeMs: number;
 }

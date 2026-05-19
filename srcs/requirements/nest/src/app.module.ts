@@ -3,7 +3,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { GameModule } from './game/game.module';
-import { MatchmakingModule } from './matchmaking/matchmaking.module';
+import { MatchmakingModule } from './game/matchmaking/matchmaking.module';
 import { FriendsModule } from './friends/friends.module';
 import { ChatModule } from './chat/chat.module';
 
