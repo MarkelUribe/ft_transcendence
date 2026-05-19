@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { GameService } from '../game/game.service';
-import { UsersService } from '../users/users.service'
+import { GameService } from '../game.service';
+import { UsersService } from '../../users/users.service'
 
 type QueuePlayer = {
 	id: string;

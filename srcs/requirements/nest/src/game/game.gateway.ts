@@ -8,20 +8,26 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
-import { BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
 import { Move } from './entities/move.entity';
 import { JwtService } from '@nestjs/jwt';
 
+import {
+	forwardRef,
+	Inject,
+} from '@nestjs/common';
+
 @WebSocketGateway({ cors: { origin: '*' } })
 export class GameGateway implements OnGatewayConnection{
 	@WebSocketServer()
 	server: Server;
 
+
 	constructor(
-		private readonly gameService: GameService,
+		@Inject(forwardRef(() => GameService))
+		private gameService: GameService,
 		private readonly jwtService: JwtService,
 		@InjectRepository(Game)
 		private readonly gameRepo: Repository<Game>,
@@ -39,9 +45,6 @@ export class GameGateway implements OnGatewayConnection{
 			const payload = this.jwtService.verify(token);
 
 			client.data.userId = Number(payload.sub);
-
-//			this.gameService.handleReconnect(client.data.userId);
-//			this.server.emit('playerReconnected', { playerId: client.data.userId });
 		}
 		catch (err)
 		{
@@ -49,14 +52,6 @@ export class GameGateway implements OnGatewayConnection{
 			client.disconnect();
 		}
 	}
-
-//	handleDisconnect(client: Socket)
-//	{
-//		const userId = client.data.userId;
-//		if (!userId) return;
-//		this.gameService.handleDisconnect(userId);
-//		this.server.emit('playerDisconnected', { playerId: userId });
-//	}
 
 	@SubscribeMessage('joinGame')
 	async handleJoinGame(
@@ -88,6 +83,8 @@ export class GameGateway implements OnGatewayConnection{
 					san: m.san,
 					promotion: m.promotion,
 					fen: m.fen,
+					whiteTimeMs: m.whiteTimeMs,
+					blackTimeMs: m.blackTimeMs,
 				})),
 			});
 		}
@@ -157,15 +154,13 @@ export class GameGateway implements OnGatewayConnection{
 
 		if (!userId) { client.emit('moveRejected', { reason: 'Unauthorized' }); return; }
 
-		console.log('ProposeMove received:', { gameId, from, to, promotion, userId });
+//		console.log('ProposeMove received:', { gameId, from, to, promotion, userId });
 
 		try
 		{
 
 			const game = await this.gameService.makeMove(gameId, from, to, userId, promotion);
 
-			if (game.status === 'ended')
-				return ;
 			if (game.status === 'checkmate' || game.status === 'stalemate')
 			{
 				game.status = 'ended';
@@ -183,11 +178,7 @@ export class GameGateway implements OnGatewayConnection{
 
 			this.server.to(gameId).emit('moveMade',
 			{
-				from: move.from,
-				to: move.to,
-				san: move.san,
-				promotion: move.promotion,
-				fen: move.fen,
+				move: move,
 			});
 		}
 		catch
@@ -222,3 +213,4 @@ export class GameGateway implements OnGatewayConnection{
 		catch { client.emit('error', { message: 'Surrender failed' }); }
 	}
 }
+

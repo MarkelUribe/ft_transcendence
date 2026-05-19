@@ -33,4 +33,16 @@ export class Game {
 
   @Column('int', { default: 0 })
   blackElo: number;
+
+  @Column({ type: 'varchar', default: 'white' })
+  activeColor: 'white' | 'black';
+
+  @Column('bigint', { default: 300000 })
+  whiteTimeMs: number;
+
+  @Column('bigint', { default: 300000 })
+  blackTimeMs: number;
+
+  @Column({ type: 'bigint', nullable: true })
+  lastMoveTimestamp: number;
 }

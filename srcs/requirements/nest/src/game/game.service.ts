@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
 import { Move } from './entities/move.entity';
 import { User } from '../users/user.entity';
+import { ChessClockService } from './chess-clock/chess-clock.service';
+import { GameGateway } from './game.gateway';
 
 @Injectable()
 export class GameService
@@ -13,6 +15,8 @@ export class GameService
 		@InjectRepository(Game) private readonly gameRepo: Repository<Game>,
 		@InjectRepository(User) private readonly userRepo: Repository<User>,
 		@InjectRepository(Move) private moveRepo: Repository<Move>,
+		private readonly gameGateway: GameGateway,
+		private chessClockService: ChessClockService,
 	) {}
 
 	async createGame(whiteId: string, blackId: string): Promise<Game>
@@ -30,14 +34,15 @@ export class GameService
 		const black = isSwap ? player1 : player2;
 
 		const game = await this.gameRepo.save(
-		this.gameRepo.create({
-			white,
-			black,
-			status: 'active',
-			looser: -1,
-			whiteElo: white.elo,
-			blackElo: black.elo,
-		})
+			this.gameRepo.create({
+				white,
+				black,
+				status: 'active',
+				looser: -1,
+				whiteElo: white.elo,
+				blackElo: black.elo,
+				lastMoveTimestamp: Date.now(),
+			})
 		);
 
 		await this.moveRepo.save(
@@ -47,9 +52,41 @@ export class GameService
 			to: '',
 			san: 'start',
 			fen: fen,
+			whiteTimeMs: game.whiteTimeMs,
+			blackTimeMs: game.blackTimeMs,
 		});
 
+		this.chessClockService.startTimeout( game,
+			async () => {
+				await this.handleTimeout(game.id);
+			},
+		);
+
 		return game;
+	}
+
+	async handleTimeout(gameId: string)
+	{
+		const game = await this.gameRepo.findOne({
+			where: { id: gameId },
+			relations: ['white', 'black'],
+		});
+
+		if (!game)
+			return;
+
+		if (game.status !== 'active')
+			return;
+
+		game.status = 'ended';
+
+		game.looser = game.activeColor === 'white' ? game.white.id : game.black.id;
+
+		this.eloGivingLogic(game, game.activeColor == 'white'? 'black' : 'white');
+
+		await this.gameRepo.save(game);
+
+		this.gameGateway.server.to(game.id).emit('ended', {	looser: game.looser});
 	}
 
 	async findOne(id: string): Promise<Game>
@@ -93,8 +130,8 @@ export class GameService
 
 	async deleteGame(id: string): Promise<void> { await this.gameRepo.delete(id); }
 
-
-	private async eloGivingLogic(game: Game, winner: 'w' | 'b' | 'd') {
+	private async eloGivingLogic(game: Game, winner: 'white' | 'black' | 'draw')
+	{
 		const K = 32;
 
 		const whiteElo = game.white.elo;
@@ -107,14 +144,14 @@ export class GameService
 		let scoreBlack = 0.5;
 		game.looser = -1;
 
-		if (winner === 'w')
+		if (winner === 'white')
 		{
 			scoreWhite = 1;
 			scoreBlack = 0;
 			game.looser = game.black.id;
 			game.status = 'checkmate';
 		}
-		else if (winner === 'b')	
+		else if (winner === 'black')	
 		{
 			scoreWhite = 0;
 			scoreBlack = 1;
@@ -136,20 +173,20 @@ export class GameService
 	{
 		const game = await this.findOne(id);
 
+		if (game.status == 'ended') new BadRequestException("Game ended, cannot make a move");
+
 		let turnId = '';
-		if (game.white.id === userId) turnId = 'w';
-		if (game.black.id === userId) turnId = 'b';
+		if (game.white.id === userId) turnId = 'white';
+		if (game.black.id === userId) turnId = 'black';
 
 		const lastMove = await this.moveRepo.findOne({
 			where: { game: { id } },
 			order: { id: 'DESC' },
 		});
 
-		const currentFen = lastMove ? lastMove.fen : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNQkq - 0 1';
+		if (game.activeColor !== turnId) throw new BadRequestException("Not your turn silly");
 
-		const turn = currentFen.split(' ')[1]; // w or b
-	
-		if (turn !== turnId) throw new BadRequestException("Bro dont cheat");
+		const currentFen = lastMove ? lastMove.fen : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNQkq - 0 1';
 
 		const chess = new Chess(currentFen);
 
@@ -157,38 +194,49 @@ export class GameService
 
 		if (!move) throw new BadRequestException('Invalid move');
 
-		const fenAfter = chess.fen();
-
-		const newMove = this.moveRepo.create({
-			game,
-			from,
-			to,
-			promotion,
-			san: move.san,
-			fen: fenAfter,
-		});
-
-		await this.moveRepo.save(newMove);
-
-		console.log('New move:', {
-			from,
-			to,
-			san: move.san,
-			fenAfter,
-		});
-
-		if (!game.moves) game.moves = [];
-		game.moves.push(newMove);
+//		console.log('New move:', {
+//			from,
+//			to,
+//			san: move.san,
+//			fenAfter,
+//		});
+	
+		this.chessClockService.clearTimeout(game.id);
 
 		if (chess.isCheckmate())
 		{
-			this.eloGivingLogic(game, turnId as 'w' | 'b');
-			this.gameRepo.save(game);
+			this.eloGivingLogic(game, turnId as 'white' | 'black');
+			await this.gameRepo.save(game);
 		}
 		else if (chess.isDraw())
 		{
-			this.eloGivingLogic(game, 'd');
-			this.gameRepo.save(game);
+			this.eloGivingLogic(game, 'draw');
+			await this.gameRepo.save(game);
+		}
+		else
+		{
+			this.chessClockService.updateClock(game);
+
+			const newMove = this.moveRepo.create({
+				game,
+				from,
+				to,
+				promotion,
+				san: move.san,
+				fen: chess.fen(),
+				whiteTimeMs: game.whiteTimeMs,
+				blackTimeMs: game.blackTimeMs,
+			});
+
+			await this.moveRepo.save(newMove);
+
+			if (!game.moves) game.moves = [];
+			
+			game.moves.push(newMove);
+
+			await this.gameRepo.save(game);
+
+			this.chessClockService.startTimeout(game, async () => { await this.handleTimeout(game.id); });
 		}
 	
 		return game;
@@ -206,12 +254,13 @@ export class GameService
 		if (game.white.id === userId) winner = 'b';
 		if (game.black.id === userId) winner = 'w';
 
-		this.eloGivingLogic(game, winner as 'w' | 'b');
+		this.eloGivingLogic(game, winner as 'white' | 'black');
 
 		return this.gameRepo.save(game);
 	}
 
-	getMoves(gameId: string) {
+	getMoves(gameId: string)
+	{
 		return this.moveRepo.find({
 			where: { game: { id: gameId } },
 			order: { id: 'ASC' },
