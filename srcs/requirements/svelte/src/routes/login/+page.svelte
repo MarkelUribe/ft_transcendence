@@ -140,7 +140,7 @@
 </style>
 
 <div class="login-container">
-  <h1>Chess Arena Login</h1>
+  <h1>Ultra Xake Online Login</h1>
 
   <div class="login-box">
     <button on:click={() => goto('/')} style="align-self: flex-start; font-size: 0.9rem; padding: 0.4rem 0.8rem; margin-bottom: 0.5rem;">⬅ Back to home</button>

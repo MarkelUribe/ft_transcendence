@@ -80,17 +80,20 @@
 								style="width: 100%; height: 100%; object-fit: cover; display: block;"
 							/>
 						</div>
-						<span
+						<a
+							href={`/profile/${p.id}`}
 							style="
 								font-weight: 600;
 								overflow: hidden;
 								text-overflow: ellipsis;
 								white-space: nowrap;
+								color: inherit;
+								text-decoration: none;
 							"
-							title={p.username}
+							title={`View profile: ${p.username}`}
 						>
 							{p.username}
-						</span>
+						</a>
 					</div>
 
 					<span style="font-variant-numeric: tabular-nums; opacity: 0.95;">{p.elo ?? 0} ELO</span>

@@ -1,3 +1,7 @@
+<svelte:head>
+    <title>Ultra Xake Online</title> 
+</svelte:head>
+
 <style>
 	:global(body) {
 		margin: 0;

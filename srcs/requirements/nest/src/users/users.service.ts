@@ -4,6 +4,9 @@ import { ILike, Repository } from 'typeorm';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 
+export type MeProfile = Pick<User, 'id' | 'username' | 'email' | 'avatarUrl' | 'elo'>;
+export type PublicProfile = Pick<User, 'id' | 'username' | 'avatarUrl' | 'elo'>;
+
 @Injectable()
 export class UsersService {
 	constructor(
@@ -33,6 +36,31 @@ export class UsersService {
 
 	async findOne(id: number): Promise<User | null> {
 		return this.usersRepository.findOneBy({ id });
+	}
+
+	async getMeSafe(id: number): Promise<MeProfile | null> {
+		return this.usersRepository.findOne({
+			where: { id },
+			select: {
+				id: true,
+				username: true,
+				email: true,
+				avatarUrl: true,
+				elo: true,
+			},
+		});
+	}
+
+	async getPublicUserById(id: number): Promise<PublicProfile | null> {
+		return this.usersRepository.findOne({
+			where: { id },
+			select: {
+				id: true,
+				username: true,
+				avatarUrl: true,
+				elo: true,
+			},
+		});
 	}
 
 	private async ensureUniqueUsernameAndEmail(username: string, email: string): Promise<void> {
@@ -66,24 +94,30 @@ export class UsersService {
 		return this.usersRepository.save(user);
 	}
 
-	async updateAvatar(id: number, avatarUrl: string | null): Promise<User> {
+	async updateAvatar(id: number, avatarUrl: string | null): Promise<MeProfile> {
 		const user = await this.findOne(id);
 		if (!user) throw new Error('User not found');
 		user.avatarUrl = avatarUrl;
-		return this.usersRepository.save(user);
+		await this.usersRepository.save(user);
+		const me = await this.getMeSafe(id);
+		if (!me) throw new Error('User not found');
+		return me;
 	}
 
-	async setAvatarFromUploadedFile(id: number, file: any): Promise<User> {
+	async setAvatarFromUploadedFile(id: number, file: any): Promise<MeProfile> {
 		const avatarUrl = file ? `/uploads/avatars/${file.filename}` : null;
 		return this.updateAvatar(id, avatarUrl);
 	}
 
-	async updateProfile(id: number, data: { email?: string }): Promise<User> {
+	async updateProfile(id: number, data: { email?: string }): Promise<MeProfile> {
 		const user = await this.findOne(id);
 		if (!user) throw new Error('User not found');
 		// Username is permanent; only allow updating email
 		if (data.email !== undefined) user.email = data.email;
-		return this.usersRepository.save(user);
+		await this.usersRepository.save(user);
+		const me = await this.getMeSafe(id);
+		if (!me) throw new Error('User not found');
+		return me;
 	}
 
 	async getTopByElo(n: number): Promise<User[]> {
@@ -101,4 +135,6 @@ export class UsersService {
 			},
 		});
 	}
-}
+
+
+}	

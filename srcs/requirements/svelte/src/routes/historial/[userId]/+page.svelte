@@ -218,14 +218,19 @@ onDestroy(() => {
 						{getActionLabel(game)}
 					</button>
 					<div class="matchup">
-						<div class="player">
-							<span class="square white-square"></span>
-							<span>{game.white.username} ({game.white.elo}) {getWinnerEmoji(game, 'white')}</span>
+						
+							<div class="player">
+							<a href="/profile/{game.black.id}" style="color: #FFFFFF;text-decoration: none;">
+								<span class="square white-square"></span>
+								<span>{game.white.username} ({game.white.elo}) {getWinnerEmoji(game, 'white')}</span>
+							</a>
 						</div>
 						<div class="vs">VS</div>
 						<div class="player">
-							<span class="square black-square"></span>
-							<span>{game.black.username} ({game.black.elo}) {getWinnerEmoji(game, 'black')}</span>
+							<a href="/profile/{game.black.id}" style="color: #FFFFFF;text-decoration: none;">
+								<span class="square black-square"></span>
+								<span>{game.black.username} ({game.black.elo}) {getWinnerEmoji(game, 'black')}</span>
+							</a>
 						</div>
 					</div>
 					<div class="match-date">{formatDate(game.createdAt)}</div>

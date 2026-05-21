@@ -699,9 +699,9 @@
   .chat-box.compact {
     width: 300px;
     height: 450px;
-    position: fixed;
+/*     position: fixed;
     bottom: 80px;
-    right: 100px;
+    right: 100px; */
     border: 1px solid #ccc;
     background: white;
     z-index: 1000;
