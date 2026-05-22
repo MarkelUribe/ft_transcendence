@@ -73,27 +73,38 @@ export class GameService
 			relations: ['white', 'black'],
 		});
 
-		if (!game)
-			return;
+		if (!game || game.status === 'ended') return;
 
-		if (game.status !== 'active')
-			return;
+		await this.eloGivingLogic(game, game.activeColor === 'white'? 'black' : 'white');
 
-		game.status = 'ended';
+		const lastMove = await this.moveRepo.findOne({
+			where: {
+				game: { id: gameId },
+			},
+			order: {
+				id: 'DESC',
+			},
+		});
 
-		game.looser = game.activeColor === 'white' ? game.white.id : game.black.id;
+		if (lastMove)
+		{
+			if (game.activeColor === 'white')
+				lastMove.whiteTimeMs = 0;
+			else
+				lastMove.blackTimeMs = 0;
 
-		this.eloGivingLogic(game, game.activeColor == 'white'? 'black' : 'white');
-
-		await this.gameRepo.save(game);
+			await this.moveRepo.save(lastMove);
+		}
 
 		this.gameGateway.server.to(game.id).emit('ended', {	looser: game.looser});
+
+		await this.gameRepo.save(game);
 	}
 
 	async findOne(id: string): Promise<Game>
 	{
 		const game = await this.gameRepo.findOne({ where: { id } });
-		if (!game) throw new NotFoundException('Game not found');
+		if (!game) throw new NotFoundException('Game not found');	await this.gameRepo.save(game);
 		return game;
 	}
 
@@ -116,7 +127,8 @@ export class GameService
 		return { gameId: game.id };
 	}
 
-	async findLastGamesByPlayer(playerId: number, limit: number): Promise<Game[]> {
+	async findLastGamesByPlayer(playerId: number, limit: number): Promise<Game[]>
+	{
 		if (limit <= 0) throw new BadRequestException('Limit must be greater than zero');
 
 		return this.gameRepo
@@ -129,9 +141,11 @@ export class GameService
 			.getMany();
 	}
 
-	async deleteGame(id: string): Promise<void> { 
+	async deleteGame(id: string): Promise<void>
+	{
 		this.chatHistories.delete(id);
-		await this.gameRepo.delete(id); }
+		await this.gameRepo.delete(id);
+	}
 
 	private async eloGivingLogic(game: Game, winner: 'white' | 'black' | 'draw')
 	{
@@ -145,38 +159,35 @@ export class GameService
 
 		let scoreWhite = 0.5;
 		let scoreBlack = 0.5;
+
 		game.looser = -1;
+		game.status = 'ended';
 
 		if (winner === 'white')
 		{
 			scoreWhite = 1;
 			scoreBlack = 0;
 			game.looser = game.black.id;
-			game.status = 'checkmate';
 		}
-		else if (winner === 'black')	
+		if (winner === 'black')	
 		{
 			scoreWhite = 0;
 			scoreBlack = 1;
 			game.looser = game.white.id;
-			game.status = 'checkmate';
-		}
-		else
-		{
-			game.status = 'stalemate';
 		}
 
 		game.white.elo = Math.max(0, Math.round(whiteElo + K * (scoreWhite - expectedWhite)));
 		game.black.elo = Math.max(0, Math.round(blackElo + K * (scoreBlack - expectedBlack)));
+
 		await this.userRepo.save(game.white);
 		await this.userRepo.save(game.black);
 	}
 
-	async makeMove(id: string, from: string, to: string, userId: number, promotion?: string): Promise<Game>
+	async makeMove(id: string, from: string, to: string, userId: number, promotion?: string): Promise<Game | null>
 	{
 		const game = await this.findOne(id);
 
-		if (game.status == 'ended') new BadRequestException("Game ended, cannot make a move");
+		if (game.status == 'ended') return null;
 
 		let turnId = '';
 		if (game.white.id === userId) turnId = 'white';
@@ -197,12 +208,12 @@ export class GameService
 
 		if (!move) throw new BadRequestException('Invalid move');
 
-//		console.log('New move:', {
-//			from,
-//			to,
-//			san: move.san,
-//			fenAfter,
-//		});
+		console.log('New move:', {
+			from,
+			to,
+			san: move.san,
+			fen: chess.fen(),
+		});
 	
 		this.chessClockService.clearTimeout(game.id);
 
@@ -210,38 +221,38 @@ export class GameService
 		{
 			this.eloGivingLogic(game, turnId as 'white' | 'black');
 			await this.gameRepo.save(game);
+			return game;
 		}
 		else if (chess.isDraw())
 		{
 			this.eloGivingLogic(game, 'draw');
 			await this.gameRepo.save(game);
+			return game;
 		}
-		else
-		{
-			this.chessClockService.updateClock(game);
 
-			const newMove = this.moveRepo.create({
-				game,
-				from,
-				to,
-				promotion,
-				san: move.san,
-				fen: chess.fen(),
-				whiteTimeMs: game.whiteTimeMs,
-				blackTimeMs: game.blackTimeMs,
-			});
+		this.chessClockService.updateClock(game);
 
-			await this.moveRepo.save(newMove);
+		await this.gameRepo.save(game);
 
-			if (!game.moves) game.moves = [];
-			
-			game.moves.push(newMove);
+		const newMove = this.moveRepo.create({
+			game,
+			from,
+			to,
+			promotion,
+			san: move.san,
+			fen: chess.fen(),
+			whiteTimeMs: game.whiteTimeMs,
+			blackTimeMs: game.blackTimeMs,
+		});
 
-			await this.gameRepo.save(game);
+		await this.moveRepo.save(newMove);
 
-			this.chessClockService.startTimeout(game, async () => { await this.handleTimeout(game.id); });
-		}
-	
+		if (!game.moves) game.moves = [];
+		
+		game.moves.push(newMove);
+
+		this.chessClockService.startTimeout(game, async () => { await this.handleTimeout(game.id); });
+
 		return game;
 	}
 
@@ -249,28 +260,28 @@ export class GameService
 	{
 		const game = await this.findOne(id);
 
-		if (game.status === 'ended') return null;
-
-		if (game.white.id !== userId && game.black.id !== userId) return null;
+		if (game.status === 'ended' || game.white.id !== userId && game.black.id !== userId) return null;
 
 		let winner = '';
-		if (game.white.id === userId) winner = 'b';
-		if (game.black.id === userId) winner = 'w';
+		if (game.white.id === userId) winner = 'black';
+		if (game.black.id === userId) winner = 'white';
 
 		this.eloGivingLogic(game, winner as 'white' | 'black');
 
-		return this.gameRepo.save(game);
+		game.status = 'ended';
+
+		return await this.gameRepo.save(game);
 	}
 
 	addMessage(gameId: string, message: { user: string, text: string }) {
-        const history = this.chatHistories.get(gameId) || [];
-        history.push(message);
-        this.chatHistories.set(gameId, history);
-    }
+		const history = this.chatHistories.get(gameId) || [];
+		history.push(message);
+		this.chatHistories.set(gameId, history);
+	}
 
-    getChatHistory(gameId: string) {
-        return this.chatHistories.get(gameId) || [];
-    }
+	getChatHistory(gameId: string) {
+		return this.chatHistories.get(gameId) || [];
+	}
 	getMoves(gameId: string) {
 		return this.moveRepo.find({
 			where: { game: { id: gameId } },
