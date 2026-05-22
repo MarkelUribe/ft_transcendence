@@ -82,4 +82,31 @@ export function disconnectChat() {
     chatSocket.disconnect();
     chatSocket = null;
   }
+
+  
+}
+
+export function getUnreads(): Promise<Record<number, boolean>> {
+  return new Promise((resolve) => {
+    if (!chatSocket) {
+      resolve({});
+      return;
+    }
+
+    const emit = () => {
+      chatSocket!.emit('getUnreads', {}, (response: any) => {
+        if (response?.success) {
+          resolve(response.unreads);
+        } else {
+          resolve({});
+        }
+      });
+    };
+
+    if (chatSocket.connected) {
+      emit();
+    } else {
+      chatSocket.once('connect', emit);
+    }
+  });
 }

@@ -121,6 +121,27 @@ export class ChatGateway implements OnGatewayDisconnect {
     return { success: true };
   }
 
+  @SubscribeMessage('getUnreads')
+async handleGetUnreads(@ConnectedSocket() client: Socket) {
+  const userId = client.data.userId;
+  if (!userId) return { success: false, error: 'Unauthorized' };
+
+  const unreads = await this.chatService.getUnreadConversations(userId);
+  return { success: true, unreads };
+}
+
+@SubscribeMessage('markConversationRead')
+async handleMarkConversationRead(
+  @ConnectedSocket() client: Socket,
+  @MessageBody() data: { friendId: number },
+) {
+  const userId = client.data.userId;
+  if (!userId) return { success: false, error: 'Unauthorized' };
+
+  await this.chatService.markConversationAsRead(userId, data.friendId);
+  return { success: true };
+}
+
   handleDisconnect(client: Socket) { }
 
   findSocketByPlayerId(playerId: number): Socket | undefined {
