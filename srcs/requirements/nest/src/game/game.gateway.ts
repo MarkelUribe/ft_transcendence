@@ -6,6 +6,7 @@ import {
 	MessageBody,
 	OnGatewayConnection
 } from '@nestjs/websockets';
+
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -77,6 +78,7 @@ export class GameGateway implements OnGatewayConnection{
 				white: game.white,
 				black: game.black,
 				status: game.status,
+				lastMoveTimestamp: game.lastMoveTimestamp,
 				moves: moves.map(m => ({
 					from: m.from,
 					to: m.to,
@@ -89,9 +91,9 @@ export class GameGateway implements OnGatewayConnection{
 			});
 
 			const history = this.gameService.getChatHistory(gameId);
-            client.emit('chatHistory', history);
+			client.emit('chatHistory', history);
 		}
-		catch { client.emit('error', { message: 'Game not found' }); }
+		catch { client.emit('notFound', { message: 'Game not found' }); }
 	}
 
 	@SubscribeMessage('getMatchHistory')
@@ -157,16 +159,16 @@ export class GameGateway implements OnGatewayConnection{
 
 		if (!userId) { client.emit('moveRejected', { reason: 'Unauthorized' }); return; }
 
-//		console.log('ProposeMove received:', { gameId, from, to, promotion, userId });
+		console.log('ProposeMove received:', { gameId, from, to, promotion, userId });
 
 		try
 		{
-
 			const game = await this.gameService.makeMove(gameId, from, to, userId, promotion);
 
-			if (game.status === 'checkmate' || game.status === 'stalemate')
+			if (!game) return;
+
+			if (game.status === 'ended')
 			{
-				game.status = 'ended';
 				await this.gameRepo.save(game);
 				return this.server.to(gameId).emit('ended', { looser: game.looser });
 			}
@@ -182,12 +184,15 @@ export class GameGateway implements OnGatewayConnection{
 			this.server.to(gameId).emit('moveMade',
 			{
 				move: move,
+				lastMoveTimestamp: game.lastMoveTimestamp,
 			});
 		}
-		catch
+		catch (error)
 		{
-			const reason = 'Invalid move';
+			const reason = error.message || 'Invalid move';
+
 			console.log('Move error:', reason);
+
 			client.emit('moveRejected', { reason });
 		}
 	}
@@ -209,28 +214,26 @@ export class GameGateway implements OnGatewayConnection{
 
 			if (!game) return ;
 
-			game.status = 'ended';
-			await this.gameRepo.save(game);
 			this.server.to(gameId).emit('ended', { looser: game.looser });
 		}
 		catch { client.emit('error', { message: 'Surrender failed' }); }
 	}
 
 	@SubscribeMessage('sendMessage')
-    async handleSendMessage(
-        @ConnectedSocket() client: Socket,
-        @MessageBody() data: { gameId: string; user: string; text: string }
-    ) {
-        const { gameId, user, text } = data;
+	async handleSendMessage(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { gameId: string; user: string; text: string }
+	) {
+		const { gameId, user, text } = data;
 
-        const userId = client.data.userId;
-        if (!userId) return;
+		const userId = client.data.userId;
+		if (!userId) return;
 
 		this.gameService.addMessage(gameId, { user, text });
 
-        this.server.to(gameId).emit('chatMessage', {
-            user,
-            text
-        });
-    }
+		this.server.to(gameId).emit('chatMessage', {
+			user,
+			text
+		});
+	}
 }

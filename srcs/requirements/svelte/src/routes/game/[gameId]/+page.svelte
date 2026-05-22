@@ -1,40 +1,42 @@
 <script lang="ts">
+
 import { onMount, onDestroy } from 'svelte';
 import { page } from '$app/stores';
 import { io, type Socket } from 'socket.io-client';
 import { ChessAPI } from '$lib/api/chess';
 import { goto } from '$app/navigation';
 
-let gameId = '';
 let board: (string | null)[][] = [];
+let logs: any[] = [];
+let currentMoveIndex = 0;
+let moveFrom: string | null = null;
+let moveTo: string | null = null;
+
+let gameId = '';
+let gameStatus: 'active' | 'ended' = 'active';
+
 let selected: string | null = null;
 let turn: 'w' | 'b' = 'w';
 let myColor: 'w' | 'b' | null = null;
 let gameOver = false;
 let resultText = '';
 
-let whiteTime;
-let blackTime;
-
-let logs: any[] = [];
-let currentMoveIndex = 0;
-let moveFrom: string | null = null;
-let moveTo: string | null = null;
-
-let white: string | null = null
-let black: string | null = null
+let whiteUsername: string | null = null;
+let blackUsername: string | null = null;
+let whiteTime: number;
+let blackTime:number;
+let lastMoveTimestamp: number;
 
 let promotion = false;
 let promotionSquare: string | null = null;
-let pendingPromotionMove: { from: string, to: string } | null = null;
 
 let socket: Socket;
-let api: ChessAPI;
+
+let pendingPromotionMove: { from: string, to: string } | null = null;
+//let api: ChessAPI;
 
 $: display = myColor === 'b' ? board.map(r => [...r].reverse()).reverse() : board;
-$: isReviewMode = currentMoveIndex !== logs.length - 1;
-$: uiMode = isReviewMode ? 'review' : 'live';
-
+$: isReviewMode = currentMoveIndex != logs.length - 1 || gameStatus === 'ended';
 
 let showConfirm = false;
 
@@ -63,26 +65,20 @@ function setState(state: any)
 {
 	logs = state.moves || [];
 
-	const lastMove = logs.length > 0 ? logs[logs.length - 1] : null;
+	if (state.status === 'active')
+	{
+		currentMoveIndex = logs.length - 1;
+	}
 
-	board = parseFen(lastMove ? lastMove.fen : null);
+	goToMove(currentMoveIndex);
 
-	turn = lastMove ? lastMove.fen.split(' ')[1] as 'w' | 'b' : 'w';
+	whiteUsername = state.white.username;
+	blackUsername = state.black.username;
+
+	lastMoveTimestamp = state.lastMoveTimestamp;
 
 	const id = localStorage.getItem('id');
-
-	whiteTime = lastMove.whiteTimeMs;
-	blackTime = lastMove.blackTimeMs;
-
-	currentMoveIndex = logs.length - 1;
-
-	white = state.white.username;
-	black = state.black.username;
-		
 	myColor = null;
-
-	if (state.status === 'ended')
-		return;
 
 	if (id === String(state.white.id)) myColor = 'w';
 	if (id === String(state.black.id)) myColor = 'b';
@@ -119,6 +115,7 @@ function updateState(msg: any)
 
 	whiteTime = msg.move.whiteTimeMs;
 	blackTime = msg.move.blackTimeMs;
+	lastMoveTimestamp = msg.lastMoveTimestamp;
 }
 
 function handleEnd(msg: any)
@@ -132,6 +129,7 @@ function handleEnd(msg: any)
 	else
 		resultText = msg.looser === myId ? 'Defeat' : 'Victory';
 
+	gameStatus = 'ended';
 	gameOver = true;
 }
 
@@ -146,19 +144,19 @@ function coordFromDisplay(r: number, c: number)
 	return `${String.fromCharCode(97 + oc)}${8 - or}`;
 }
 
-async function fetchGameState()
-{
-	try
-	{
-		const g: any = await api.getGame(gameId);
-		setState(g);
-	}
-	catch (e)
-	{
-		console.error('could not fetch game', e);
-		goto('/');
-	}
-}
+//async function fetchGameState()
+//{
+//	try
+//	{
+//		const g: any = await api.getGame(gameId);
+//		setState(g);
+//	}
+//	catch (e)
+//	{
+//		console.error('could not fetch game', e);
+//		goto('/');
+//	}
+//}
 
 function isPawnPromotion(piece: string, targetCoord: string): boolean
 {
@@ -194,6 +192,12 @@ function handleSquareClick(r: number, c: number)
 
 	promotion = false;
 
+	if (isReviewMode)
+	{
+		selected = null;
+		return;
+	}
+
 	if (selected && piece)
 	{
 		const color = piece < 'a' ? 'w' : 'b';
@@ -228,14 +232,16 @@ function handleSquareClick(r: number, c: number)
 		selected = null;
 		return;
 	}
-	if (piece) {
+	if (piece)
+	{
 		const color = piece < 'a' ? 'w' : 'b';
 		if (myColor !== turn) return;
 		if (color === turn) selected = coord;
 	}
 }
 
-function handlePromotionChoice(piece: string) {
+function handlePromotionChoice(piece: string)
+{
 	if (!selected || !promotionSquare) return;
 
 	socket.emit('proposeMove', {
@@ -272,6 +278,8 @@ onMount(async () =>
 	socket.on('moveMade', updateState);
 
 	socket.on('ended', handleEnd);
+
+//	socket.on('notFound', goto('/'));
 });
 
 function getPromotionPieces(color: 'w' | 'b')
@@ -306,11 +314,11 @@ function nextMove()		{ goToMove(currentMoveIndex + 1); selected = null; }
 function goToStart()	{ goToMove(0); }
 function goToEnd()		{ goToMove(logs.length - 1); }
 
-function getTurnText(turn: 'w' | 'b', myColor: 'w' | 'b' | null, white: string, black: string, uiMode: 'live' | 'review')
+function getTurnText(turn: 'w' | 'b', myColor: 'w' | 'b' | null, white: string, black: string, isReviewMode: boolean)
 {
 	if (!white || !black) return '';
 
-	if (uiMode === 'review')
+	if (isReviewMode)
 	{
 		if (currentMoveIndex == 0)
 			return "Start of the Match";
@@ -324,208 +332,236 @@ function getTurnText(turn: 'w' | 'b', myColor: 'w' | 'b' | null, white: string, 
 	return `${black}'s turn`;
 }
 
+let now = Date.now();
+
+setInterval(() => { now = Date.now(); }, 100);
+
 function formatTime(ms: number)
 {
-	const totalSeconds =
-		Math.ceil(ms / 1000);
+	ms = Math.max(0, ms);
 
-	const minutes =
-		Math.floor(totalSeconds / 60);
+	const totalSeconds = Math.floor(ms / 1000);
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = totalSeconds % 60;
 
-	const seconds =
-		totalSeconds % 60;
+	if (ms < 15000 && ms > 0) {
+		const millis = Math.floor((ms % 1000) / 100); // tenths of a second
+		return `${seconds.toString().padStart(2, '0')}.${millis}`;
+	}
 
-	return `${minutes}:${seconds
-		.toString()
-		.padStart(2, '0')}`;
+	return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
+
+function getWhiteTime(now: number, whiteMs: number)
+{
+	let ms = whiteMs;
+
+	if (turn === 'w' && !isReviewMode)
+	{
+		ms -= now - lastMoveTimestamp;
+	}
+
+	return ms;
+}
+
+function getBlackTime(now: number, blackMs: number)
+{
+	let ms = blackMs;
+
+	if (turn === 'b' && !isReviewMode)
+	{
+		ms -= now - lastMoveTimestamp;
+	}
+
+	return ms;
+}
+
+let blackClock: number;
+let whiteClock: number;
+
+$: blackClock = getBlackTime(now, blackTime);
+$: whiteClock = getWhiteTime(now, whiteTime);
 
 onDestroy(() => socket?.disconnect());
 </script>
 
 <div class="page">
 	<div class="game-container">
-		<div class="clock">
-			White:
-			{formatTime(whiteTime)}
-		</div>
-
-		<div class="clock">
-			Black:
-			{formatTime(blackTime)}
-		</div>
-				<div class="top-bar">
-					<div class="turn-container">
-						{#if promotion && myColor}
-							<div class="turn-indicator promotion-bar {myColor === turn ? 'my-turn' : ''}">
-								{#each getPromotionPieces(myColor) as p}
-									<button type="button" on:click={() => handlePromotionChoice(p)}>
-										<img src={getPieceImage(p)} alt={p} />
-									</button>
-								{/each}
-							</div>
-						{:else}
-							<div class="turn-indicator {myColor === turn ? 'my-turn' : ''}" class:review={uiMode === 'review'}>
-								<span class="dot"></span>
-								<span class="turn-text">{getTurnText(turn, myColor, white, black, uiMode)}</span>
-							</div>
-						{/if}
+		<div class="top-bar">
+			<div class="spacer">
+				{#if myColor !== 'b'}
+					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={blackClock < 16000}>
+						{formatTime(blackClock)}
 					</div>
-				</div>
-
-			<div class="game-layout">
-				<div class="board-area">
-					<div class="chess-board">
-						{#each display as row, r}
-							{#each row as cell, c}
-								<button
-									type="button"
-									class="square {(r + c) % 2 === 0 ? 'light' : 'dark'}"
-									class:selected={selected === coordFromDisplay(r, c)}
-									class:move-highlight={
-										coordFromDisplay(r, c) === moveFrom ||
-										coordFromDisplay(r, c) === moveTo
-									}
-									on:click={() => handleSquareClick(r, c)}
-								>
-
-									{#if cell}
-										<img
-											class="piece"
-											src={getPieceImage(cell)}
-											alt={cell}
-										/>
-									{/if}
-
-									{#if r === 7}
-										<span class="coord file">
-											{myColor === 'b'
-												? String.fromCharCode(104 - c)
-												: String.fromCharCode(97 + c)}
-										</span>
-									{/if}
-
-									{#if c === 0}
-										<span class="coord rank">
-											{myColor === 'b' ? r + 1 : 8 - r}
-										</span>
-									{/if}
-
+				{:else}
+					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
+						{formatTime(whiteClock)}
+					</div>
+				{/if}
+<!-- 				<div class="turn-container">
+					{#if promotion && myColor}
+						<div class="turn-indicator promotion-bar {myColor === turn ? 'my-turn' : ''}">
+							{#each getPromotionPieces(myColor) as p}
+								<button type="button" on:click={() => handlePromotionChoice(p)}>
+									<img src={getPieceImage(p)} alt={p} />
 								</button>
 							{/each}
+						</div>
+					{:else}
+						<div class="turn-indicator {myColor === turn ? 'my-turn' : ''}" class:review={isReviewMode}>
+							<span class="dot"></span>
+							<span class="turn-text">{getTurnText(turn, myColor, whiteUsername, blackUsername, isReviewMode)}</span>
+						</div>
+					{/if}
+				</div> -->
+			</div>
+		</div>
+		<div class="game-layout">
+			<div class="board-area">
+				<div class="chess-board">
+					{#each display as row, r}
+						{#each row as cell, c}
+							<button
+								type="button"
+								class="square {(r + c) % 2 === 0 ? 'light' : 'dark'}"
+								class:selected={selected === coordFromDisplay(r, c)}
+								class:move-highlight={
+									coordFromDisplay(r, c) === moveFrom ||
+									coordFromDisplay(r, c) === moveTo
+								}
+								on:click={() => handleSquareClick(r, c)}
+							>
+								{#if cell}
+									<img
+										class="piece"
+										src={getPieceImage(cell)}
+										alt={cell}
+									/>
+								{/if}
+								{#if r === 7}
+									<span class="coord file">
+										{myColor === 'b'
+											? String.fromCharCode(104 - c)
+											: String.fromCharCode(97 + c)}
+									</span>
+								{/if}
+								{#if c === 0}
+									<span class="coord rank">
+										{myColor === 'b' ? r + 1 : 8 - r}
+									</span>
+								{/if}
+							</button>
+						{/each}
+					{/each}
+				</div>
+			</div>
+			<div class="side-area">
+				<div class="logs-panel card shadow-sm h-100">
+					<div class="card-body p-0 logs-list">
+						{#each groupMoves(logs.slice(1)) as move, i}
+							<div class="log-row d-flex align-items-center px-3 py-2">
+								<span class="move-number text-muted">
+									{move.number}.
+								</span>
+								<button
+									class="move-btn white-move"
+									class:active-move={currentMoveIndex === i * 2 + 1}
+									on:click={() => goToMove(i * 2 + 1)}
+								>
+									{move.white?.san}
+								</button>
+								<button
+									class="move-btn black-move"
+									class:active-move={currentMoveIndex === i * 2 + 2}
+									on:click={() => goToMove(i * 2 + 2)}
+								>
+									{move.black?.san}
+								</button>
+							</div>
 						{/each}
 					</div>
 				</div>
-				<div class="side-area">
-					<div class="logs-panel card shadow-sm h-100">
-
-						<div class="card-body p-0 logs-list">
-
-							{#each groupMoves(logs.slice(1)) as move, i}
-								<div class="log-row d-flex align-items-center px-3 py-2">
-
-									<span class="move-number text-muted">
-										{move.number}.
-									</span>
-
-									<button
-										class="move-btn white-move"
-										class:active-move={currentMoveIndex === i * 2 + 1}
-										on:click={() => goToMove(i * 2 + 1)}
-									>
-										{move.white?.san}
-									</button>
-
-									<button
-										class="move-btn black-move"
-										class:active-move={currentMoveIndex === i * 2 + 2}
-										on:click={() => goToMove(i * 2 + 2)}
-									>
-										{move.black?.san}
-									</button>
-
-								</div>
-							{/each}
-
-						</div>
+			</div>
+		</div>
+		<div class="bottom-bar">
+			<div class="spacer">
+				{#if myColor !== 'w'}
+					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={blackClock < 15000}>
+						{formatTime(blackClock)}
+					</div>
+				{:else}
+					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
+						{formatTime(whiteClock)}
+					</div>
+				{/if}
+<!-- 				<div class="controls">
+					{#if (myColor !== null && !isReviewMode) || isReviewMode}
+						<button class="surrender-btn" on:click={goHome}>
+							Return to home
+						</button>
+					{:else}
+						<button class="surrender-btn" on:click={() => showConfirm = true}>
+							🏳️ Surrender
+						</button>
+					{/if}
+				</div> -->
+			</div>
+			<div class="move-controls-panel">
+				<button class="nav-btn" on:click={goToStart} disabled={currentMoveIndex <= 0}>◀◀</button>
+				<button class="nav-btn" on:click={prevMove} disabled={currentMoveIndex <= 0}>◀</button>
+				<button class="nav-btn" on:click={nextMove} disabled={currentMoveIndex >= logs.length - 1}>▶</button>
+				<button class="nav-btn" on:click={goToEnd} disabled={currentMoveIndex >= logs.length - 1}>▶▶</button>
+			</div>
+		</div>
+		{#if showConfirm}
+		<div class="modal">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5>Confirm Surrender</h5>
+					</div>
+					<div class="modal-body">
+						Are you sure? You will lose the game.
+					</div>
+					<div class="modal-footer">
+						<button class="btn-secondary" on:click={() => showConfirm = false}>
+							Cancel
+						</button>
+						<button class="btn-danger" on:click={confirmSurrender}>
+							Yes, surrender
+						</button>
 					</div>
 				</div>
 			</div>
-
-			<div class="bottom-bar">
-				<div class="bottom-spacer">
-					<div class="controls">
-						{#if myColor !== null && !gameOver}
-							<button class="surrender-btn" on:click={() => showConfirm = true}>
-								🏳️ Surrender
-							</button>
-						{:else}
-							<button class="surrender-btn" on:click={goHome}>
-								Return to home
-							</button>
-						{/if}
+		</div>
+		<div class="modal-backdrop"></div>
+		{/if}
+		{#if gameOver}
+		<div class="modal">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5>Game Over</h5>
 					</div>
-				</div>
-
-				<div class="move-controls-panel">
-					<button class="nav-btn" on:click={goToStart} disabled={currentMoveIndex <= 0}>◀◀</button>
-					<button class="nav-btn" on:click={prevMove} disabled={currentMoveIndex <= 0}>◀</button>
-					<button class="nav-btn" on:click={nextMove} disabled={currentMoveIndex >= logs.length - 1}>▶</button>
-					<button class="nav-btn" on:click={goToEnd} disabled={currentMoveIndex >= logs.length - 1}>▶▶</button>
-				</div>
-			</div>
-
-			{#if showConfirm}
-			<div class="modal">
-				<div class="modal-dialog">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5>Confirm Surrender</h5>
-						</div>
-						<div class="modal-body">
-							Are you sure? You will lose the game.
-						</div>
-						<div class="modal-footer">
-							<button class="btn-secondary" on:click={() => showConfirm = false}>
-								Cancel
-							</button>
-							<button class="btn-danger" on:click={confirmSurrender}>
-								Yes, surrender
-							</button>
-						</div>
+					<div class="modal-body">
+						{resultText}
+					</div>
+					<div class="modal-footer">
+						<button class="btn-secondary" on:click={goHome}>
+							Return to home
+						</button>
 					</div>
 				</div>
 			</div>
-			<div class="modal-backdrop"></div>
-			{/if}
-
-			{#if gameOver}
-			<div class="modal">
-				<div class="modal-dialog">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5>Game Over</h5>
-						</div>
-						<div class="modal-body">
-							{resultText}
-						</div>
-						<div class="modal-footer">
-							<button class="btn-secondary" on:click={goHome}>
-								Return to home
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="modal-backdrop"></div>
-			{/if}
+		</div>
+		<div class="modal-backdrop"></div>
+		{/if}
 	</div>
 </div>
 
 <style>
 
 .page {
-	min-height: 100vh;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -571,15 +607,15 @@ onDestroy(() => socket?.disconnect());
 
 .logs-panel {
 	background: #2b2f33;
+	border: 1px solid rgb(255 255 255 / 5%);
 	border-radius: 10px;
-	box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-	border: 1px solid rgba(255,255,255,0.05);
+	box-shadow: 0 8px 25px rgb(0 0 0 / 20%);
 
 	display: flex;
 	flex-direction: column;
 
-	height: 100%;
-	max-height: 80vh;
+	flex: 1;
+	min-height: 0;
 	overflow: hidden;
 }
 
@@ -589,69 +625,58 @@ onDestroy(() => socket?.disconnect());
 }
 
 .logs-list::-webkit-scrollbar {
-	width: 0.625rem;
+	width: .625rem;
 }
 
 .logs-list::-webkit-scrollbar-thumb {
-	background: rgb(113 113 113);
-	border-radius: 0.2rem;
+	background: #717171;
+	border-radius: .2rem;
 }
 
 .log-row {
 	display: grid;
-
-	/* better scaling columns */
-	grid-template-columns:
-		minmax(5rem, auto)
-		minmax(0, 1fr)
-		minmax(0, 1fr);
+	grid-template-columns: 5rem 1fr 1fr;
+	gap: .75rem;
 
 	align-items: start;
-
-	gap: 0.75rem;
-
-	padding: 0.75rem 1rem;
+	padding: .75rem 1rem;
 
 	font-size: 1rem;
 	line-height: 1.5;
 
-	border-bottom: 1px solid rgba(255,255,255,0.04);
-	transition: background 0.15s ease;
-
-	/* IMPORTANT */
 	min-width: 0;
-	height: auto;
+	border-bottom: 1px solid rgb(255 255 255 / 4%);
+	transition: background .15s ease;
 }
 
 .log-row > * {
 	min-width: 0;
-
-	/* allows wrapping */
-	white-space: normal;
 	overflow-wrap: anywhere;
-	word-break: break-word;
 }
 
 .log-row:hover {
-	background: rgba(255,255,255,0.05);
+	background: rgb(255 255 255 / 5%);
 }
+
 .move-number {
-	color: #888;
-	font-size: clamp(1rem, 1.5vw, 10rem);
+	color: #fff !important;
 	min-width: 30px;
 }
 
 .active-move {
 	background: #4dabf7;
-	color: #fff !important;
+	color: #fff;
 	box-shadow: 0 0 0 1px rgb(193, 193, 193);
 }
 
 .move-btn {
+	justify-self: stretch;
+	width: 100%;
+
 	border: none;
 	background: transparent;
 
-	text-align: left;
+	text-align: center;
 	border-radius: 6px;
 
 	transition: all 0.15s ease;
@@ -662,18 +687,24 @@ onDestroy(() => socket?.disconnect());
 
 .white-move {
 	color: #ffffff;
-	font-weight: 600;
 }
 
 .black-move {
-	color: #c9c9c9;
+	color: #808080 !important;
 }
 
 .top-bar {
 	background: #ccc;
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	flex: 0 0 clamp(40px, 6vh, 80px);
+	width: 100%;
+}
+
+.bottom-bar {
+	background: #ccc;
+	display: flex;
+	align-items: center;
 	flex: 0 0 clamp(40px, 6vh, 80px);
 	width: 100%;
 }
@@ -744,14 +775,6 @@ onDestroy(() => socket?.disconnect());
 	height: clamp(28px, 2.5vw, 36px);
 }
 
-.bottom-bar {
-	display: flex;
-	width: 100%;
-	align-items: center;
-	background: #ccc;
-	flex: 0 0 clamp(30px, 4vh, 60px);
-}
-
 .surrender-btn {
 	background: #dc3545;
 	color: white;
@@ -774,11 +797,10 @@ onDestroy(() => socket?.disconnect());
 	transform: scale(0.98);
 }
 
-.bottom-spacer {
+.spacer {
 	width: 800px;
 	display: flex;
 	align-items: center;
-	justify-content: center;
 }
 
 .move-controls-panel {
@@ -983,6 +1005,16 @@ onDestroy(() => socket?.disconnect());
 	background: #c82333;
 }
 
+.pulse {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
 @media (max-width: 1200px) {
 
 	.game-container {
@@ -1007,8 +1039,8 @@ onDestroy(() => socket?.disconnect());
 		display: none;
 	}
 
-	.bottom-spacer {
-		width: 50%;
+	.spacer {
+		width: 70%;
 	}
 }
 

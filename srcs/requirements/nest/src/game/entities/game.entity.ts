@@ -14,7 +14,7 @@ export class Game {
   black: User;
 
   @Column({ type: 'varchar', default: 'active' })
-  status: 'active' | 'ended' | 'checkmate' | 'stalemate';
+  status: 'active' | 'ended';
 
   @CreateDateColumn()
   createdAt: Date;
@@ -37,10 +37,10 @@ export class Game {
   @Column({ type: 'varchar', default: 'white' })
   activeColor: 'white' | 'black';
 
-  @Column('bigint', { default: 300000 })
+  @Column('bigint', { default: 60000 * 1 })
   whiteTimeMs: number;
 
-  @Column('bigint', { default: 300000 })
+  @Column('bigint', { default: 60000 * 1 })
   blackTimeMs: number;
 
   @Column({ type: 'bigint', nullable: true })
