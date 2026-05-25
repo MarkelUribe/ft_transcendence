@@ -7,6 +7,8 @@
     sendMessage,
     getConversation,
     disconnectChat,
+    getChatSocket,
+    getUnreads,
   } from "$lib/api/chat";
   import { browser } from "$app/environment";
   import type { FriendActivity } from "$lib/Matchmaking";
@@ -14,7 +16,6 @@
 
   const BACKEND_URL = "https://localhost:3000";
 
-  //let { compact = true } = $props();
   let messagesContainer = $state();
 
   let lastMessageTimes = $state<{ [key: number]: string }>({});
@@ -28,7 +29,7 @@
       ? [...friends].sort((a, b) => {
           const eloA = Number(a.elo) || 0;
           const eloB = Number(b.elo) || 0;
-          return eloB - eloA; // De mayor a menor
+          return eloB - eloA;
         })
       : [...friends].sort((a, b) => {
           const dateA = new Date(a.last_message_at || 0).getTime();
@@ -41,6 +42,7 @@
     compact = true,
     isInGame = false,
     gameMessages = [],
+    gameId = null,
     myUsername = "",
     opponentName = "Oponente",
     onSendGameChat,
@@ -60,41 +62,12 @@
 
   let currentUserId = $state<number | null>(null);
 
-  let lastKnownGameMsgCount = $state(
-    typeof window !== "undefined"
-      ? Number(localStorage.getItem("game_msg_count") || 0)
-      : 0,
-  );
-
-  let unreadChats = $state(
-    new Set(
-      typeof window !== "undefined"
-        ? JSON.parse(localStorage.getItem("unread_chats") || "[]")
-        : [],
-    ),
-  );
+  let unreadChats = $state<Record<string, boolean>>({});
 
   let hasNewActivity = $state(false);
 
   let activityById = $state<Record<number, FriendActivity>>({});
 
-  $effect(() => {
-    if (gameMessages.length > lastKnownGameMsgCount) {
-      const lastMsg = gameMessages[gameMessages.length - 1];
-
-      if (
-        lastMsg.user !== myUsername &&
-        selectedFriend?.id !== "current-game-chat"
-      ) {
-        unreadChats.add("current-game-chat");
-        unreadChats = new Set(unreadChats);
-        if (currentView !== "MESSAGES") {
-          hasNewActivity = true;
-        }
-      }
-      lastKnownGameMsgCount = gameMessages.length;
-    }
-  });
 
   function getAvatarUrl(avatarUrl: string | null): string {
     if (!avatarUrl) return "";
@@ -107,41 +80,42 @@
     activityById = Object.fromEntries(rows.map((r) => [r.userId, r]));
   }
 
-  onMount(async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      goto("/login");
-      return;
-    }
+onMount(async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    goto("/login");
+    return;
+  }
 
-    const savedTimes = localStorage.getItem("chat_times");
-    if (savedTimes) {
-      lastMessageTimes = JSON.parse(savedTimes);
-    }
+  const savedTimes = localStorage.getItem("chat_times");
+  if (savedTimes) {
+    lastMessageTimes = JSON.parse(savedTimes);
+  }
 
-    const savedUnreads = localStorage.getItem("unread_chats");
-    if (savedUnreads) {
-      unreadChats = new Set(JSON.parse(savedUnreads));
-    }
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    currentUserId = payload.sub;
+  } catch {
+    goto("/login");
+    return;
+  }
 
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      currentUserId = payload.sub;
-    } catch {
-      goto("/login");
-      return;
-    }
+  initChatSocket();
 
-    initChatSocket();
+  try {
+    unreadChats = await getUnreads();
+  } catch (e) {
+    console.error("Error cargando unreads", e);
+  }
 
-    try {
-      friendsApi = new FriendsAPI(token);
-      const fetchedFriends = await friendsApi.getFriends();
+  try {
+    friendsApi = new FriendsAPI(token);
+    const fetchedFriends = await friendsApi.getFriends();
 
-      friends = fetchedFriends.map((f) => ({
-        ...f,
-        last_message_at: lastMessageTimes[f.id] || null,
-      }));
+    friends = fetchedFriends.map((f) => ({
+      ...f,
+      last_message_at: lastMessageTimes[f.id] || null,
+    }));
 
       const payload = JSON.parse(atob(token.split(".")[1]));
       currentUserId = payload.sub;
@@ -157,6 +131,19 @@
       "friends:activity",
       onFriendsActivity as EventListener,
     );
+
+    if (gameId) {
+      try {
+        const res = await fetch(`/api/chat/game/${gameId}/has-unreads`);
+        const { hasUnreads } = await res.json();
+        
+        if (hasUnreads) {
+          unreadChats['current-game-chat'] = true; 
+        }
+      } catch (err) {
+        console.error("Error al comprobar notificaciones de partida:", err);
+      }
+    }
   });
 
   onDestroy(() => {
@@ -190,8 +177,7 @@
     if (selectedFriend && selectedFriend.id == friendId) {
       messages = [...messages, message];
     } else if (message.senderId !== currentUserId) {
-      unreadChats.add(friendId);
-      unreadChats = new Set(unreadChats);
+      unreadChats[friendId] = true;
     }
 
     friends = friends.map((f) => {
@@ -201,28 +187,28 @@
   }
 
   async function selectFriend(friend: any) {
+  try {
     selectedFriend = friend;
+    newMessage = "";
     loading = true;
-
-    unreadChats.delete(friend.id);
-    unreadChats = new Set(unreadChats);
 
     if (friend.isGame) {
       messages = [];
-      lastKnownGameMsgCount = gameMessages.length;
-      loading = false;
       return;
     }
 
-    try {
-      const msgs = await getConversation(friend.id);
-      messages = msgs;
-    } catch (e: any) {
-      error = e.message;
-    } finally {
-      loading = false;
-    }
+    getChatSocket().emit('markConversationRead', { friendId: friend.id });
+    unreadChats[friend.id] = false;
+
+    const msgs = await getConversation(friend.id);
+    messages = msgs || [];
+
+  } catch (e: any) {
+    error = e.message;
+  } finally {
+    loading = false;
   }
+}
 
   async function handleSendMessage() {
     if (!newMessage.trim() || !selectedFriend) return;
@@ -384,29 +370,31 @@
   });
 
   $effect(() => {
-    localStorage.setItem(
-      "unread_chats",
-      JSON.stringify(Array.from(unreadChats)),
-    );
-  });
+    if (!gameMessages || gameMessages.length === 0 || !gameId) {
+      return; 
+    }
 
-  $effect(() => {
-    localStorage.setItem("game_msg_count", lastKnownGameMsgCount.toString());
-  });
+    const hasUnreadMessages = gameMessages.some((msg) => {
+      const isReadField = msg.isRead ?? msg.is_read ?? true; 
+      return msg.user !== myUsername && isReadField === false;
+    });
 
-  $effect(() => {
-    if (gameMessages.length > lastKnownGameMsgCount) {
-      const lastMsg = gameMessages[gameMessages.length - 1];
+    const isViewingGameChat = selectedFriend?.id === 'current-game-chat';
 
-      if (
-        lastMsg.user !== myUsername &&
-        selectedFriend?.id !== "current-game-chat"
-      ) {
-        unreadChats.add("current-game-chat");
-        unreadChats = new Set(unreadChats); // Notifica el cambio al Set
-      } else if (selectedFriend?.id === "current-game-chat") {
-        lastKnownGameMsgCount = gameMessages.length;
+    if (hasUnreadMessages) {
+      if (!isViewingGameChat) {
+        unreadChats['current-game-chat'] = true;
+        if (currentView !== 'MESSAGES') {
+          hasNewActivity = true;
+        }
+      } else {
+        fetch(`/api/chat/game/${gameId}/read`, { method: 'POST' })
+          .catch(err => console.error("Error al marcar como leído:", err));
+
+        unreadChats['current-game-chat'] = false;
       }
+    } else if (isViewingGameChat && unreadChats['current-game-chat']) {
+      unreadChats['current-game-chat'] = false;
     }
   });
 
@@ -518,7 +506,7 @@
                   <div class="avatar game-avatar">🎮</div>
                   <span
                     class="username"
-                    class:unread={unreadChats.has("current-game-chat")}
+                    class:unread={unreadChats["current-game-chat"]}
                   >
                     <span class="name-text">Chat de Partida</span>
                   </span>
@@ -563,7 +551,7 @@
                   <span
                     class="username"
                     class:unread={currentView === "MESSAGES" &&
-                      unreadChats.has(friend.id)}
+                      unreadChats[friend.id]}
                   >
                     <span class="name-text" title={friend.username}
                       >{friend.username}</span
@@ -669,11 +657,11 @@
             e.preventDefault();
             if (selectedFriend.isGame) {
               if (newMessage.trim()) {
-                onSendGameChat(newMessage); // La prop que viene del archivo partida
+                onSendGameChat(newMessage);
                 newMessage = "";
               }
             } else {
-              handleSendMessage(); // Tu función original para la API
+              handleSendMessage();
             }
           }}
         >
