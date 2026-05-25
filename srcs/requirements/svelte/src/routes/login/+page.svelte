@@ -2,6 +2,8 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
+  import { disconnectMatchmakingSocket, stopFriendsActivityPolling } from '$lib/Matchmaking';
+  import { disconnectChat } from '$lib/api/chat';
 
   let username = "";
   let password = "";
@@ -63,6 +65,11 @@
 
   function handleLogout() {
     if (!browser) return;
+
+    // desconecta sockets y polling inmediatamente
+    disconnectMatchmakingSocket();
+    stopFriendsActivityPolling();
+    disconnectChat();
 
     localStorage.removeItem('token');
     localStorage.removeItem('id');

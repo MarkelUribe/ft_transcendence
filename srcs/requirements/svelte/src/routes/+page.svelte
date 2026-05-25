@@ -2,7 +2,13 @@
     import { onMount } from "svelte";
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
-    import { handleButtonClick, searching } from "$lib/Matchmaking";
+    import {
+        handleButtonClick,
+        searching,
+        disconnectMatchmakingSocket,
+        stopFriendsActivityPolling,
+    } from "$lib/Matchmaking";
+    import { disconnectChat } from "$lib/api/chat";
     import ChatWidget from "../lib/components/ChatWidget.svelte";
 
     let username = "";
@@ -27,17 +33,22 @@
     function handleLogout() {
         if (!browser) return;
 
-        localStorage.removeItem("token");
-        localStorage.removeItem("id");
-        localStorage.removeItem("username");
-        isLoggedIn = false;
-        username = "";
+    // desconecta sockets y polling
+    disconnectMatchmakingSocket();
+    stopFriendsActivityPolling();
+    disconnectChat();
 
-        window.dispatchEvent(
-            new CustomEvent("auth-changed", {
-                detail: { status: "loggedOut" },
-            }),
-        );
+    localStorage.removeItem("token");
+    localStorage.removeItem("id");
+    localStorage.removeItem("username");
+    isLoggedIn = false;
+    username = "";
+
+    window.dispatchEvent(
+      new CustomEvent("auth-changed", {
+        detail: { status: "loggedOut" },
+      }),
+    );
     }
 </script>
 
