@@ -113,7 +113,6 @@ onDestroy(() => {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	min-height: 100vh;
 }
 
 .history-grid {
@@ -122,7 +121,7 @@ onDestroy(() => {
 	gap: 1rem;
 	width: 100%;
 	max-width: 600px;
-	max-height: 80vh;
+	max-height: 70vh;
 	overflow-y: auto;
 	margin-top: 1rem;
 	-ms-overflow-style: none;
@@ -142,20 +141,6 @@ onDestroy(() => {
 	gap: 0.75rem;
 }
 
-.action-button {
-	background: #2563eb;
-	color: white;
-	border: none;
-	border-radius: 0.5rem;
-	padding: 0.5rem 0.75rem;
-	cursor: pointer;
-	font-weight: 600;
-}
-
-.action-button:hover {
-	background: #1d4ed8;
-}
-
 .matchup {
 	display: flex;
 	align-items: center;
@@ -173,10 +158,23 @@ onDestroy(() => {
 	flex-shrink: 0;
 }
 
+.result-row {
+	display: flex;
+	align-items: center;
+	position: relative;
+}
+
+.result-msg {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	font-weight: 600;
+}
+
 .match-date {
+	margin-left: auto;
 	font-size: 0.85rem;
 	color: rgba(255, 255, 255, 0.6);
-	margin-top: 0.5rem;
 }
 
 .square {
@@ -192,6 +190,39 @@ onDestroy(() => {
 
 .black-square {
 	background: #000000;
+}
+
+.game-card {
+	border: 3px solid rgba(61, 61, 61, 0.8);
+	background: rgba(91, 91, 91, 0.6);
+	border-radius: 0.5rem;
+	padding: 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	cursor: pointer;
+}
+
+.game-card:hover {
+	background: #f304fc;
+}
+
+.game-card.win {
+	border: 3px solid rgba(34, 197, 94, 0.8);
+	background: rgba(34, 197, 94, 0.6);
+}
+
+.game-card.win:hover {
+	background: rgba(34, 197, 94, 1);
+}
+
+.game-card.loss {
+	border: 3px solid rgba(239, 68, 6, 0.8);
+	background: rgba(239, 68, 68, 0.6);
+}
+
+.game-card.loss:hover {
+	background: rgba(239, 68, 68, 1);
 }
 
 @media (max-width: 768px) {
@@ -213,27 +244,61 @@ onDestroy(() => {
 	{:else}
 		<div class="history-grid">
 			{#each history as game}
-				<div class="game-card">
-					<button class="action-button" on:click={() => goToMatch(game.gameId)}>
-						{getActionLabel(game)}
-					</button>
+				{@const myColor = game.white.id === Number(userId) ? 'white' : 'black'}
+				{@const me = myColor === 'white' ? game.white : game.black}
+				{@const opponentColor = myColor === 'white' ? 'black' : 'white'}
+				{@const opponent = opponentColor === 'black' ? game.black : game.white}
+
+				{@const looserId = Number(game.looser)}
+				{@const isDraw = game.status === 'stalemate' || looserId === -1}
+				{@const iWon =
+					(myColor === 'white' && looserId === game.black.id) ||
+					(myColor === 'black' && looserId === game.white.id)}
+				{@const iLost =
+					!isDraw &&
+					game.status !== 'active' &&
+					!iWon}
+
+				<div class="game-card" on:click={() => goToMatch(game.gameId)} class:win={iWon} class:loss={iLost}>
 					<div class="matchup">
-						
-							<div class="player">
-							<a href="/profile/{game.black.id}" style="color: #FFFFFF;text-decoration: none;">
-								<span class="square white-square"></span>
-								<span>{game.white.username} ({game.white.elo}) {getWinnerEmoji(game, 'white')}</span>
+						<div class="player">
+							<a href="/profile/{me.id}" style="color: #FFFFFF; text-decoration: none;">
+								<span class="square {myColor}-square"></span>
+								<span>
+									{me.username} ({me.elo})
+									{getWinnerEmoji(game, myColor)}
+								</span>
 							</a>
 						</div>
+
 						<div class="vs">VS</div>
+
 						<div class="player">
-							<a href="/profile/{game.black.id}" style="color: #FFFFFF;text-decoration: none;">
-								<span class="square black-square"></span>
-								<span>{game.black.username} ({game.black.elo}) {getWinnerEmoji(game, 'black')}</span>
+							<a href="/profile/{opponent.id}" style="color: #FFFFFF; text-decoration: none;">
+								<span class="square {opponentColor}-square"></span>
+								<span>
+									{opponent.username} ({opponent.elo})
+									{getWinnerEmoji(game, opponentColor)}
+								</span>
 							</a>
 						</div>
 					</div>
-					<div class="match-date">{formatDate(game.createdAt)}</div>
+
+					<div class="result-row">
+						<div class="result-msg">
+							{#if iWon}
+								VICTORY
+							{:else if iLost}
+								DEFEAT
+							{:else}
+								DRAW
+							{/if}
+						</div>
+
+						<div class="match-date">
+							{formatDate(game.createdAt)}
+						</div>
+					</div>
 				</div>
 			{/each}
 		</div>

@@ -25,7 +25,6 @@ export class GameGateway implements OnGatewayConnection{
 	@WebSocketServer()
 	server: Server;
 
-
 	constructor(
 		@Inject(forwardRef(() => GameService))
 		private gameService: GameService,
@@ -63,37 +62,38 @@ export class GameGateway implements OnGatewayConnection{
 
 		client.join(gameId);
 
-		try
-		{
-			const game = await this.gameService.findOne(gameId);
+		const game = await this.gameService.findOne(gameId);
 
-			const moves = await this.moveRepo.find(
-			{
-				where: { game: { id: gameId } },
-				order: { id: 'ASC' },
-			});
-
-			client.emit('gameState', {
-				gameId: game.id,
-				white: game.white,
-				black: game.black,
-				status: game.status,
-				lastMoveTimestamp: game.lastMoveTimestamp,
-				moves: moves.map(m => ({
-					from: m.from,
-					to: m.to,
-					san: m.san,
-					promotion: m.promotion,
-					fen: m.fen,
-					whiteTimeMs: m.whiteTimeMs,
-					blackTimeMs: m.blackTimeMs,
-				})),
-			});
-
-			const history = this.gameService.getChatHistory(gameId);
-			client.emit('chatHistory', history);
+		if (!game) {
+			client.emit('notFound', { message: 'Game not found' });
+			return;
 		}
-		catch { client.emit('notFound', { message: 'Game not found' }); }
+
+		const moves = await this.moveRepo.find(
+		{
+			where: { game: { id: gameId } },
+			order: { id: 'ASC' },
+		});
+
+		client.emit('gameState', {
+			gameId: game.id,
+			white: game.white,
+			black: game.black,
+			status: game.status,
+			lastMoveTimestamp: game.lastMoveTimestamp,
+			moves: moves.map(m => ({
+				from: m.from,
+				to: m.to,
+				san: m.san,
+				promotion: m.promotion,
+				fen: m.fen,
+				whiteTimeMs: m.whiteTimeMs,
+				blackTimeMs: m.blackTimeMs,
+			})),
+		});
+
+		const history = this.gameService.getChatHistory(gameId);
+		client.emit('chatHistory', history);
 	}
 
 	@SubscribeMessage('getMatchHistory')

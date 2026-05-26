@@ -102,7 +102,6 @@
 
 <InviteModal {invite} onAccept={accept} onDecline={decline} />
 
-
 <style>
   .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
   .app-main { flex: 1; }

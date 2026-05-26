@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body, Delete, UseGuards, Req} from '@nestjs/common';
+import { NotFoundException, Controller, Post, Get, Param, Body, Delete, UseGuards, Req} from '@nestjs/common';
 import { GameService } from './game.service';
 import { PassportJwtAuthGuard } from 'src/auth/guards/passport-jwt.guard';
 
@@ -15,8 +15,14 @@ export class GameController {
 	}
 
 	@Get(':id')
-	async findOne(@Param('id') id: string) {
-		return this.gameService.findOne(id);
+	async findOne(id: string) {
+		const game = await this.gameService.findOne(id);
+
+		if (!game) {
+			throw new NotFoundException('Game not found');
+		}
+
+		return game;
 	}
 
 	@Post()

@@ -144,19 +144,20 @@ function coordFromDisplay(r: number, c: number)
 	return `${String.fromCharCode(97 + oc)}${8 - or}`;
 }
 
-//async function fetchGameState()
-//{
-//	try
-//	{
-//		const g: any = await api.getGame(gameId);
+async function fetchGameState()
+{
+	try
+	{
+		let api = new ChessAPI(localStorage.getItem('token') || '');
+		api.getGame(gameId);
 //		setState(g);
-//	}
-//	catch (e)
-//	{
-//		console.error('could not fetch game', e);
-//		goto('/');
-//	}
-//}
+	}
+	catch (e)
+	{
+		console.error('could not fetch game', e);
+		goto('/');
+	}
+}
 
 function isPawnPromotion(piece: string, targetCoord: string): boolean
 {
@@ -265,8 +266,6 @@ onMount(async () =>
 
 	gameId = $page.params.gameId || '';
 
-//	api = new ChessAPI(localStorage.getItem('token') || '');
-//
 //	await fetchGameState();
 
 	socket = io("https://localhost:3000", { auth: { token: localStorage.getItem("token") } });
@@ -305,7 +304,6 @@ function groupMoves(logs: any[])
 			blackFen: logs[i + 1]?.fen,
 		});
 	}
-
 	return result;
 }
 
@@ -323,7 +321,7 @@ function getTurnText(turn: 'w' | 'b', myColor: 'w' | 'b' | null, white: string, 
 		if (currentMoveIndex == 0)
 			return "Start of the Match";
 		const moveNumber = Math.ceil(currentMoveIndex / 2);
-		const color = currentMoveIndex % 2 === 0 ? 'B' : 'W';
+		const color = currentMoveIndex % 2 === 0 ? 'B' : 'W';v
 		return `Move ${moveNumber} ${color}`;
 	}
 
@@ -346,7 +344,7 @@ function formatTime(ms: number)
 
 	if (ms < 15000 && ms > 0) {
 		const millis = Math.floor((ms % 1000) / 100); // tenths of a second
-		return `${seconds.toString().padStart(2, '0')}.${millis}`;
+		return `${seconds.toString().padStart(2)}.${millis}`;
 	}
 
 	return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -360,7 +358,6 @@ function getWhiteTime(now: number, whiteMs: number)
 	{
 		ms -= now - lastMoveTimestamp;
 	}
-
 	return ms;
 }
 
@@ -372,7 +369,6 @@ function getBlackTime(now: number, blackMs: number)
 	{
 		ms -= now - lastMoveTimestamp;
 	}
-
 	return ms;
 }
 
@@ -390,7 +386,7 @@ onDestroy(() => socket?.disconnect());
 		<div class="top-bar">
 			<div class="spacer">
 				{#if myColor !== 'b'}
-					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={blackClock < 16000}>
+					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={blackClock < 15000}>
 						{formatTime(blackClock)}
 					</div>
 				{:else}
@@ -398,22 +394,26 @@ onDestroy(() => socket?.disconnect());
 						{formatTime(whiteClock)}
 					</div>
 				{/if}
-<!-- 				<div class="turn-container">
-					{#if promotion && myColor}
-						<div class="turn-indicator promotion-bar {myColor === turn ? 'my-turn' : ''}">
-							{#each getPromotionPieces(myColor) as p}
-								<button type="button" on:click={() => handlePromotionChoice(p)}>
-									<img src={getPieceImage(p)} alt={p} />
-								</button>
-							{/each}
-						</div>
-					{:else}
-						<div class="turn-indicator {myColor === turn ? 'my-turn' : ''}" class:review={isReviewMode}>
-							<span class="dot"></span>
-							<span class="turn-text">{getTurnText(turn, myColor, whiteUsername, blackUsername, isReviewMode)}</span>
-						</div>
-					{/if}
-				</div> -->
+				{#if promotion && myColor}
+					<div class="promotion-bar">
+						{#each getPromotionPieces(myColor) as p}
+							<button type="button" on:click={() => handlePromotionChoice(p)}>
+								<img src={getPieceImage(p)} alt={p} />
+							</button>
+						{/each}
+					</div>
+				{/if}
+				{#if !isReviewMode}
+					<div class="controls">
+						<button class="surrender-btn" on:click={() => showConfirm = true}> 💬 Chat </button>
+					</div>
+					<div class="controls">
+						<button class="surrender-btn" on:click={() => showConfirm = true}> 🏳️ Surrender </button>
+					</div>
+					<div class="controls">
+						<button class="surrender-btn" on:click={() => showConfirm = true}> 🤝 Stalemate </button>
+					</div>
+				{/if}
 			</div>
 		</div>
 		<div class="game-layout">
@@ -440,9 +440,7 @@ onDestroy(() => socket?.disconnect());
 								{/if}
 								{#if r === 7}
 									<span class="coord file">
-										{myColor === 'b'
-											? String.fromCharCode(104 - c)
-											: String.fromCharCode(97 + c)}
+										{myColor === 'b' ? String.fromCharCode(104 - c) : String.fromCharCode(97 + c)}
 									</span>
 								{/if}
 								{#if c === 0}
@@ -494,17 +492,6 @@ onDestroy(() => socket?.disconnect());
 						{formatTime(whiteClock)}
 					</div>
 				{/if}
-<!-- 				<div class="controls">
-					{#if (myColor !== null && !isReviewMode) || isReviewMode}
-						<button class="surrender-btn" on:click={goHome}>
-							Return to home
-						</button>
-					{:else}
-						<button class="surrender-btn" on:click={() => showConfirm = true}>
-							🏳️ Surrender
-						</button>
-					{/if}
-				</div> -->
 			</div>
 			<div class="move-controls-panel">
 				<button class="nav-btn" on:click={goToStart} disabled={currentMoveIndex <= 0}>◀◀</button>
@@ -709,68 +696,16 @@ onDestroy(() => socket?.disconnect());
 	width: 100%;
 }
 
-.turn-container {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-}
-
-.turn-indicator {
-	display: inline-flex;
-	align-items: center;
-	gap: clamp(10px, 1vw, 16px);
-	padding: clamp(10px, 1vw, 16px) clamp(14px, 2vw, 20px);
-	border-radius: 999px;
-	background: rgba(0, 0, 0, 0.1);
-	color: #1f2937;
-	font-weight: 700;
-	font-size: clamp(0.95rem, 1vw, 1.1rem);
-	transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.turn-indicator.my-turn {
-	background: linear-gradient(135deg, #4dabf7 0%, #2563eb 100%);
-	color: #fff;
-}
-
-.turn-indicator.review {
-	opacity: 0.95;
-}
-
-.dot {
-	width: clamp(10px, 1vw, 14px);
-	height: clamp(10px, 1vw, 14px);
-	border-radius: 50%;
-	background: #4dabf7;
-	box-shadow: 0 0 0 5px rgba(77, 173, 247, 0.22);
-}
-
-.turn-text {
-	white-space: nowrap;
-	font-size: clamp(0.9rem, 1vw, 1.1rem);
-}
-
 .promotion-bar {
 	background: rgba(255, 255, 255, 0.16);
 	padding: clamp(8px, 0.8vw, 12px) clamp(10px, 1vw, 14px);
-}
-
-.promotion-bar button {
-	background: rgba(255, 255, 255, 0.22);
 	border: none;
-	border-radius: 14px;
-	padding: clamp(6px, 0.8vw, 10px);
+	border-radius: 5px;
 	cursor: pointer;
-	transition: background 0.15s ease, transform 0.15s ease;
-}
-
-.promotion-bar button:hover {
-	background: rgba(255, 255, 255, 0.32);
-	transform: translateY(-1px);
 }
 
 .promotion-bar img {
+	border-radius: 5px;
 	width: clamp(28px, 2.5vw, 36px);
 	height: clamp(28px, 2.5vw, 36px);
 }
@@ -804,11 +739,10 @@ onDestroy(() => socket?.disconnect());
 }
 
 .move-controls-panel {
-	height: 95%;
+	height: 80%;
 	width: 95%;
 	flex: 1;
 	display: flex;
-	justify-content: space-between;
 	gap: 4px;
 }
 
@@ -1003,16 +937,6 @@ onDestroy(() => socket?.disconnect());
 
 .modal-footer .btn-danger:hover {
 	background: #c82333;
-}
-
-.pulse {
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  50% {
-    transform: scale(1.08);
-  }
 }
 
 @media (max-width: 1200px) {
