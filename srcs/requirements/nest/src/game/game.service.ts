@@ -104,7 +104,7 @@ export class GameService
 	async findOne(id: string): Promise<Game>
 	{
 		const game = await this.gameRepo.findOne({ where: { id } });
-		if (!game) throw new NotFoundException('Game not found');	await this.gameRepo.save(game);
+		if (!game) throw new NotFoundException('notFound');
 		return game;
 	}
 

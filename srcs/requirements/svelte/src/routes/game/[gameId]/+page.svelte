@@ -36,7 +36,7 @@ let pendingPromotionMove: { from: string, to: string } | null = null;
 //let api: ChessAPI;
 
 $: display = myColor === 'b' ? board.map(r => [...r].reverse()).reverse() : board;
-$: isReviewMode = currentMoveIndex != logs.length - 1 || gameStatus === 'ended';
+$: isReviewMode = currentMoveIndex != logs.length - 1 || gameStatus !== 'active';
 
 let showConfirm = false;
 
@@ -142,21 +142,6 @@ function coordFromDisplay(r: number, c: number)
 {
 	const [or, oc] = originalIndices(r, c);
 	return `${String.fromCharCode(97 + oc)}${8 - or}`;
-}
-
-async function fetchGameState()
-{
-	try
-	{
-		let api = new ChessAPI(localStorage.getItem('token') || '');
-		api.getGame(gameId);
-//		setState(g);
-	}
-	catch (e)
-	{
-		console.error('could not fetch game', e);
-		goto('/');
-	}
 }
 
 function isPawnPromotion(piece: string, targetCoord: string): boolean
@@ -266,8 +251,6 @@ onMount(async () =>
 
 	gameId = $page.params.gameId || '';
 
-//	await fetchGameState();
-
 	socket = io("https://localhost:3000", { auth: { token: localStorage.getItem("token") } });
 
 	socket.on('connect', () => { socket.emit('joinGame', { gameId, playerId: localStorage.getItem('id') }); });
@@ -278,7 +261,7 @@ onMount(async () =>
 
 	socket.on('ended', handleEnd);
 
-//	socket.on('notFound', goto('/'));
+	socket.on('notFound', () => goto('/'));
 });
 
 function getPromotionPieces(color: 'w' | 'b')
