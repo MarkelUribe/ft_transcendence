@@ -53,13 +53,13 @@
   });
 
   // Si estás dentro de /game/[gameId], guardamos ese id como “activo”
-  $: if (
+  /*$: if (
     browser &&
     $page.url.pathname.startsWith("/game/") &&
     $page.params.gameId
   ) {
     activeGameId = $page.params.gameId;
-  }
+  }*/
 
   // Si no estás en /game, revalidamos (throttle) por si la partida terminó o existe una activa
   $: if (browser && !$page.url.pathname.startsWith("/game/")) {
