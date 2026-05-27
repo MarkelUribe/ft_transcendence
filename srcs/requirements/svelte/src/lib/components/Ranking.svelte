@@ -3,7 +3,8 @@
 	import { browser } from '$app/environment';
 	import { getTopByElo, type RankingUser } from '$lib/api/users';
 
-	const BACKEND_URL = 'https://localhost:3000';
+	const BACKEND_URL = import.meta.env.VITE_API_URL;
+
 
 	export let n = 10;
 

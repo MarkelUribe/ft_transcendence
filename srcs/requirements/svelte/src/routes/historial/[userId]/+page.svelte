@@ -4,6 +4,9 @@ import { io, type Socket } from 'socket.io-client';
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 interface HistoryPlayer {
 	id: number;
 	username: string;
@@ -75,7 +78,7 @@ onMount(() => {
 		return;
 	}
 
-	socket = io('https://localhost:3000', { auth: { token } });
+	socket = io(BASE_URL, { auth: { token } });
 
 	socket.on('connect', () => {
 	socket?.emit('getMatchHistory', { userId, limit: 20 });

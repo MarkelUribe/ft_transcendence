@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Ranking from "$lib/Ranking.svelte";
+	import Ranking from "$lib/components/Ranking.svelte";
 </script>
 <div
   style="

@@ -5,6 +5,8 @@
   import { disconnectMatchmakingSocket, stopFriendsActivityPolling } from '$lib/Matchmaking';
   import { disconnectChat } from '$lib/api/chat';
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
   let username = "";
   let password = "";
   let isLoggedIn = false;
@@ -24,7 +26,7 @@
 
   async function handleLogin() {
     try {
-      const res = await fetch('https://localhost:3000/auth/login', {
+      const res = await fetch(BASE_URL+'/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

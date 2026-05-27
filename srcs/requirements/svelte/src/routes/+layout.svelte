@@ -18,6 +18,7 @@
 	import Header from "$lib/components/Header.svelte";
 	import Footer from "$lib/components/Footer.svelte";
 
+
 	function onSocialInvite(e: Event) {
 		const friendId = Number((e as CustomEvent).detail?.friendId);
 		if (Number.isFinite(friendId)) inviteFriend(friendId);

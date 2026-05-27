@@ -14,16 +14,18 @@
   import type { FriendActivity } from "$lib/Matchmaking";
   import { page } from "$app/stores";
 
-  const BACKEND_URL = "https://localhost:3000";
+  const BACKEND_URL = import.meta.env.VITE_API_URL;
+
 
   let messagesContainer = $state();
 
   let lastMessageTimes = $state<{ [key: number]: string }>({});
 
   type SidebarView = "FRIENDS" | "MESSAGES";
-
+  
   let currentView = $state("MESSAGES");
-
+  
+  let friends: any[] = $state([]);
   let filteredFriends = $derived(
     currentView === "FRIENDS"
       ? [...friends].sort((a, b) => {
@@ -52,7 +54,6 @@
   let friendsApi: FriendsAPI | null = null;
   let incomingRequests = $state([]);
 
-  let friends: any[] = $state([]);
   let selectedFriend: any = $state(null);
   let messages: any[] = $state([]);
   let newMessage = $state("");

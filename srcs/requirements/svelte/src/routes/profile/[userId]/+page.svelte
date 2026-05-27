@@ -57,7 +57,8 @@
     return { played, finished, wins, draws, losses, winRate, active };
   }
 
-  const BACKEND_URL = "https://localhost:3000";
+  const BACKEND_URL = import.meta.env.VITE_API_URL;
+
 
   type PublicProfile = {
     id: number;

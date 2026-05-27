@@ -6,6 +6,8 @@ import { writable, get } from 'svelte/store';
 let socket: Socket | null = null;
 export const searching = writable(false);
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 let friendsActivityTimer: ReturnType<typeof setInterval> | null = null;
 
 export type FriendActivity = {
@@ -47,7 +49,7 @@ export function initMatchmakingSocket() {
     return socket;
   }
 
-  socket = io("https://localhost:3000", { auth: { token }, transports: ["websocket"] });
+  socket = io(BASE_URL, { auth: { token }, transports: ["websocket"] });
 
   socket.on('connect', () => {
     // pedir actividad de amigos inmediatamente al conectar

@@ -47,7 +47,7 @@ services:
       - ../secrets/ssl/localhost.key:/run/secrets/ssl_key:ro,Z
       
     ports:
-      - "3000:3000"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     networks:
       - transcendence_net
     healthcheck:
@@ -66,12 +66,12 @@ services:
     env_file:
       - .env
     environment:
-      VITE_API_URL: https://localhost:3000
+      VITE_API_URL: ${VITE_API_URL}
     volumes:
       - ../secrets/ssl/localhost.crt:/run/secrets/ssl_cert:ro,Z
       - ../secrets/ssl/localhost.key:/run/secrets/ssl_key:ro,Z
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     networks:
       - transcendence_net
     healthcheck:

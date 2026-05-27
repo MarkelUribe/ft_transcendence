@@ -7,6 +7,9 @@
   let confirmPassword = "";
   let error: string | null = null;
 
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
+
   async function handleSignIn() {
     error = null;
 
@@ -16,7 +19,7 @@
     }
 
     try {
-      const res = await fetch('https://localhost:3000/auth/register', {
+      const res = await fetch(BASE_URL+'/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

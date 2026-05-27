@@ -6,6 +6,9 @@ import { io, type Socket } from 'socket.io-client';
 import { ChessAPI } from '$lib/api/chess';
 import { goto } from '$app/navigation';
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 let board: (string | null)[][] = [];
 let logs: any[] = [];
 let currentMoveIndex = 0;
@@ -280,7 +283,7 @@ onMount(async () =>
 //
 //	await fetchGameState();
 
-	socket = io("https://localhost:3000", { auth: { token: localStorage.getItem("token") } });
+	socket = io(BASE_URL, { auth: { token: localStorage.getItem("token") } });
 
 	socket.on('connect', () => { socket.emit('joinGame', { gameId, playerId: localStorage.getItem('id') }); });
 
@@ -405,7 +408,7 @@ onDestroy(() => socket?.disconnect());
 					<a class="player-chip" href={`/profile/${blackId}`}>
 						<img
 						class="player-chip__avatar"
-						src={whitePlayer?.avatarUrl ? `https://localhost:3000${whitePlayer.avatarUrl}` : '/pieces/default-avatar.png'}
+						src={`${BASE_URL}${blackPlayer?.avatarUrl}`}
 						alt={whitePlayer?.username || 'Player avatar'}
 						/>
 						<div class ="player-name_elo">
@@ -424,7 +427,7 @@ onDestroy(() => socket?.disconnect());
 					<a class="player-chip" href={`/profile/${whiteId}`}>
 						<img
 							class="player-chip__avatar"
-							src={whitePlayer?.avatarUrl ? `https://localhost:3000${whitePlayer.avatarUrl}` : '/pieces/default-avatar.png'}
+							src={`${BASE_URL}${whitePlayer?.avatarUrl}`}
 							alt={whitePlayer?.username || 'Player avatar'}
 						/>
 						<div class ="player-name_elo">
@@ -433,7 +436,7 @@ onDestroy(() => socket?.disconnect());
 						</div>
 					</a>
 				</div>
-				<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
+				<div class="clock-badge bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
 						{formatTime(whiteClock)}
 				</div>
 
@@ -530,8 +533,8 @@ onDestroy(() => socket?.disconnect());
 					<a class="player-chip" href={`/profile/${blackId}`}>
 						<img
 						  class="player-chip__avatar"
-						  src={whitePlayer?.avatarUrl ? `https://localhost:3000${whitePlayer.avatarUrl}` : '/pieces/default-avatar.png'}
-						  alt={whitePlayer?.username || 'Player avatar'}
+							src={`${BASE_URL}${blackPlayer?.avatarUrl}`}
+						  	alt={blackPlayer?.username}
 						/>
 						<div class ="player-name_elo">
 							<span class="player-chip__name">{blackPlayer?.username}</span>
@@ -547,8 +550,8 @@ onDestroy(() => socket?.disconnect());
 					<a class="player-chip" href={`/profile/${whiteId}`}>
 					  <img
 							class="player-chip__avatar"
-							src={whitePlayer?.avatarUrl ? `https://localhost:3000${whitePlayer.avatarUrl}` : '/pieces/default-avatar.png'}
-							alt={whitePlayer?.username || 'Player avatar'}
+							src={`${BASE_URL}${whitePlayer?.avatarUrl}`}
+							alt={whitePlayer?.username}
 						/>
 						<div class ="player-name_elo">
 							<span class="player-chip__name">{whitePlayer?.username}</span>
@@ -556,7 +559,7 @@ onDestroy(() => socket?.disconnect());
 						</div>
 					</a>
 				</div>
-					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
+					<div class="clock-badge bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
 						{formatTime(whiteClock)}
 					</div>
 				{/if}
@@ -1158,5 +1161,68 @@ onDestroy(() => socket?.disconnect());
 	display: flex; 
 	flex-direction: column;
 	overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .top-bar,
+  .bottom-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .spacer {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .player-chip-row {
+    max-width: none;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .player-chip {
+    min-width: 0;
+    padding: 0.4rem 0.55rem;
+  }
+
+  .player-chip__avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .player-chip__name {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-chip__elo {
+    display: none;
+  }
+
+  .clock-badge {
+    margin: 0 !important;          /* pisa m-3 de bootstrap */
+    padding: 0.25rem 0.6rem !important; /* pisa px-4 py-2 */
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  .move-controls-panel {
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .nav-btn {
+    padding: 8px 0;
+    font-size: 0.95rem;
+  }
 }
 </style>
