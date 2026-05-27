@@ -4,7 +4,8 @@
   import { browser } from '$app/environment';
   import { page } from '$app/stores';
 
-  const BACKEND_URL = 'https://localhost:3000';
+  const BACKEND_URL = import.meta.env.VITE_API_URL;
+
 
   type User = {
     id: number;

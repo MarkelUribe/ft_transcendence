@@ -2,6 +2,9 @@ import { io, Socket } from 'socket.io-client';
 
 let chatSocket: Socket | null = null;
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 export function initChatSocket() {
   const token = localStorage.getItem('token');
   if (!token) return null;
@@ -10,10 +13,10 @@ export function initChatSocket() {
     return chatSocket;
   }
 
-  chatSocket = io('https://localhost:3000/chat', {
-    auth: { token },
-    transports: ['websocket'],
-  });
+chatSocket = io(`${BASE_URL}/chat`, {
+  auth: { token },
+  transports: ['websocket'],
+});
 
   chatSocket.on('connect', () => {
     console.log('Chat socket connected');
@@ -82,4 +85,31 @@ export function disconnectChat() {
     chatSocket.disconnect();
     chatSocket = null;
   }
+
+  
+}
+
+export function getUnreads(): Promise<Record<number, boolean>> {
+  return new Promise((resolve) => {
+    if (!chatSocket) {
+      resolve({});
+      return;
+    }
+
+    const emit = () => {
+      chatSocket!.emit('getUnreads', {}, (response: any) => {
+        if (response?.success) {
+          resolve(response.unreads);
+        } else {
+          resolve({});
+        }
+      });
+    };
+
+    if (chatSocket.connected) {
+      emit();
+    } else {
+      chatSocket.once('connect', emit);
+    }
+  });
 }

@@ -6,6 +6,9 @@ import { io, type Socket } from 'socket.io-client';
 import { ChessAPI } from '$lib/api/chess';
 import { goto } from '$app/navigation';
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 let board: (string | null)[][] = [];
 let logs: any[] = [];
 let currentMoveIndex = 0;
@@ -26,6 +29,10 @@ let blackUsername: string | null = null;
 let whiteTime: number;
 let blackTime:number;
 let lastMoveTimestamp: number;
+let whiteId: number | null = null;
+let blackId: number | null = null;
+let whitePlayer: any = null;
+let blackPlayer: any = null;
 
 let promotion = false;
 let promotionSquare: string | null = null;
@@ -82,6 +89,13 @@ function setState(state: any)
 
 	if (id === String(state.white.id)) myColor = 'w';
 	if (id === String(state.black.id)) myColor = 'b';
+
+	whitePlayer = state.white;
+	blackPlayer = state.black;
+	whiteId = state.white.id;
+	blackId = state.black.id;
+	whiteUsername = state.white.username;
+	blackUsername = state.black.username;
 }
 
 function goToMove(index: number)
@@ -251,7 +265,7 @@ onMount(async () =>
 
 	gameId = $page.params.gameId || '';
 
-	socket = io("https://localhost:3000", { auth: { token: localStorage.getItem("token") } });
+	socket = io(BASE_URL, { auth: { token: localStorage.getItem("token") } });
 
 	socket.on('connect', () => { socket.emit('joinGame', { gameId, playerId: localStorage.getItem('id') }); });
 
@@ -369,13 +383,42 @@ onDestroy(() => socket?.disconnect());
 		<div class="top-bar">
 			<div class="spacer">
 				{#if myColor !== 'b'}
-					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={blackClock < 15000}>
-						{formatTime(blackClock)}
-					</div>
+				<div class="player-chip-row">
+					<a class="player-chip" href={`/profile/${blackId}`}>
+						<img
+						class="player-chip__avatar"
+						src={`${BASE_URL}${blackPlayer?.avatarUrl}`}
+						alt={whitePlayer?.username || 'Player avatar'}
+						/>
+						<div class ="player-name_elo">
+							<span class="player-chip__name">{blackPlayer?.username}</span>
+							<span class="player-chip__elo">{blackPlayer?.elo ?? 0} ELO</span>
+						</div>
+					</a>
+				</div>
+				<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={blackClock < 16000}>
+					{formatTime(blackClock)}
+				</div>
+
+					
 				{:else}
-					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
+				<div class="player-chip-row">
+					<a class="player-chip" href={`/profile/${whiteId}`}>
+						<img
+							class="player-chip__avatar"
+							src={`${BASE_URL}${whitePlayer?.avatarUrl}`}
+							alt={whitePlayer?.username || 'Player avatar'}
+						/>
+						<div class ="player-name_elo">
+							<span class="player-chip__name">{whitePlayer?.username}</span>
+							<span class="player-chip__elo">{whitePlayer?.elo ?? 0} ELO</span>
+						</div>
+					</a>
+				</div>
+				<div class="clock-badge bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
 						{formatTime(whiteClock)}
-					</div>
+				</div>
+
 				{/if}
 				{#if promotion && myColor}
 					<div class="promotion-bar">
@@ -467,11 +510,37 @@ onDestroy(() => socket?.disconnect());
 		<div class="bottom-bar">
 			<div class="spacer">
 				{#if myColor !== 'w'}
+				<div class="player-chip-row">
+					<a class="player-chip" href={`/profile/${blackId}`}>
+						<img
+						  class="player-chip__avatar"
+							src={`${BASE_URL}${blackPlayer?.avatarUrl}`}
+						  	alt={blackPlayer?.username}
+						/>
+						<div class ="player-name_elo">
+							<span class="player-chip__name">{blackPlayer?.username}</span>
+							<span class="player-chip__elo">{blackPlayer?.elo ?? 0} ELO</span>
+						</div>
+					</a>
+				</div>
 					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={blackClock < 15000}>
 						{formatTime(blackClock)}
 					</div>
 				{:else}
-					<div class="bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
+				<div class="player-chip-row">
+					<a class="player-chip" href={`/profile/${whiteId}`}>
+					  <img
+							class="player-chip__avatar"
+							src={`${BASE_URL}${whitePlayer?.avatarUrl}`}
+							alt={whitePlayer?.username}
+						/>
+						<div class ="player-name_elo">
+							<span class="player-chip__name">{whitePlayer?.username}</span>
+							<span class="player-chip__elo">{whitePlayer?.elo ?? 0} ELO</span>
+						</div>
+					</a>
+				</div>
+					<div class="clock-badge bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
 						{formatTime(whiteClock)}
 					</div>
 				{/if}
@@ -664,7 +733,7 @@ onDestroy(() => socket?.disconnect());
 }
 
 .top-bar {
-	background: #ccc;
+	background: #2b2f33;
 	display: flex;
 	align-items: center;
 	flex: 0 0 clamp(40px, 6vh, 80px);
@@ -672,7 +741,7 @@ onDestroy(() => socket?.disconnect());
 }
 
 .bottom-bar {
-	background: #ccc;
+	background: #2b2f33;
 	display: flex;
 	align-items: center;
 	flex: 0 0 clamp(40px, 6vh, 80px);
@@ -951,4 +1020,116 @@ onDestroy(() => socket?.disconnect());
 	}
 }
 
+.player-chip-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  max-width: 12rem;
+  margin-left: 0.2rem;
+}
+
+.player-chip {
+  padding: 0.7rem 0.7rem;
+  border-radius: 10px;
+  background: #2b2f33;
+  color: white;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 140px;
+}
+
+.player-chip:hover {
+  background: #3a3f45;
+}
+
+.player-chip__name {
+  font-weight: 700;
+}
+
+.player-chip__elo {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+.player-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.player-chip__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.player-name_elo{
+	display: flex; 
+	flex-direction: column;
+	overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .top-bar,
+  .bottom-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .spacer {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .player-chip-row {
+    max-width: none;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .player-chip {
+    min-width: 0;
+    padding: 0.4rem 0.55rem;
+  }
+
+  .player-chip__avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .player-chip__name {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-chip__elo {
+    display: none;
+  }
+
+  .clock-badge {
+    margin: 0 !important;          /* pisa m-3 de bootstrap */
+    padding: 0.25rem 0.6rem !important; /* pisa px-4 py-2 */
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  .move-controls-panel {
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .nav-btn {
+    padding: 8px 0;
+    font-size: 0.95rem;
+  }
+}
 </style>

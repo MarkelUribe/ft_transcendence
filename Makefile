@@ -4,7 +4,7 @@ ENV_FILE := ./srcs/.env
 ENV_EXAMPLE := ./srcs/.env.example
 
 all: ensure-env
-#Create SSL certs and jwt secret
+# Create SSL certs and jwt secret
 	@mkdir -p secrets/ssl
 	@if [ ! -f secrets/db_password.txt ]; then\
 		openssl rand -base64 48 > secrets/db_password.txt;\
@@ -44,26 +44,30 @@ ensure-env:
 	fi
 
 dev: all
-	@sh -eu -c 'cleanup(){ printf "\n[make] Stopping dev stack...\n"; podman-compose -f ./srcs/compose.yaml -f ./srcs/compose.dev.yaml down >/dev/null 2>&1 || true; }; trap cleanup EXIT INT TERM; podman-compose -f ./srcs/compose.yaml -f ./srcs/compose.dev.yaml down >/dev/null 2>&1 || true; podman-compose -f ./srcs/compose.yaml -f ./srcs/compose.dev.yaml up'
+	@sh -eu -c '\
+	cleanup(){ \
+		printf "\n[make] Stopping dev stack...\n"; \
+		docker compose -f ./srcs/compose.yaml -f ./srcs/compose.dev.yaml down >/dev/null 2>&1 || true; \
+	}; \
+	trap cleanup EXIT INT TERM; \
+	docker compose -f ./srcs/compose.yaml -f ./srcs/compose.dev.yaml down >/dev/null 2>&1 || true; \
+	docker compose -f ./srcs/compose.yaml -f ./srcs/compose.dev.yaml up --build'
+
 up: all
 	@sh -c 'set -eu; \
-		trap "echo \"\n[make] Caught Ctrl+C → stopping stack...\"; podman-compose -f ./srcs/compose.yaml down -v >/dev/null 2>&1 || true" INT TERM; \
-		podman-compose -f ./srcs/compose.yaml up --build'
+		trap "echo \"\n[make] Caught Ctrl+C → stopping stack...\"; docker compose -f ./srcs/compose.yaml down -v >/dev/null 2>&1 || true" INT TERM; \
+		docker compose -f ./srcs/compose.yaml up --build'
 
 down:
-	@podman-compose -f ./srcs/compose.yaml -f ./srcs/compose.dev.yaml down -v 2>/dev/null || true
-	@podman-compose -f ./srcs/compose.yaml down -v || true
-	@podman rm -f $$(podman ps -aq --filter label=io.podman.compose.project=srcs) 2>/dev/null || true
-	@podman volume rm $$(podman volume ls -q --filter label=io.podman.compose.project=srcs) 2>/dev/null || true
-	@podman network rm srcs_transcendence_net 2>/dev/null || true
+	@docker compose -f ./srcs/compose.yaml -f ./srcs/compose.dev.yaml down -v 2>/dev/null || true
+	@docker compose -f ./srcs/compose.yaml down -v || true
+	@docker system prune -f >/dev/null 2>&1 || true
 
 rebuild: ensure-env
-	@echo "Destruyendo todo..."
-	@podman-compose -f ./srcs/compose.yaml down -v || true
-	@echo "Limpiando volúmenes residuales..."
-	@podman volume rm $$(podman volume ls -q --filter label=io.podman.compose.project=srcs) 2>/dev/null || true
-	@echo "Borrando imágenes viejas..."
-	@podman rmi -f nest_backend mariadb 2>/dev/null || true
-	@echo "Construyendo sin caché..."
-	@podman-compose -f ./srcs/compose.yaml build --no-cache
-	@podman-compose -f ./srcs/compose.yaml up
+	@echo "Destroying everything..."
+	@docker compose -f ./srcs/compose.yaml down -v || true
+	@echo "Removing old images..."
+	@docker rmi -f nest_backend mariadb 2>/dev/null || true
+	@echo "Building without cache..."
+	@docker compose -f ./srcs/compose.yaml build --no-cache
+	@docker compose -f ./srcs/compose.yaml up

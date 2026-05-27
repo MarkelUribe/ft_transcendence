@@ -2,6 +2,10 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
+  import { disconnectMatchmakingSocket, stopFriendsActivityPolling } from '$lib/Matchmaking';
+  import { disconnectChat } from '$lib/api/chat';
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 
   let username = "";
   let password = "";
@@ -22,7 +26,7 @@
 
   async function handleLogin() {
     try {
-      const res = await fetch('https://localhost:3000/auth/login', {
+      const res = await fetch(BASE_URL+'/auth/login', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ username, password })
@@ -61,6 +65,11 @@
 
   function handleLogout() {
     if (!browser) return;
+
+    // desconecta sockets y polling inmediatamente
+    disconnectMatchmakingSocket();
+    stopFriendsActivityPolling();
+    disconnectChat();
 
     localStorage.removeItem('token');
     localStorage.removeItem('id');

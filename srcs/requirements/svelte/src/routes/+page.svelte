@@ -2,7 +2,13 @@
     import { onMount } from "svelte";
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
-    import { handleButtonClick, searching } from "$lib/Matchmaking";
+    import {
+        handleButtonClick,
+        searching,
+        disconnectMatchmakingSocket,
+        stopFriendsActivityPolling,
+    } from "$lib/Matchmaking";
+    import { disconnectChat } from "$lib/api/chat";
     import ChatWidget from "../lib/components/ChatWidget.svelte";
 
     let username = "";
@@ -27,22 +33,30 @@
     function handleLogout() {
         if (!browser) return;
 
-        localStorage.removeItem("token");
-        localStorage.removeItem("id");
-        localStorage.removeItem("username");
-        isLoggedIn = false;
-        username = "";
+    // desconecta sockets y polling
+    disconnectMatchmakingSocket();
+    stopFriendsActivityPolling();
+    disconnectChat();
 
-        window.dispatchEvent(
-            new CustomEvent("auth-changed", {
-                detail: { status: "loggedOut" },
-            }),
-        );
+    localStorage.removeItem("token");
+    localStorage.removeItem("id");
+    localStorage.removeItem("username");
+    isLoggedIn = false;
+    username = "";
+
+    window.dispatchEvent(
+      new CustomEvent("auth-changed", {
+        detail: { status: "loggedOut" },
+      }),
+    );
     }
 </script>
 
 <div class="container">
-    <h1>Welcome to Ultra Xake Online</h1>
+    <h1 class="hero-title">
+        <span class="hero-sub">Welcome to</span>
+        <span class="hero-main">Ultra Xake Online</span>
+    </h1>
     <p>
         {#if isLoggedIn}
             Hello, {username}! Ready to play?
@@ -82,10 +96,29 @@
         z-index: 1;
     }
 
-    h1 {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    .hero-title {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        margin-bottom: 0.75rem;
+        line-height: 1;
+    }
+
+    .hero-sub {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.85);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 700;
+        opacity: 0.95;
+    }
+
+    .hero-main {
+        font-size: clamp(2rem, 6vw, 3.2rem);
+        font-weight: 800;
+        color: #ffffff; /* higher contrast */
+        text-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
     }
 
     p {
