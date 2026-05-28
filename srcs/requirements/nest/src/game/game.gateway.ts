@@ -78,6 +78,8 @@ export class GameGateway implements OnGatewayConnection{
 				black: game.black,
 				status: game.status,
 				lastMoveTimestamp: game.lastMoveTimestamp,
+				whiteDraw: game.whiteDraw,
+				blackDraw: game.blackDraw,
 				moves: moves.map(m => ({
 					from: m.from,
 					to: m.to,
@@ -191,6 +193,8 @@ export class GameGateway implements OnGatewayConnection{
 			{
 				move: move,
 				lastMoveTimestamp: game.lastMoveTimestamp,
+				whiteDraw: game.whiteDraw,
+				blackDraw: game.blackDraw,
 			});
 		}
 		catch (error)
@@ -225,6 +229,52 @@ export class GameGateway implements OnGatewayConnection{
 		catch { client.emit('error', { message: 'Surrender failed' }); }
 	}
 
+	@SubscribeMessage('draw')
+	async handleDraw(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { gameId: string }
+	) {
+		const { gameId } = data;
+
+		const userId = client.data.userId;
+
+		if (!userId) return;
+
+		const game = await this.gameService.findOne(gameId);
+
+		if (!game) return;
+
+		const isWhite = game.white.id === userId;
+		const isBlack = game.black.id === userId;
+
+		if (!isWhite && !isBlack)
+			return;
+
+		if (isWhite)
+			game.whiteDraw = true;
+
+		if (isBlack)
+			game.blackDraw = true;
+
+		if (game.whiteDraw && game.blackDraw)
+		{
+			game.status = 'ended';
+	
+			this.gameService.drawAccepted(gameId);
+
+			this.server.to(gameId).emit('ended', { looser: game.looser });
+
+			return ;
+		}
+
+		await this.gameRepo.save(game);
+
+		this.server.to(gameId).emit('drawOffer', {
+			whiteDraw: game.whiteDraw,
+			blackDraw: game.blackDraw,
+		});
+	}
+
 	@SubscribeMessage('sendMessage')
 	async handleSendMessage(
 		@ConnectedSocket() client: Socket,
@@ -233,6 +283,7 @@ export class GameGateway implements OnGatewayConnection{
 		const { gameId, user, text } = data;
 
 		const userId = client.data.userId;
+	
 		if (!userId) return;
 
 		this.gameService.addMessage(gameId, { user, text });

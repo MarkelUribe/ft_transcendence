@@ -207,7 +207,7 @@ onDestroy(() => {
 }
 
 .game-card:hover {
-	background: #f304fc;
+	background: rgba(91, 91, 91, 1);
 }
 
 .game-card.win {
@@ -253,7 +253,7 @@ onDestroy(() => {
 				{@const opponent = opponentColor === 'black' ? game.black : game.white}
 
 				{@const looserId = Number(game.looser)}
-				{@const isDraw = game.status === 'stalemate' || looserId === -1}
+				{@const isDraw = game.status !== 'active' && looserId === -1}
 				{@const iWon =
 					(myColor === 'white' && looserId === game.black.id) ||
 					(myColor === 'black' && looserId === game.white.id)}
@@ -293,8 +293,10 @@ onDestroy(() => {
 								VICTORY
 							{:else if iLost}
 								DEFEAT
-							{:else}
+							{:else if isDraw}
 								DRAW
+							{:else}
+								BATTLING
 							{/if}
 						</div>
 

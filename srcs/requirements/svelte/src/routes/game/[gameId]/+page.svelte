@@ -19,8 +19,8 @@ let gameId = '';
 let gameStatus: 'active' | 'ended' = 'active';
 
 let selected: string | null = null;
-let turn: 'w' | 'b' = 'w';
-let myColor: 'w' | 'b' | null = null;
+let turn: 'white' | 'black' = 'white';
+let myColor: 'white' | 'black' | 'spectator' = 'spectator';
 let gameOver = false;
 let resultText = '';
 
@@ -42,15 +42,28 @@ let socket: Socket;
 let pendingPromotionMove: { from: string, to: string } | null = null;
 //let api: ChessAPI;
 
-$: display = myColor === 'b' ? board.map(r => [...r].reverse()).reverse() : board;
-$: isReviewMode = currentMoveIndex != logs.length - 1 || gameStatus !== 'active';
+$: display = myColor === 'black' ? board.map(r => [...r].reverse()).reverse() : board;
+$: isReviewMode = (currentMoveIndex != logs.length - 1) || (gameStatus === 'ended');
 
-let showConfirm = false;
+let showSurrender = false;
+let showDraw = false;
 
-function confirmSurrender()
+let drawOffer: boolean = false;
+
+function confirmAction()
 {
-	showConfirm = false;
-	surrender();
+	if (showSurrender)
+	{
+		socket?.emit('surrender', { gameId });
+	}
+
+	if (showDraw)
+	{
+		socket?.emit('draw', { gameId });
+	}
+
+	showSurrender = false;
+	showDraw = false;
 }
 
 function parseFen(fen: string)
@@ -85,10 +98,11 @@ function setState(state: any)
 	lastMoveTimestamp = state.lastMoveTimestamp;
 
 	const id = localStorage.getItem('id');
-	myColor = null;
 
-	if (id === String(state.white.id)) myColor = 'w';
-	if (id === String(state.black.id)) myColor = 'b';
+	if (id === String(state.white.id)) myColor = 'white';
+	if (id === String(state.black.id)) myColor = 'black';
+
+	gameStatus = state.status;
 
 	whitePlayer = state.white;
 	blackPlayer = state.black;
@@ -96,20 +110,31 @@ function setState(state: any)
 	blackId = state.black.id;
 	whiteUsername = state.white.username;
 	blackUsername = state.black.username;
+
+	updateDrawOffer(state);
+}
+
+function updateDrawOffer(msg: any)
+{
+	if ((msg.whiteDraw && myColor === 'black') || (msg.blackDraw && myColor === 'white'))
+		drawOffer = true;
+	else
+		drawOffer = false;
 }
 
 function goToMove(index: number)
 {
 	if (index < 0 || index >= logs.length) return;
 
+	selected = null;
+
 	currentMoveIndex = index;
 
 	const move = logs[index];
 
 	board = parseFen(move.fen);
-	turn = move.fen.split(' ')[1] as 'w' | 'b';
+	turn = move.fen.split(' ')[1] === 'w'? 'white' : 'black';
 
-	selected = null;
 	moveFrom = move.from ?? null;
 	moveTo = move.to ?? null;
 	whiteTime = move.whiteTimeMs;
@@ -122,7 +147,7 @@ function updateState(msg: any)
 
 	currentMoveIndex = logs.length - 1;
 	board = parseFen(msg.move.fen);
-	turn = msg.move.fen.split(' ')[1] as 'w' | 'b';
+	turn = msg.move.fen.split(' ')[1] === 'w'? 'white' : 'black';
 
 	moveFrom = msg.move.from ?? null;
 	moveTo = msg.move.to ?? null;
@@ -130,6 +155,8 @@ function updateState(msg: any)
 	whiteTime = msg.move.whiteTimeMs;
 	blackTime = msg.move.blackTimeMs;
 	lastMoveTimestamp = msg.lastMoveTimestamp;
+
+	updateDrawOffer(msg);
 }
 
 function handleEnd(msg: any)
@@ -147,9 +174,8 @@ function handleEnd(msg: any)
 	gameOver = true;
 }
 
-function originalIndices(r: number, c: number)	{ return myColor === 'b' ? [7 - r, 7 - c] : [r, c]; }
+function originalIndices(r: number, c: number)	{ return myColor === 'black' ? [7 - r, 7 - c] : [r, c]; }
 function getPieceImage(piece: string | null)	{ return piece ? `/pieces/${piece}.png` : ''; }
-function surrender()							{ socket?.emit('surrender', { gameId }); }
 function goHome()								{ window.location.href = '/'; }
 
 function coordFromDisplay(r: number, c: number)
@@ -200,7 +226,7 @@ function handleSquareClick(r: number, c: number)
 
 	if (selected && piece)
 	{
-		const color = piece < 'a' ? 'w' : 'b';
+		const color = piece < 'a' ? 'white' : 'black';
 		if (color === turn && selected === coord)
 		{
 			selected = null;
@@ -234,7 +260,7 @@ function handleSquareClick(r: number, c: number)
 	}
 	if (piece)
 	{
-		const color = piece < 'a' ? 'w' : 'b';
+		const color = piece < 'a' ? 'white' : 'black';
 		if (myColor !== turn) return;
 		if (color === turn) selected = coord;
 	}
@@ -273,14 +299,23 @@ onMount(async () =>
 
 	socket.on('moveMade', updateState);
 
+	socket.on('drawOffer', updateDrawOffer);
+
 	socket.on('ended', handleEnd);
 
 	socket.on('notFound', () => goto('/'));
 });
 
-function getPromotionPieces(color: 'w' | 'b')
+/*
+		this.server.to(gameId).emit('drawOffer', {
+			whiteDraw: game.whiteDraw,
+			blackDraw: game.blackDraw,
+		});
+*/
+
+function getPromotionPieces(color: 'white' | 'black' | 'spectator')
 {
-	if (color === 'w')
+	if (color === 'white')
 		return ['Q', 'R', 'B', 'N'];
 	return ['q', 'r', 'b', 'n'];
 }
@@ -309,24 +344,6 @@ function nextMove()		{ goToMove(currentMoveIndex + 1); selected = null; }
 function goToStart()	{ goToMove(0); }
 function goToEnd()		{ goToMove(logs.length - 1); }
 
-function getTurnText(turn: 'w' | 'b', myColor: 'w' | 'b' | null, white: string, black: string, isReviewMode: boolean)
-{
-	if (!white || !black) return '';
-
-	if (isReviewMode)
-	{
-		if (currentMoveIndex == 0)
-			return "Start of the Match";
-		const moveNumber = Math.ceil(currentMoveIndex / 2);
-		const color = currentMoveIndex % 2 === 0 ? 'B' : 'W';v
-		return `Move ${moveNumber} ${color}`;
-	}
-
-	if (turn === myColor) return 'Your Turn!';
-	if (turn === 'w') return `${white}'s turn`;
-	return `${black}'s turn`;
-}
-
 let now = Date.now();
 
 setInterval(() => { now = Date.now(); }, 100);
@@ -351,7 +368,7 @@ function getWhiteTime(now: number, whiteMs: number)
 {
 	let ms = whiteMs;
 
-	if (turn === 'w' && !isReviewMode)
+	if (turn === 'white' && !isReviewMode)
 	{
 		ms -= now - lastMoveTimestamp;
 	}
@@ -362,7 +379,7 @@ function getBlackTime(now: number, blackMs: number)
 {
 	let ms = blackMs;
 
-	if (turn === 'b' && !isReviewMode)
+	if (turn === 'black' && !isReviewMode)
 	{
 		ms -= now - lastMoveTimestamp;
 	}
@@ -375,14 +392,18 @@ let whiteClock: number;
 $: blackClock = getBlackTime(now, blackTime);
 $: whiteClock = getWhiteTime(now, whiteTime);
 
+let headerText: string;
+let bodyText: string;
+
 onDestroy(() => socket?.disconnect());
 </script>
 
 <div class="page">
+	{console.log('gameStatus:', gameStatus)}
 	<div class="game-container">
 		<div class="top-bar">
 			<div class="spacer">
-				{#if myColor !== 'b'}
+				{#if myColor !== 'black'}
 				<div class="player-chip-row">
 					<a class="player-chip" href={`/profile/${blackId}`}>
 						<img
@@ -400,45 +421,55 @@ onDestroy(() => socket?.disconnect());
 					{formatTime(blackClock)}
 				</div>
 
-					
 				{:else}
-				<div class="player-chip-row">
-					<a class="player-chip" href={`/profile/${whiteId}`}>
-						<img
-							class="player-chip__avatar"
-							src={`${BASE_URL}${whitePlayer?.avatarUrl}`}
-							alt={whitePlayer?.username || 'Player avatar'}
-						/>
-						<div class ="player-name_elo">
-							<span class="player-chip__name">{whitePlayer?.username}</span>
-							<span class="player-chip__elo">{whitePlayer?.elo ?? 0} ELO</span>
-						</div>
-					</a>
-				</div>
-				<div class="clock-badge bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
-						{formatTime(whiteClock)}
-				</div>
+					<div class="player-chip-row">
+						<a class="player-chip" href={`/profile/${whiteId}`}>
+							<img
+								class="player-chip__avatar"
+								src={`${BASE_URL}${whitePlayer?.avatarUrl}`}
+								alt={whitePlayer?.username || 'Player avatar'}
+							/>
+							<div class ="player-name_elo">
+								<span class="player-chip__name">{whitePlayer?.username}</span>
+								<span class="player-chip__elo">{whitePlayer?.elo ?? 0} ELO</span>
+							</div>
+						</a>
+					</div>
+					<div class="clock-badge bg-secondary border rounded-3 px-4 py-2 d-inline-block m-3 shadow-sm" class:bg-danger={whiteClock < 15000}>
+							{formatTime(whiteClock)}
+					</div>
 
 				{/if}
 				{#if promotion && myColor}
-					<div class="promotion-bar">
+					<div class="d-flex gap-1 p-1 rounded-2 shadow-sm border bg-light bg-opacity-25 backdrop-blur align-items-center">
 						{#each getPromotionPieces(myColor) as p}
-							<button type="button" on:click={() => handlePromotionChoice(p)}>
-								<img src={getPieceImage(p)} alt={p} />
+							<button
+								type="button"
+								class="btn btn-outline-dark btn-sm p-1 d-flex align-items-center justify-content-center"
+								on:click={() => handlePromotionChoice(p)}
+							>
+								<img src={getPieceImage(p)} alt={p} class="img-fluid promo-piece" />
 							</button>
 						{/each}
 					</div>
-				{/if}
-				{#if !isReviewMode}
-					<div class="controls">
-						<button class="surrender-btn" on:click={() => showConfirm = true}> 💬 Chat </button>
-					</div>
-					<div class="controls">
-						<button class="surrender-btn" on:click={() => showConfirm = true}> 🏳️ Surrender </button>
-					</div>
-					<div class="controls">
-						<button class="surrender-btn" on:click={() => showConfirm = true}> 🤝 Stalemate </button>
-					</div>
+				{:else}
+					{#if isReviewMode}
+						<div class="controls">
+							<button class="surrender-btn"> Review Mode </button>
+						</div>
+					{:else}
+						{#if drawOffer}
+							<div class="controls">
+								<button class="surrender-btn" on:click={() => {showDraw = true; headerText = "Accept the Draw?"; bodyText = "The game will end in a draw if accepted."}}> Accept Draw? </button>
+							</div>
+						{:else}
+							{#if myColor === 'spectator'}
+								<div class="controls">
+									<button class="surrender-btn"> Spectator Mode </button>
+								</div>
+							{/if}
+						{/if}
+					{/if}
 				{/if}
 			</div>
 		</div>
@@ -466,12 +497,12 @@ onDestroy(() => socket?.disconnect());
 								{/if}
 								{#if r === 7}
 									<span class="coord file">
-										{myColor === 'b' ? String.fromCharCode(104 - c) : String.fromCharCode(97 + c)}
+										{myColor === 'black' ? String.fromCharCode(104 - c) : String.fromCharCode(97 + c)}
 									</span>
 								{/if}
 								{#if c === 0}
 									<span class="coord rank">
-										{myColor === 'b' ? r + 1 : 8 - r}
+										{myColor === 'black' ? r + 1 : 8 - r}
 									</span>
 								{/if}
 							</button>
@@ -509,7 +540,7 @@ onDestroy(() => socket?.disconnect());
 		</div>
 		<div class="bottom-bar">
 			<div class="spacer">
-				{#if myColor !== 'w'}
+				{#if myColor !== 'white'}
 				<div class="player-chip-row">
 					<a class="player-chip" href={`/profile/${blackId}`}>
 						<img
@@ -544,7 +575,17 @@ onDestroy(() => socket?.disconnect());
 						{formatTime(whiteClock)}
 					</div>
 				{/if}
+				{#if !isReviewMode}
+					<div class="controls">
+						<button class="surrender-btn" on:click={() => {showSurrender = true; headerText = "Confirm Surrender"; bodyText = "You will lose the game."}}> 🏳️ </button>
+					</div>
+					<div class="controls">
+						<button class="surrender-btn" on:click={() => {showDraw = true; headerText = "Offer a Draw?"; bodyText = "The game will end in a draw if accepted."}}> 🤝 </button>
+					</div>
+				{/if}
 			</div>
+
+
 			<div class="move-controls-panel">
 				<button class="nav-btn" on:click={goToStart} disabled={currentMoveIndex <= 0}>◀◀</button>
 				<button class="nav-btn" on:click={prevMove} disabled={currentMoveIndex <= 0}>◀</button>
@@ -552,22 +593,22 @@ onDestroy(() => socket?.disconnect());
 				<button class="nav-btn" on:click={goToEnd} disabled={currentMoveIndex >= logs.length - 1}>▶▶</button>
 			</div>
 		</div>
-		{#if showConfirm}
+		{#if showSurrender || showDraw}
 		<div class="modal">
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5>Confirm Surrender</h5>
+						<h5>{headerText}</h5>
 					</div>
 					<div class="modal-body">
-						Are you sure? You will lose the game.
+						{bodyText}
 					</div>
 					<div class="modal-footer">
-						<button class="btn-secondary" on:click={() => showConfirm = false}>
+						<button class="btn-secondary" on:click={() => {showSurrender = false; showDraw = false}}>
 							Cancel
 						</button>
-						<button class="btn-danger" on:click={confirmSurrender}>
-							Yes, surrender
+						<button class="btn-danger" on:click={confirmAction}>
+							Accept
 						</button>
 					</div>
 				</div>
@@ -601,6 +642,7 @@ onDestroy(() => socket?.disconnect());
 <style>
 
 .page {
+	zoom: 0.8;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -632,6 +674,11 @@ onDestroy(() => socket?.disconnect());
 	width: 100%;
 	max-width: 800px;
 	min-width: 250px;
+}
+
+.promo-piece {
+	height: 4vh;
+	min-width: 40px;
 }
 
 .side-area {
@@ -748,22 +795,8 @@ onDestroy(() => socket?.disconnect());
 	width: 100%;
 }
 
-.promotion-bar {
-	background: rgba(255, 255, 255, 0.16);
-	padding: clamp(8px, 0.8vw, 12px) clamp(10px, 1vw, 14px);
-	border: none;
-	border-radius: 5px;
-	cursor: pointer;
-}
-
-.promotion-bar img {
-	border-radius: 5px;
-	width: clamp(28px, 2.5vw, 36px);
-	height: clamp(28px, 2.5vw, 36px);
-}
-
 .surrender-btn {
-	background: #dc3545;
+	background: #646464;
 	color: white;
 
 	border: none;
@@ -772,12 +805,13 @@ onDestroy(() => socket?.disconnect());
 
 	font-size: 0.9rem;
 
+	gap: .75rem;
+
 	transition: all 0.15s ease;
 }
 
 .surrender-btn:hover {
 	background: #c82333;
-	transform: translateY(-1px);
 }
 
 .surrender-btn:active {
@@ -991,6 +1025,12 @@ onDestroy(() => socket?.disconnect());
 	background: #c82333;
 }
 
+@media (max-width: 2000px) {
+	.page {
+		zoom: 1;
+	}
+}
+
 @media (max-width: 1200px) {
 
 	.game-container {
@@ -1016,7 +1056,7 @@ onDestroy(() => socket?.disconnect());
 	}
 
 	.spacer {
-		width: 70%;
+		width: 60%;
 	}
 }
 
@@ -1131,5 +1171,6 @@ onDestroy(() => socket?.disconnect());
     padding: 8px 0;
     font-size: 0.95rem;
   }
+
 }
 </style>

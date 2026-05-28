@@ -37,12 +37,18 @@ export class Game {
   @Column({ type: 'varchar', default: 'white' })
   activeColor: 'white' | 'black';
 
-  @Column('bigint', { default: 60000 * 1 })
+  @Column('bigint', { default: 60000 * 10 })
   whiteTimeMs: number;
 
-  @Column('bigint', { default: 60000 * 1 })
+  @Column('bigint', { default: 60000 * 10 })
   blackTimeMs: number;
 
   @Column({ type: 'bigint', nullable: true })
   lastMoveTimestamp: number;
+
+  @Column({ type: 'boolean', default: false })
+  whiteDraw: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  blackDraw: boolean;
 }

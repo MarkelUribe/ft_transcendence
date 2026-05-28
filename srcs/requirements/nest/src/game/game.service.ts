@@ -208,6 +208,11 @@ export class GameService
 
 		if (!move) throw new BadRequestException('Invalid move');
 
+		if (turnId === 'white')
+			game.blackDraw = false;
+		if (turnId === 'black')
+			game.whiteDraw = false;
+
 		console.log('New move:', {
 			from,
 			to,
@@ -220,12 +225,16 @@ export class GameService
 		if (chess.isCheckmate())
 		{
 			this.eloGivingLogic(game, turnId as 'white' | 'black');
+			game.blackDraw = false;
+			game.whiteDraw = false;
 			await this.gameRepo.save(game);
 			return game;
 		}
 		else if (chess.isDraw())
 		{
 			this.eloGivingLogic(game, 'draw');
+			game.blackDraw = false;
+			game.whiteDraw = false;
 			await this.gameRepo.save(game);
 			return game;
 		}
@@ -269,9 +278,27 @@ export class GameService
 		this.eloGivingLogic(game, winner as 'white' | 'black');
 
 		game.status = 'ended';
+		game.blackDraw = false;
+		game.whiteDraw = false;
 
 		return await this.gameRepo.save(game);
 	}
+
+	async drawAccepted(id: string)
+	{
+		const game = await this.findOne(id);
+
+		if (game.status === 'ended') return null;
+
+		this.eloGivingLogic(game, 'draw');
+
+		game.status = 'ended';
+		game.blackDraw = false;
+		game.whiteDraw = false;
+
+		return await this.gameRepo.save(game);
+	}
+
 
 	addMessage(gameId: string, message: { user: string, text: string }) {
 		const history = this.chatHistories.get(gameId) || [];
