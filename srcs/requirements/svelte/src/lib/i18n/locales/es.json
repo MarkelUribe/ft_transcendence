@@ -1,0 +1,105 @@
+{
+  "home": {
+    "welcome": "Bienvenido a Ultra Xake Online",
+    "logged_in": "¡Hola, {name}! ¿Listo para jugar?",
+    "description": "Juega al ajedrez, revisa tus historiales de partidas y mejora tu estrategia. Elige lo que quieres hacer a continuación:",
+    "play": "Jugar",
+    "searching": "Buscando... (Clic para cancelar)",
+    "logout": "Cerrar Sesión",
+    "login": "Iniciar Sesión"
+  },
+    
+  "login": {
+    "title": "Iniciar Sesión en Ultra Xake Online",
+    "back": "Volver al inicio",
+    "logout": "Cerrar sesión",
+    "username_placeholder": "Nombre de usuario",
+    "password_placeholder": "Contraseña",
+    "submit_btn": "Iniciar Sesión",
+    "register_btn": "Registrarse Ahora"
+  },
+
+  "register": {
+    "title": "Registrarse en Ultra Xake Online",
+    "username_placeholder": "Nombre de usuario",
+    "email_placeholder": "Correo electrónico",
+    "password_placeholder": "Contraseña",
+    "confirm_password_placeholder": "Confirmar contraseña",
+    "submit_btn": "Crear cuenta"
+  },
+
+  "footer": {
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio"
+  },
+
+  "header": {
+    "home": "Inicio",
+    "profile": "Perfil",
+    "history": "Historial",
+    "ranking": "Clasificación",
+    "resume_game": "Volver a la partida",
+    "in_game": "EN PARTIDA"
+  },
+
+  "ranking": {
+    "title": "Clasificación",
+    "top": "Los mejores {count}",
+    "loading": "Cargando...",
+    "no_players": "No hay jugadores aún.",
+    "view_profile": "Ver perfil de: {username}"
+  },
+
+  "inviteModal": {
+    "title": "Invitación a partida",
+    "message": "te ha invitado a jugar.",
+    "decline": "Rechazar",
+    "accept": "Aceptar"
+  },
+
+  "chat": {
+    "tabs": {
+      "friends": "Amigos",
+      "messages": "Mensajes"
+    },
+    "placeholders": {
+      "add_friend": "Introduce el ID de tu amigo",
+      "write_message": "Escribe un mensaje..."
+    },
+    "buttons": {
+      "add": "Añadir",
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "spectate": "Espectar",
+      "invite": "Invitar",
+      "remove": "Eliminar",
+      "send": "Enviar"
+    },
+    "requests": {
+      "incoming": "Solicitudes recibidas"
+    },
+    "status": {
+      "no_friends": "No tienes amigos aún",
+      "game_chat": "Chat de Partida",
+      "in_game": "En partida",
+      "opponent": "Oponente",
+      "no_game_messages": "No hay mensajes en la partida",
+      "loading_messages": "Cargando mensajes...",
+      "no_messages": "No hay mensajes aún"
+    },
+    "dates": {
+      "today": "Hoy",
+      "yesterday": "Ayer"
+    }
+  },
+
+  "history": {
+    "title_generic": "Historial de partidas",
+    "title_user": "Historial de partidas de {name}",
+    "status": {
+      "loading": "Cargando historial…",
+      "empty": "No se han encontrado partidas aún.",
+      "redirecting": "Redirigiendo..."
+    }
+  }
+}

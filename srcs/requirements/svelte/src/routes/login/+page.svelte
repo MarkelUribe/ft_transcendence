@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
+  import { t } from 'svelte-i18n';
 
   let username = "";
   let password = "";
@@ -140,24 +141,24 @@
 </style>
 
 <div class="login-container">
-  <h1>Ultra Xake Online Login</h1>
+  <h1>{$t('login.title')}</h1>
 
   <div class="login-box">
-    <button on:click={() => goto('/')} style="align-self: flex-start; font-size: 0.9rem; padding: 0.4rem 0.8rem; margin-bottom: 0.5rem;">⬅ Back to home</button>
+    <button on:click={() => goto('/')} style="align-self: flex-start; font-size: 0.9rem; padding: 0.4rem 0.8rem; margin-bottom: 0.5rem;">⬅ {$t('login.back')}</button>
 
     {#if isLoggedIn}
       <p>Hello, {username}</p>
-      <button on:click={handleLogout}>Logout</button>
+      <button on:click={handleLogout}>{$t('login.logout')}</button>
     {:else}
       {#if error}
         <p style="color: #ffb3b3; margin: 0 0 0.5rem 0;">{error}</p>
       {/if}
       <form on:submit|preventDefault={handleLogin}>
-        <input type="text" placeholder="Username" bind:value={username} />
-        <input type="password" placeholder="Password" bind:value={password} />
-        <button type="submit">Login</button>
+        <input type="text" placeholder={$t('login.username_placeholder')} bind:value={username} />
+        <input type="password" placeholder={$t('login.password_placeholder')} bind:value={password} />
+        <button type="submit">{$t('login.submit_btn')}</button>
         <a href="/register">
-          <button type="button">Register Now</button>
+          <button type="button">{$t('login.register_btn')}</button>
         </a>
       </form>
     {/if}

@@ -1,0 +1,105 @@
+{
+  "home": {
+    "welcome": "Ongi etorri Ultra Xake Online-ra",
+    "logged_in": "Kaixo, {name}! Jokatzeko prest?",
+    "description": "Xakean jokatu, zure partiden erregistroak ikusi eta zure estrategia hobetu. Aukeratu zer egin nahi duzun behean:",
+    "play": "Jokatu",
+    "searching": "Bilatzen... (Ezeztatzeko sakatu)",
+    "logout": "Saioa itxi",
+    "login": "Saioa hasi"
+  },
+
+  "login": {
+    "title": "Ultra Xake Online Saioa Hasi",
+    "back": "Hasierara itzuli",
+    "logout": "Saioa itxi",
+    "username_placeholder": "Erabiltzaile izena",
+    "password_placeholder": "Pasahitza",
+    "submit_btn": "Saioa Hasi",
+    "register_btn": "Erregistratu Orain"
+  },
+
+  "register": {
+    "title": "Ultra Xake Online-n Erregistratu",
+    "username_placeholder": "Erabiltzaile izena",
+    "email_placeholder": "Posta elektronikoa",
+    "password_placeholder": "Pasahitza",
+    "confirm_password_placeholder": "Pasahitza berretsi",
+    "submit_btn": "Kontua sortu"
+  },
+
+  "footer": {
+    "privacy": "Pribatutasun Politika",
+    "terms": "Zerbitzu Baldintzak"
+  },
+
+  "header": {
+    "home": "Hasiera",
+    "profile": "Profila",
+    "history": "Historia",
+    "ranking": "Sailkapena",
+    "resume_game": "Partidara itzuli",
+    "in_game": "JOKOAN"
+  },
+
+  "ranking": {
+    "title": "Sailkapena",
+    "top": "{count} onenak",
+    "loading": "Kargatzen...",
+    "no_players": "Ez dago jokalaririk oraindik.",
+    "view_profile": "Ikusi profila: {username}"
+  },
+
+  "inviteModal": {
+    "title": "Partida gonbidapena",
+    "message": "(e)k jokatzera gonbidatu zaitu.",
+    "decline": "Ukatu",
+    "accept": "Onartu"
+  },
+
+  "chat": {
+    "tabs": {
+      "friends": "Lagunak",
+      "messages": "Mezuak"
+    },
+    "placeholders": {
+      "add_friend": "Sartu lagunaren erabiltzaile IDa",
+      "write_message": "Idatzi mezu bat..."
+    },
+    "buttons": {
+      "add": "Gehitu",
+      "accept": "Onartu",
+      "reject": "Ukatu",
+      "spectate": "Ikusi",
+      "invite": "Gonbidatu",
+      "remove": "Ezabatu",
+      "send": "Bidali"
+    },
+    "requests": {
+      "incoming": "Jasotako eskaerak"
+    },
+    "status": {
+      "no_friends": "Ez duzu lagunik oraindik",
+      "game_chat": "Partida Txata",
+      "in_game": "Jokoan",
+      "opponent": "Aurkaria",
+      "no_game_messages": "Ez dago mezurik partidan",
+      "loading_messages": "Mezuak kargatzen...",
+      "no_messages": "Ez dago mezurik oraindik"
+    },
+    "dates": {
+      "today": "Gaur",
+      "yesterday": "Atzo"
+    }
+  },
+
+  "history": {
+    "title_generic": "Partida-historiala",
+    "title_user": "{name}(r)en partida-historiala",
+    "status": {
+      "loading": "Historiala kargatzen…",
+      "empty": "Ez da partidarik aurkitu oraindik.",
+      "redirecting": "Bideratzen..."
+    }
+  }
+}

@@ -4,6 +4,8 @@
   import { browser } from "$app/environment";
   import { getExistingGame } from "$lib/api/chess";
   import UserAvatar from "$lib/UserAvatar.svelte";
+  import LanguageSelector from "$lib/LanguageSelector.svelte";
+  import { t } from 'svelte-i18n';
 
   const BACKEND_URL = "https://localhost:3000";
 
@@ -93,45 +95,46 @@
     <div class="collapse navbar-collapse" id="mainNav">
       <ul class="navbar-nav me-auto mb-2 mb-md-0">
         <li class="nav-item">
-          <a class="nav-link px-2" class:active={isActive("/")} href="/">Home</a
+          <a class="nav-link px-2" class:active={isActive("/")} href="/">{$t('header.home')}</a
           >
         </li>
         <li class="nav-item">
           <a
             class="nav-link px-2"
             class:active={isActive("/profile")}
-            href="/profile">Profile</a
+            href="/profile">{$t('header.profile')}</a
           >
         </li>
         <li class="nav-item">
           <a
             class="nav-link px-2"
             class:active={isActive("/historial")}
-            href="/historial">Historial</a
+            href="/historial">{$t('header.history')}</a
           >
         </li>
         <li class="nav-item">
           <a
             class="nav-link px-2"
             class:active={isActive("/ranking")}
-            href="/ranking">Ranking</a
+            href="/ranking">{$t('header.ranking')}</a
           >
         </li>
         
       </ul>
 
-      <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center gap-3">
         {#if showResume}
           <a
             class="btn btn-warning fw-semibold me-3 in-game-cta"
             href={`/game/${activeGameId}`}
           >
-            Volver a la partida
-            <span class="badge text-bg-danger ms-2">EN PARTIDA</span>
+            {$t('header.resume_game')}
+            <span class="badge text-bg-danger ms-2">{$t('header.in_game')}</span>
           </a>
         {/if}
 
         <UserAvatar />
+        <LanguageSelector />
       </div>
     </div>
   </div>

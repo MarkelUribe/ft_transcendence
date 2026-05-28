@@ -3,6 +3,7 @@
 	import favicon from "$lib/assets/favicon.svg";
 	import Default from "$lib/Default.svelte";
 	import { onMount, onDestroy } from "svelte";
+	import { setupI18n } from '$lib/i18n';
 	import { browser } from "$app/environment";
 	import {
 		initMatchmakingSocket,
@@ -18,6 +19,7 @@
 	import Header from "$lib/components/Header.svelte";
 	import Footer from "$lib/components/Footer.svelte";
 
+
 	function onSocialInvite(e: Event) {
 		const friendId = Number((e as CustomEvent).detail?.friendId);
 		if (Number.isFinite(friendId)) inviteFriend(friendId);
@@ -32,9 +34,15 @@
 	type InvitePayload = { inviteId: string; inviterUsername: string };
 
 	let invite: InvitePayload | null = $state(null);
+	let ready = $state(false);
 
 	function onInviteReceived(e: Event) {
 		invite = (e as CustomEvent).detail;
+	}
+
+	export async function load() {
+    	await setupI18n();
+    	return {};
 	}
 
 	function accept() {
@@ -49,7 +57,11 @@
 		invite = null;
 	}
 
-	onMount(() => {
+	onMount(async () => {
+
+		await setupI18n();
+        ready = true;
+
 		if (!browser) return;
 		window.addEventListener(
 			"match:inviteReceived",
@@ -65,6 +77,8 @@
 		if (localStorage.getItem("token")) initMatchmakingSocket();
 		startFriendsActivityPolling();
 	});
+
+	let { children } = $props();
 
 	onDestroy(() => {
 		if (!browser) return;
@@ -82,26 +96,25 @@
 		);
 		stopFriendsActivityPolling();
 	});
-
-	let { children } = $props();
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<Default />
+{#if ready}
+	<Default />
 
-<div class="app-shell">
-  <Header />
-  <main class="app-main">
-    {@render children()}
-  </main>
-  <Footer />
-</div>
+	<div class="app-shell">
+  		<Header />
+  		<main class="app-main">
+    		{@render children()}
+  		</main>
+  		<Footer />
+	</div>
 
-<InviteModal {invite} onAccept={accept} onDecline={decline} />
-
+	<InviteModal {invite} onAccept={accept} onDecline={decline} />
+{/if}
 
 <style>
   .app-shell { min-height: 100vh; display: flex; flex-direction: column; }

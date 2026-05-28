@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { getTopByElo, type RankingUser } from '$lib/api/users';
+	import { t } from 'svelte-i18n';
 
 	const BACKEND_URL = 'https://localhost:3000';
 
@@ -47,16 +48,16 @@
 	"
 >
 	<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;">
-		<h2 style="margin: 0; font-size: 1.1rem;">Ranking</h2>
-		<span style="opacity: 0.8; font-size: 0.85rem;">Top {n}</span>
+		<h2 style="margin: 0; font-size: 1.1rem;">{$t('ranking.title')}</h2>
+		<span style="opacity: 0.8; font-size: 0.85rem;">{$t('ranking.top', { values: { count: n } })}</span>
 	</div>
 
 	{#if loading}
-		<p style="margin: 0.8rem 0 0; opacity: 0.85;">Loading...</p>
+		<p style="margin: 0.8rem 0 0; opacity: 0.85;">{$t('ranking.loading')}</p>
 	{:else if error}
 		<p style="margin: 0.8rem 0 0; color: #ffd7d7;">{error}</p>
 	{:else if players.length === 0}
-		<p style="margin: 0.8rem 0 0; opacity: 0.85;">No players yet.</p>
+		<p style="margin: 0.8rem 0 0; opacity: 0.85;">{$t('ranking.no_players')}</p>
 	{:else}
 		<ol style="list-style: none; padding: 0; margin: 0.8rem 0 0; display: grid; gap: 0.5rem;">
 			{#each players as p, index (p.id)}
@@ -90,7 +91,7 @@
 								color: inherit;
 								text-decoration: none;
 							"
-							title={`View profile: ${p.username}`}
+							title={$t('ranking.view_profile', { values: { username: p.username } })}
 						>
 							{p.username}
 						</a>

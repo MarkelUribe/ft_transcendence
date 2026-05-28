@@ -4,6 +4,7 @@
     import { goto } from "$app/navigation";
     import { handleButtonClick, searching } from "$lib/Matchmaking";
     import ChatWidget from "../lib/components/ChatWidget.svelte";
+    import { t } from 'svelte-i18n';
 
     let username = "";
     let isLoggedIn = false;
@@ -42,24 +43,23 @@
 </script>
 
 <div class="container">
-    <h1>Welcome to Ultra Xake Online</h1>
+    <h1>{$t('home.welcome')}</h1>
     <p>
         {#if isLoggedIn}
-            Hello, {username}! Ready to play?
+            {$t('home.logged_in', { values: { name: username } })}
         {:else}
-            Play chess, review your game logs, and improve your strategy. Choose
-            what you want to do below:
+            {$t('home.description')}
         {/if}
     </p>
 
     <div class="buttons">
         {#if isLoggedIn}
             <button class="button {$searching ? 'searching' : 'idle'}" onclick={handleButtonClick}>
-                {$searching ? "Searching... (Click to cancel)" : "Play"}
+                {$searching ? "Searching... (Click to cancel)" : $t('home.play')}
             </button>
-            <button class="button" onclick={handleLogout}>Logout</button>
+            <button class="button" onclick={handleLogout}>{$t('home.logout')}</button>
         {:else}
-            <button class="button" onclick={handleLogin}>Login</button>
+            <button class="button" onclick={handleLogin}>{$t('home.login')}</button>
         {/if}
     </div>
 </div>

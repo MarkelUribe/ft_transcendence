@@ -3,6 +3,7 @@ import { onMount, onDestroy } from 'svelte';
 import { io, type Socket } from 'socket.io-client';
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
+import { t } from 'svelte-i18n';
 
 interface HistoryPlayer {
 	id: number;
@@ -203,13 +204,19 @@ onDestroy(() => {
 </style>
 
 <div class="page">
-	<h1>{#if !loading && history.length > 0}{getPlayerName(history, userId) + "'s "}{/if}Match History</h1>
+	<h1>
+		{#if !loading && history.length > 0}
+			{$t('history.title_user', { values: { name: getPlayerName(history, userId) } })}
+		{:else}
+			{$t('history.title_generic')}
+		{/if}
+	</h1>
 	{#if loading}
-		<p>Loading history…</p>
+		<p>{$t('history.status.loading')}</p>
 	{:else if error}
 		<p class="error">{error}</p>
 	{:else if history.length === 0}
-		<p>No matches found yet.</p>
+		<p>{$t('history.status.empty')}</p>
 	{:else}
 		<div class="history-grid">
 			{#each history as game}

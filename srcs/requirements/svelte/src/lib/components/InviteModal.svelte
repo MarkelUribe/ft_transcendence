@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { t } from 'svelte-i18n';
+
     type InvitePayload = {
         inviteId: string;
         inviterUsername: string;
@@ -24,12 +26,12 @@
 {#if invite}
     <div class="confirm-overlay">
         <div class="confirm-box">
-            <h2>Match invite</h2>
-            <p><b>{invite.inviterUsername}</b> invited you to a game.</p>
+            <h2>{$t('inviteModal.title')}</h2>
+            <p><b>{invite.inviterUsername}</b> {$t('inviteModal.message')}</p>
 
             <div class="actions">
-                <button class="cancel" onclick={decline}>Decline</button>
-                <button class="confirm" onclick={accept}>Accept</button>
+                <button class="cancel" onclick={decline}>{$t('inviteModal.decline')}</button>
+                <button class="confirm" onclick={accept}>{$t('inviteModal.accept')}</button>
             </div>
         </div>
     </div>

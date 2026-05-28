@@ -1,0 +1,105 @@
+{
+  "home": {
+    "welcome": "Welcome to Ultra Xake Online",
+    "logged_in": "Hello, {name}! Ready to play?",
+    "description": "Play chess, review your game logs, and improve your strategy. Choose what you want to do below:",
+    "play": "Play",
+    "searching": "Searching... (Click to cancel)",
+    "logout": "Logout",
+    "login": "Login"
+  },
+
+  "login": {
+    "title": "Ultra Xake Online Login",
+    "back": "Back to home",
+    "logout": "Logout",
+    "username_placeholder": "Username",
+    "password_placeholder": "Password",
+    "submit_btn": "Login",
+    "register_btn": "Register Now"
+  },
+
+  "register": {
+    "title": "Ultra Xake Online Sign In",
+    "username_placeholder": "Username",
+    "email_placeholder": "Email",
+    "password_placeholder": "Password",
+    "confirm_password_placeholder": "Confirm Password",
+    "submit_btn": "Create account"
+  },
+
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+
+  "header": {
+    "home": "Home",
+    "profile": "Profile",
+    "history": "History",
+    "ranking": "Ranking",
+    "resume_game": "Return to game",
+    "in_game": "IN GAME"
+  },
+
+  "ranking": {
+    "title": "Ranking",
+    "top": "Top {count}",
+    "loading": "Loading...",
+    "no_players": "No players yet.",
+    "view_profile": "View profile: {username}"
+  },
+
+  "inviteModal": {
+    "title": "Match invite",
+    "message": "invited you to a game.",
+    "decline": "Decline",
+    "accept": "Accept"
+  },
+
+  "chat": {
+    "tabs": {
+      "friends": "Friends",
+      "messages": "Messages"
+    },
+    "placeholders": {
+      "add_friend": "Enter friend user ID",
+      "write_message": "Type a message..."
+    },
+    "buttons": {
+      "add": "Add",
+      "accept": "Accept",
+      "reject": "Reject",
+      "spectate": "Spectate",
+      "invite": "Invite",
+      "remove": "Remove",
+      "send": "Send"
+    },
+    "requests": {
+      "incoming": "Incoming requests"
+    },
+    "status": {
+      "no_friends": "No friends yet",
+      "game_chat": "Game Chat",
+      "in_game": "In game",
+      "opponent": "Opponent",
+      "no_game_messages": "No messages in this game",
+      "loading_messages": "Loading messages...",
+      "no_messages": "No messages yet"
+    },
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    }
+  },
+
+  "history": {
+    "title_generic": "Match History",
+    "title_user": "{name}'s Match History",
+    "status": {
+      "loading": "Loading history…",
+      "empty": "No matches found yet.",
+      "redirecting": "Redirecting..."
+    }
+  }
+}

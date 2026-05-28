@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { t } from 'svelte-i18n';
 
   let username = "";
   let email = "";
@@ -101,18 +102,18 @@
 </style>
 
 <div class="login-container">
-  <h1>Ultra Xake Online Sign In</h1>
+  <h1>{$t('register.title')}</h1>
 
   <div class="login-box">
     {#if error}
       <p style="color: #ffb3b3; margin: 0 0 0.5rem 0;">{error}</p>
     {/if}
 
-    <input type="text" placeholder="Username" bind:value={username} />
-    <input type="email" placeholder="Email" bind:value={email} />
-    <input type="password" placeholder="Password" bind:value={password} />
-    <input type="password" placeholder="Confirm Password" bind:value={confirmPassword} />
+    <input type="text" placeholder={$t('register.username_placeholder')} bind:value={username} />
+    <input type="email" placeholder={$t('register.email_placeholder')} bind:value={email} />
+    <input type="password" placeholder={$t('register.password_placeholder')} bind:value={password} />
+    <input type="password" placeholder={$t('register.confirm_password_placeholder')} bind:value={confirmPassword} />
 
-    <button on:click={handleSignIn}>Create account</button>
+    <button on:click={handleSignIn}>{$t('register.submit_btn')}</button>
   </div>
 </div>

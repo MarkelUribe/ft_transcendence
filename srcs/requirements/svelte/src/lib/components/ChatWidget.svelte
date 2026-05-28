@@ -13,6 +13,7 @@
   import { browser } from "$app/environment";
   import type { FriendActivity } from "$lib/Matchmaking";
   import { page } from "$app/stores";
+  import { t } from 'svelte-i18n';
 
   const BACKEND_URL = "https://localhost:3000";
 
@@ -110,17 +111,8 @@ onMount(async () => {
 
   try {
     friendsApi = new FriendsAPI(token);
-    const fetchedFriends = await friendsApi.getFriends();
 
-    friends = fetchedFriends.map((f) => ({
-      ...f,
-      last_message_at: lastMessageTimes[f.id] || null,
-    }));
-
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      currentUserId = payload.sub;
-
-      await refreshFriendsAndRequests();
+    await refreshFriendsAndRequests();
     } catch (e: any) {
       error = e.message;
     }
@@ -210,6 +202,29 @@ onMount(async () => {
   }
 }
 
+  function getDateLabel(dateStr: string) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    if (msgDate.getTime() === today.getTime()) {
+        return $t('chat.dates.today');
+    } else if (msgDate.getTime() === yesterday.getTime()) {
+        return $t('chat.dates.yesterday');
+    } else {
+        return date.toLocaleDateString(undefined, { 
+            day: 'numeric', 
+            month: 'short',
+            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+        });
+    }
+  }
+
   async function handleSendMessage() {
     if (!newMessage.trim() || !selectedFriend) return;
 
@@ -275,7 +290,10 @@ onMount(async () => {
         friendsApi.getPendingRequests(),
       ]);
 
-      friends = friendsData ?? [];
+      friends = (friendsData ?? []).map((f) => ({
+        ...f,
+        last_message_at: lastMessageTimes[f.id] || null,
+      }));
       incomingRequests = pending?.incoming ?? [];
     } catch (err) {
       console.error("Failed to load friends or requests", err);
@@ -419,7 +437,7 @@ onMount(async () => {
               class:active={currentView === "FRIENDS"}
               onclick={() => (currentView = "FRIENDS")}
             >
-              Friends
+              {$t('chat.tabs.friends')}
             </button>
 
             <button
@@ -429,7 +447,7 @@ onMount(async () => {
                 hasNewActivity = false;
               }}
             >
-              Messages
+              {$t('chat.tabs.messages')}
               {#if hasNewActivity && currentView !== "MESSAGES"}
                 <span class="notification-dot"></span>
               {/if}
@@ -447,7 +465,7 @@ onMount(async () => {
               bind:value={newFriendId}
               onkeydown={(e) => e.key === "Enter" && handleNewFriend()}
             />
-            <button class="small-button" onclick={handleNewFriend}>Add</button>
+            <button class="small-button" onclick={handleNewFriend}>{$t('chat.buttons.add')}</button>
           </div>
           {#if addFriendError}
             <p class="friends-message error">{addFriendError}</p>
@@ -471,13 +489,13 @@ onMount(async () => {
                       class="request-button-accept"
                       onclick={() => handleAcceptRequest(req.id)}
                     >
-                      Accept
+                      {$t('chat.buttons.accept')}
                     </button>
                     <button
                       class="request-button-reject"
                       onclick={() => handleRejectRequest(req.id)}
                     >
-                      Reject
+                      {$t('chat.buttons.reject')}
                     </button>
                   </div>
                 </div>
@@ -508,7 +526,7 @@ onMount(async () => {
                     class="username"
                     class:unread={unreadChats["current-game-chat"]}
                   >
-                    <span class="name-text">Chat de Partida</span>
+                    <span class="name-text">{$t('chat.status.game_chat')}</span>
                   </span>
                 </button>
               </li>
@@ -544,7 +562,7 @@ onMount(async () => {
                     </div>
 
                     {#if activityById[friend.id]?.gameId}
-                      <span class="in-game-text">In game</span>
+                      <span class="in-game-text">{$t('chat.status.in_game')}</span>
                     {/if}
                   </div>
 
@@ -571,7 +589,7 @@ onMount(async () => {
                         onclick={() =>
                           goto(`/game/${activityById[friend.id].gameId}`)}
                       >
-                        Spectate
+                        {$t('chat.buttons.spectate')}
                       </button>
                     {/if}
                     {#if !activityById[friend.id]?.gameId}
@@ -580,7 +598,7 @@ onMount(async () => {
                         class="small-button action-button"
                         onclick={() => handleInviteFriend(friend.id)}
                       >
-                        Invite
+                        {$t('chat.buttons.invite')}
                       </button>
                     {/if}
 
@@ -589,7 +607,7 @@ onMount(async () => {
                       class="request-button-reject action-button"
                       onclick={() => handleRemoveFriend(friend.id)}
                     >
-                      Remove
+                      {$t('chat.buttons.remove')}
                     </button>
                   </div>
                 {/if}
@@ -623,12 +641,11 @@ onMount(async () => {
         <div class="messages" bind:this={messagesContainer}>
           {#if selectedFriend.isGame}
             {#if gameMessages.length === 0}
-              <p class="empty">No hay mensajes en la partida</p>
+              <p class="empty">{$t('chat.status.no_game_messages')}</p>
             {:else}
               {#each gameMessages as msg}
                 <div class="message" class:own={msg.user === myUsername}>
                   <div class="content">
-                    <!-- Solo mostramos el nombre si NO es nuestro mensaje -->
                     {#if msg.user !== myUsername}
                       <small class="opponent-name">{msg.user}</small>
                     {/if}
@@ -639,11 +656,19 @@ onMount(async () => {
               {/each}
             {/if}
           {:else if loading}
-            <p class="loading">Cargando mensajes...</p>
+            <p class="loading">{$t('chat.status.loading_messages')}</p>
           {:else if messages.length === 0}
-            <p class="empty">No hay mensajes aún</p>
+            <p class="empty">{$t('chat.status.no_messages')}</p>
           {:else}
-            {#each messages as msg}
+            {#each messages as msg, i}
+              {@const currentDate = new Date(msg.createdAt).toDateString()}
+              {@const prevDate = i > 0 ? new Date(messages[i - 1].createdAt).toDateString() : null}
+
+                {#if currentDate !== prevDate}
+                  <div class="date-divider">
+                    <span>{getDateLabel(msg.createdAt)}</span>
+                  </div>
+                {/if}
               <div class="message" class:own={msg.senderId === currentUserId}>
                 <div class="content">{msg.content}</div>
                 <span class="time">{formatTime(msg.createdAt)}</span>
@@ -668,14 +693,14 @@ onMount(async () => {
           <input
             type="text"
             bind:value={newMessage}
-            placeholder="Escribe un mensaje..."
+            placeholder={$t('chat.placeholders.write_message')}
             disabled={!selectedFriend.isGame && loading}
           />
           <button
             type="submit"
             disabled={!newMessage.trim() || (!selectedFriend.isGame && loading)}
           >
-            Enviar
+            {$t('chat.buttons.send')}
           </button>
         </form>
       </main>
@@ -1179,4 +1204,21 @@ onMount(async () => {
     transform: none;
     filter: brightness(1.05);
   }
+
+    .date-divider {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+    width: 100%;
+  }
+
+  .date-divider span {
+    background-color: #333;
+    color: #888;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
 </style>
