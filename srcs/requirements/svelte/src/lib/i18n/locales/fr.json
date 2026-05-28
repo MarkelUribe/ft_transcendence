@@ -133,7 +133,9 @@
       "subtitle": "Gérer votre compte et votre avatar",
       "username": "Nom d'utilisateur",
       "email": "E-mail",
-      "avatar": "Avatar"
+      "avatar": "Avatar",
+      "choose_new_avatar": "Choisir une nouvelle photo de profil",
+      "selected_file": "Fichier sélectionné"
     },
   
     "buttons": {
@@ -146,6 +148,140 @@
       "subtitle": "Profil public",
       "username": "Nom d'utilisateur",
       "user_id": "ID Utilisateur"
+    }
+  },
+
+  "privacy": {
+    "meta_title": "Politique de confidentialité • Ultra Xake Online",
+    "title": "Politique de confidentialité",
+    "last_updated": "Dernière mise à jour : 19 mai 2026",
+    "intro": "Cette Politique de confidentialité explique comment Ultra Xake Online (le « Service ») collecte, utilise et partage les informations lorsque vous créez un compte et jouez à des jeux.",
+    "sections": {
+      "1": {
+        "title": "1) Informations que nous collectons",
+        "items": {
+          "account": { "bold": "Informations sur le compte : ", "text": "nom d'utilisateur, adresse e-mail et un hachage de mot de passe. Nous ne stockons pas votre mot de passe brut." },
+          "profile": { "bold": "Informations de profil : ", "text": "l'image d'avatar que vous téléversez et l'URL de l'avatar qui en résulte. Si vous ne téléversez pas d'avatar, un avatar par défaut peut être utilisé." },
+          "gameplay": { "bold": "Informations de jeu : ", "text": "identifiants de jeu, coups, horodatages et résultats des matchs (victoire/défaite/nul), ainsi que les changements de classement/ELO." },
+          "social": { "bold": "Informations sociales et de communication : ", "text": "demandes d'ami/relations et messages de chat envoyés via le Service (y compris les fonctionnalités de chat en temps real)." },
+          "technical": { "bold": "Informations techniques : ", "text": "journaux de base et métadonnées de connexion requis pour exploiter et sécuriser le Service (par exemple, les journaux d'erreurs et les événements de connexion en temps réel)." }
+        }
+      },
+      "2": {
+        "title": "2) Comment nous utilisons les informations",
+        "items": {
+          "1": "Fournir l'authentification et vous maintenir connecté.",
+          "2": "Gérer le matchmaking, créer des matchs et synchroniser l'état du jeu en temps réel.",
+          "3": "Afficher les profils des joueurs, l'historique des matchs et le classement/ELO.",
+          "4": "Activer les fonctionnalités d'amis et de chat.",
+          "5": "Détecter les abus, résoudre les problèmes et maintenir la sécurité et l'intégrité du Service."
+        }
+      },
+      "3": {
+        "title": "3) Stockage local et données de session",
+        "p1": "Le Service stocke des données liées à la session dans votre navigateur pour fonctionner correctement. Cela peut inclure un jeton d'authentification et des identifiants de base (par exemple, votre identifiant utilisateur et votre nom d'utilisateur) afin que vous n'ayez pas besoin de vous connecter à plusieurs reprises et que les fonctionnalités en temps réel fonctionnent.",
+        "p2": "Vous pouvez supprimer ces données en vous déconnectant ou en effaçant le stockage de votre navigateur."
+      },
+      "4": {
+        "title": "4) Partage",
+        "text": "Nous ne vendons pas vos informations personnelles. Nous partageons les informations uniquement dans la mesure nécessaire à l'exploitation du Service (par exemple, avec des fournisseurs d'hébergement/d'infrastructure) ou pour nous conformer à la loi applicable."
+      },
+      "5": {
+        "title": "5) Conservation",
+        "text": "Nous conservons les informations aussi longtemps que nécessaire pour fournir le Service, y compris le maintien des classements, l'historique des matchs et la prévention des abus. Si un compte est supprimé, nous pouvons conserver certains enregistrements sous une forme anonymisée ou agrégée afin de préserver l'intégrité du jeu et las statistiques."
+      },
+      "6": {
+        "title": "6) Sécurité",
+        "text": "Nous utilisons des mesures techniques raisonnables pour protéger le Service et vos données. Aucun service en ligne n'est parfaitement sécurisé, veuillez donc utiliser un mot de passe fort et ne pas partager vos identifiants."
+      },
+      "7": {
+        "title": "7) Vos choix",
+        "items": {
+          "1": "Mettre à jour votre e-mail et votre avatar depuis votre page de Profil.",
+          "2": "Se déconnecter pour supprimer les données de session locale de votre appareil.",
+          "3": "Arrêter d'utiliser le Service à tout moment."
+        }
+      },
+      "8": {
+        "title": "8) Modifications de cette politique",
+        "text": "Nous pouvons mettre à jour cette Politique de confidentialité au fur et à mesure de l'évolution du Service. La dernière version sera publiée sur cette page."
+      },
+      "9": {
+        "title": "9) Contact",
+        "text": "Pour toute question concernant la confidentialité, contactez l'administrateur/les mainteneurs de l'instance Ultra Xake Online que vous utilisez."
+      }
+    }
+  },
+
+  "terms": {
+    "meta_title": "Conditions d'utilisation • Ultra Xake Online",
+    "title": "Conditions d'utilisation",
+    "last_updated": "Dernière mise à jour : 19 mai 2026",
+    "intro": "En accédant au site Ultra Xake Online (le « Service ») ou en l'utilisant, vous acceptez les présentes Conditions d'utilisation. Si vous ne les acceptez pas, ne pas utiliser le Service.",
+    "sections": {
+      "1": {
+        "title": "1) Le Service",
+        "text": "Ultra Xake Online vous permet de créer un compte, de jouer à des parties d'échecs (y compris en temps réel), d'utiliser le matchmaking, de consulter les classements/ELO et l'historique des matchs, ainsi que de profiter des fonctionnalités sociales et de chat."
+      },
+      "2": {
+        "title": "2) Éligibilité",
+        "text": "Vous devez utiliser le Service conformément à la loi applicable. Si vous n'êtes pas légalement autorisé à utiliser le Service dans votre juridiction, vous ne devez pas l'utiliser."
+      },
+      "3": {
+        "title": "3) Comptes et sécurité",
+        "items": {
+          "1": "Vous êtes responsable de l'activité liée à votre compte.",
+          "2": "Gardez vos identifiants confidentiels et utilisez un mot de passe fort.",
+          "3": "Si vous soupçonnez un accès non autorisé, cessez d'utiliser le Service et réinitialisez vos identifiants."
+        }
+      },
+      "4": {
+        "title": "4) Utilisation acceptable",
+        "intro": "Vous acceptez de ne pas :",
+        "items": {
+          "1": "Harceler, menacer ou abuser d'autres utilisateurs, y compris via le chat ou les noms d'utilisateur.",
+          "2": "Publier du contenu illégal ou du contenu qui viole les droits d'autrui.",
+          "3": "Tenter d'exploiter des bogues (bugs), de faire de l'ingénierie inverse ou de perturber le Service ou son infrastructure.",
+          "4": "Utiliser l'automatisation, des bots ou des méthodes de triche pour manipuler le jeu ou les classements.",
+          "5": "Contourner l'authentification ou accéder à des données auxquelles vous n'êtes pas autorisé à accéder."
+        }
+      },
+      "5": {
+        "title": "5) Contenu de l'utilisateur",
+        "text": "Vous pouvez téléverser un avatar et envoyer des messages. Vous êtes responsable du contenu que vous soumettez. Ne téléversez pas de contenu illégal, offensant ou que vous n'avez pas le droit d'utiliser."
+      },
+      "6": {
+        "title": "6) Jeu, Matchmaking et Classements",
+        "items": {
+          "1": "Les résultats des matchs et le classement/ELO sont fournis « en l'état », sur la base des résultats enregistrés.",
+          "2": "Nous pouvons ajuster les classements, suspendre des matchs ou prendre d'autres mesures si nécessaire pour préserver le fair-play et l'intégrité du Service.",
+          "3": "Des problèmes de réseau peuvent affecter le jeu en temps réel. Nous ne garantissons pas des matchs sans interruption."
+        }
+      },
+      "7": {
+        "title": "7) Disponibilité et modifications",
+        "text": "Le Service peut être modifié, suspendu ou interrompu à tout moment. Les fonctionnalités peuvent changer au fur et à mesure de l'évolution du projet."
+      },
+      "8": {
+        "title": "8) Résiliation",
+        "text": "Nous pouvons suspendre ou résilier l'accès au Service si vous violez ces Conditions ou si cela est nécessaire pour protéger le Service ou d'autres utilisateurs."
+      },
+      "9": {
+        "title": "9) Exclusion de garanties",
+        "text": "Le Service est fourni « en l'état » et « selon disponibilité », sans garantie d'aucune sorte. Dans la mesure maximale permise par la loi, nous excluons toute garantie implicite de qualité marchande, d'adéquation à un usage particulier et de non-contrefaçon."
+      },
+      "10": {
+        "title": "10) Limitation de responsabilité",
+        "text": "Dans la mesure maximale permise par la loi, nous ne serons pas responsables des dommages indirects, accessoires, spéciaux, consécutifs ou punitifs, ni de toute perte de données résultant de votre utilisation du Service."
+      },
+      "11": {
+        "title": "11) Modifications de ces Conditions",
+        "text": "Nous pouvons mettre à jour ces Conditions de temps à autre. La dernière version sera publiée sur cette page."
+      },
+      "12": {
+        "title": "12) Contact",
+        "text": "Pour toute question concernant ces Conditions, contactez l'administrateur/les mainteneurs de l'instance Ultra Xake Online que vous utilisez."
+      }
     }
   }
 }

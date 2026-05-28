@@ -203,27 +203,27 @@ onMount(async () => {
 }
 
   function getDateLabel(dateStr: string) {
-    const date = new Date(dateStr);
-    const now = new Date();
-    
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const date = new Date(dateStr);
+  const now = new Date();
+  
+  // Forzamos las 00:00:00 para comparar solo el día del calendario
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterday = today - 24 * 60 * 60 * 1000; // Restamos exactamente un día en milisegundos
+  
+  const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
-    if (msgDate.getTime() === today.getTime()) {
-        return $t('chat.dates.today');
-    } else if (msgDate.getTime() === yesterday.getTime()) {
-        return $t('chat.dates.yesterday');
-    } else {
-        return date.toLocaleDateString(undefined, { 
-            day: 'numeric', 
-            month: 'short',
-            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-        });
-    }
+  if (msgDate === today) {
+      return $t('chat.dates.today');
+  } else if (msgDate === yesterday) {
+      return $t('chat.dates.yesterday');
+  } else {
+      return date.toLocaleDateString([], { 
+          day: 'numeric', 
+          month: 'short',
+          year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      });
   }
+}
 
   async function handleSendMessage() {
     if (!newMessage.trim() || !selectedFriend) return;
@@ -505,7 +505,7 @@ onMount(async () => {
         {/if}
 
         {#if friends.length === 0 && !isInGame}
-          <p class="empty">No tienes amigos aún</p>
+          <p class="empty">{$t('chat.status.no_friends')}</p>
         {:else}
           <ul>
             {#if currentView === "MESSAGES" && isInGame && showGameChat}

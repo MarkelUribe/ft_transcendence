@@ -133,7 +133,9 @@
       "subtitle": "Manage your account and avatar",
       "username": "Username",
       "email": "Email",
-      "avatar": "Avatar"
+      "avatar": "Avatar",
+      "choose_new_avatar": "Choose new profile picture",
+      "selected_file": "Selected file"
     },
   
     "buttons": {
@@ -146,6 +148,140 @@
       "subtitle": "Public profile",
       "username": "Username",
       "user_id": "User ID"
+    }
+  },
+
+  "privacy": {
+    "meta_title": "Privacy Policy • Ultra Xake Online",
+    "title": "Privacy Policy",
+    "last_updated": "Last updated: May 19, 2026",
+    "intro": "This Privacy Policy explains how Ultra Xake Online (the “Service”) collects, uses, and shares information when you create an account and play games.",
+    "sections": {
+      "1": {
+        "title": "1) Information We Collect",
+        "items": {
+          "account": { "bold": "Account information: ", "text": "username, email address, and a password hash. We do not store your raw password." },
+          "profile": { "bold": "Profile information: ", "text": "avatar image you upload and the resulting avatar URL. If you do not upload an avatar, a default avatar may be used." },
+          "gameplay": { "bold": "Gameplay information: ", "text": "game identifiers, moves, timestamps, and match outcomes (win/loss/draw), plus ranking/ELO changes." },
+          "social": { "bold": "Social and communication information: ", "text": "friend requests/relationships and chat messages sent through the Service (including real-time chat features)." },
+          "technical": { "bold": "Technical information: ", "text": "basic logs and connection metadata required to operate and secure the Service (for example, error logs and real-time connection events)." }
+        }
+      },
+      "2": {
+        "title": "2) How We Use Information",
+        "items": {
+          "1": "Provide authentication and keep you signed in.",
+          "2": "Run matchmaking, create games, and synchronize game state in real time.",
+          "3": "Display player profiles, match history, and ranking/ELO.",
+          "4": "Enable friends and chat features.",
+          "5": "Detect abuse, troubleshoot issues, and maintain the security and integrity of the Service."
+        }
+      },
+      "3": {
+        "title": "3) Local Storage and Session Data",
+        "p1": "The Service stores session-related data in your browser to function properly. This may include an authentication token and basic identifiers (for example, your user id and username) so you do not need to log in repeatedly and so real-time features work.",
+        "p2": "You can remove this data by logging out or clearing your browser storage."
+      },
+      "4": {
+        "title": "4) Sharing",
+        "text": "We do not sell your personal information. We share information only as needed to operate the Service (for example, with hosting/infrastructure providers) or to comply with applicable law."
+      },
+      "5": {
+        "title": "5) Retention",
+        "text": "We retain information for as long as needed to provide the Service, including maintaining rankings, match history, and abuse prevention. If an account is removed, we may keep certain records in an anonymized or aggregated form to preserve game integrity and statistics."
+      },
+      "6": {
+        "title": "6) Security",
+        "text": "We use reasonable technical measures to protect the Service and your data. No online service is perfectly secure, so please use a strong password and do not share your credentials."
+      },
+      "7": {
+        "title": "7) Your Choices",
+        "items": {
+          "1": "Update your email and avatar from your Profile page.",
+          "2": "Log out to remove local session data from your device.",
+          "3": "Stop using the Service at any time."
+        }
+      },
+      "8": {
+        "title": "8) Changes to This Policy",
+        "text": "We may update this Privacy Policy as the Service evolves. The latest version will be posted on this page."
+      },
+      "9": {
+        "title": "9) Contact",
+        "text": "For questions about privacy, contact the administrator/maintainers of the Ultra Xake Online instance you are using."
+      }
+    }
+  },
+
+  "terms": {
+    "meta_title": "Terms of Service • Ultra Xake Online",
+    "title": "Terms of Service",
+    "last_updated": "Last updated: May 19, 2026",
+    "intro": "By accessing or using Ultra Xake Online (the “Service”), you agree to these Terms of Service. If you do not agree, do not use the Service.",
+    "sections": {
+      "1": {
+        "title": "1) The Service",
+        "text": "Ultra Xake Online lets you create an account, play chess matches (including real-time gameplay), use matchmaking, view rankings/ELO and match history, and use social/chat features."
+      },
+      "2": {
+        "title": "2) Eligibility",
+        "text": "You must use the Service in compliance with applicable law. If you are not legally permitted to use the Service in your jurisdiction, you must not use it."
+      },
+      "3": {
+        "title": "3) Accounts and Security",
+        "items": {
+          "1": "You are responsible for activity under your account.",
+          "2": "Keep your credentials private and use a strong password.",
+          "3": "If you suspect unauthorized access, stop using the Service and reset your credentials."
+        }
+      },
+      "4": {
+        "title": "4) Acceptable Use",
+        "intro": "You agree not to:",
+        "items": {
+          "1": "Harass, threaten, or abuse other users, including through chat or usernames.",
+          "2": "Post illegal content or content that violates others’ rights.",
+          "3": "Attempt to exploit bugs, reverse engineer, or disrupt the Service or its infrastructure.",
+          "4": "Use automation, bots, or cheating methods to manipulate gameplay or rankings.",
+          "5": "Bypass authentication or access data you are not authorized to access."
+        }
+      },
+      "5": {
+        "title": "5) User Content",
+        "text": "You may upload an avatar and send messages. You are responsible for the content you submit. Do not upload content that is unlawful, offensive, or that you do not have the right to use."
+      },
+      "6": {
+        "title": "6) Gameplay, Matchmaking, and Rankings",
+        "items": {
+          "1": "Match outcomes and ranking/ELO are provided as-is based on recorded game results.",
+          "2": "We may adjust rankings, suspend matches, or take other actions if needed to preserve fair play and the integrity of the Service.",
+          "3": "Network issues can affect real-time gameplay. We do not guarantee uninterrupted matches."
+        }
+      },
+      "7": {
+        "title": "7) Availability and Changes",
+        "text": "The Service may be modified, suspended, or discontinued at any time. Features may change as the project evolves."
+      },
+      "8": {
+        "title": "8) Termination",
+        "text": "We may suspend or terminate access to the Service if you violate these Terms or if it is necessary to protect the Service or other users."
+      },
+      "9": {
+        "title": "9) Disclaimer",
+        "text": "The Service is provided on an “as is” and “as available” basis, without warranties of any kind. To the maximum extent permitted by law, we disclaim implied warranties of merchantability, fitness for a particular purpose, and non-infringement."
+      },
+      "10": {
+        "title": "10) Limitation of Liability",
+        "text": "To the maximum extent permitted by law, we will not be liable for indirect, incidental, special, consequential, or punitive damages, or any loss of data, arising from your use of the Service."
+      },
+      "11": {
+        "title": "11) Changes to These Terms",
+        "text": "We may update these Terms from time to time. The latest version will be posted on this page."
+      },
+      "12": {
+        "title": "12) Contact",
+        "text": "For questions about these Terms, contact the administrator/maintainers of the Ultra Xake Online instance you are using."
+      }
     }
   }
 }

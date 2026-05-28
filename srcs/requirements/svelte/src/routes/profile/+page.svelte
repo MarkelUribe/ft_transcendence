@@ -213,7 +213,7 @@
               <span>{$t('profile.stats.matches')}</span><strong>{stats.played}</strong>
             </div>
             <div class="stat-row">
-              <span>{$t('profile.stats.matches')}</span><strong>{stats.finished}</strong>
+              <span>{$t('profile.stats.finished')}</span><strong>{stats.finished}</strong>
             </div>
             <div class="stat-row">
               <span>{$t('profile.stats.wins')}</span><strong>{stats.wins}</strong>
@@ -233,7 +233,7 @@
               <span>{$t('profile.stats.active_games')}</span><strong>{stats.active}</strong>
             </div>
             <div class="stat-row">
-              <span>Member since</span><strong
+              <span>{$t('profile.stats.member_since')}</span><strong
                 >{user.createdAt
                   ? new Date(user.createdAt).toLocaleDateString()
                   : "—"}</strong
@@ -276,24 +276,36 @@
               <button class="primary-button" type="submit">{$t('profile.buttons.save')}</button>
             </form>
 
-            <form
-              on:submit|preventDefault={uploadAvatar}
-              enctype="multipart/form-data"
-            >
-              <label>
-                {$t('profile.manage.avatar')}
+            <form on:submit|preventDefault={uploadAvatar} enctype="multipart/form-data">
+              <label class="custom-file-upload" style="
+                display: inline-block;
+                padding: 0.5rem 1rem;
+                background: #4a4a4a;
+                color: white;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: 600;
+                text-align: center;
+              ">
+              {$t('profile.manage.choose_new_avatar')}
+
                 <input
                   type="file"
                   accept="image/*"
-                  on:change={(e) =>
-                    (avatarFile =
-                      (e.currentTarget as HTMLInputElement).files?.[0] ?? null)}
+                  style="display: none;" 
+                  on:change={(e) => (avatarFile = (e.currentTarget as HTMLInputElement).files?.[0] ?? null)}
                 />
               </label>
 
-              <button class="secondary-button" type="submit"
-                >{$t('profile.buttons.upload')}</button
-              >
+              {#if avatarFile}
+                <p style="font-size: 0.8rem; margin-top: 0.5rem; color: #aaa;">
+                  {$t('profile.manage.selected_file')}: <strong>{avatarFile.name}</strong>
+                </p>
+              {/if}
+
+              <button class="secondary-button" type="submit" style="margin-top: 0.5rem;">
+                {$t('profile.buttons.upload')}
+              </button>
             </form>
           </div>
         {:else}

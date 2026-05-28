@@ -133,7 +133,9 @@
       "subtitle": "Gestiona tu cuenta y avatar",
       "username": "Usuario",
       "email": "Correo electrónico",
-      "avatar": "Avatar"
+      "avatar": "Avatar",
+      "choose_new_avatar": "Elige nueva foto de perfil",
+      "selected_file": "Archivo seleccionado"
     },
   
     "buttons": {
@@ -146,6 +148,140 @@
       "subtitle": "Perfil público",
       "username": "Usuario",
       "user_id": "ID de usuario"
+    }
+  },
+
+  "privacy": {
+    "meta_title": "Política de privacidad • Ultra Xake Online",
+    "title": "Política de privacidad",
+    "last_updated": "Última actualización: 19 de mayo de 2026",
+    "intro": "Esta Política de privacidad explica cómo Ultra Xake Online (el “Servicio”) recopila, utiliza y comparte información cuando creas una cuenta y juegas.",
+    "sections": {
+      "1": {
+        "title": "1) Información que recopilamos",
+        "items": {
+          "account": { "bold": "Información de la cuenta: ", "text": "nombre de usuario, dirección de correo electrónico y un hash de contraseña. No almacenamos tu contraseña en bruto." },
+          "profile": { "bold": "Información del perfil: ", "text": "imagen de avatar que subas y la URL del avatar resultante. Si no subes un avatar, se podrá utilizar uno por defecto." },
+          "gameplay": { "bold": "Información del juego: ", "text": "identificadores de juego, movimientos, marcas de tiempo y resultados de las partidas (victoria/derrota/empate), además de cambios en la clasificación/ELO." },
+          "social": { "bold": "Información social y de comunicación: ", "text": "solicitudes de amistad/relaciones y mensajes de chat enviados a través del Servicio (incluidas las funciones de chat en tiempo real)." },
+          "technical": { "bold": "Información técnica: ", "text": "registros básicos y metadatos de conexión necesarios para operar y asegurar el Servicio (por ejemplo, registros de errores y eventos de conexión en tiempo real)." }
+        }
+      },
+      "2": {
+        "title": "2) Cómo utilizamos la información",
+        "items": {
+          "1": "Proporcionar autenticación y mantener tu sesión iniciada.",
+          "2": "Ejecutar el emparejamiento, crear partidas y sincronizar el estado del juego en tiempo real.",
+          "3": "Mostrar los perfiles de los jugadores, el historial de partidas y la clasificación/ELO.",
+          "4": "Habilitar las funciones de amigos y chat.",
+          "5": "Detectar abusos, solucionar problemas y mantener la seguridad e integridad del Servicio."
+        }
+      },
+      "3": {
+        "title": "3) Almacenamiento local y datos de sesión",
+        "p1": "El Servicio almacena datos relacionados con la sesión en tu navegador para funcionar correctamente. Esto puede incluir un token de autenticación e identificadores básicos (por ejemplo, tu ID de usuario y nombre de usuario) para que no tengas que iniciar sesión repetidamente y para que las funciones en tiempo real funcionen.",
+        "p2": "Puedes eliminar estos datos cerrando sesión o limpiando el almacenamiento de tu navegador."
+      },
+      "4": {
+        "title": "4) Uso compartido",
+        "text": "No vendemos tu información personal. Compartimos información solo según sea necesario para operar el Servicio (por ejemplo, con proveedores de alojamiento/infraestructura) o para cumplir con la legislación aplicable."
+      },
+      "5": {
+        "title": "5) Retención",
+        "text": "Retenemos la información durante el tiempo que sea necesario para proporcionar el Servicio, incluyendo el mantenimiento de clasificaciones, el historial de partidas y la prevención de abusos. Si se elimina una cuenta, podemos conservar ciertos registros de forma anonimizada o agregada para preservar la integridad del juego y las estadísticas."
+      },
+      "6": {
+        "title": "6) Seguridad",
+        "text": "Utilizamos medidas técnicas razonables para proteger el Servicio y tus datos. Ningún servicio en línea es perfectamente seguro, por lo que te pedimos que uses una contraseña sólida y no compartas tus credenciales."
+      },
+      "7": {
+        "title": "7) Tus opciones",
+        "items": {
+          "1": "Actualizar tu correo electrónico y avatar desde tu página de Perfil.",
+          "2": "Cerrar sesión para eliminar los datos de la sesión local de tu dispositivo.",
+          "3": "Dejar de usar el Servicio en cualquier momento."
+        }
+      },
+      "8": {
+        "title": "8) Cambios en esta política",
+        "text": "Podemos actualizar esta Política de privacidad a medida que el Servicio evolucione. La última versión se publicará en esta página."
+      },
+      "9": {
+        "title": "9) Contacto",
+        "text": "Para preguntas sobre privacidad, ponte en contacto con el administrador/mantenedores de la instancia de Ultra Xake Online que estés utilizando."
+      }
+    }
+  },
+
+  "terms": {
+    "meta_title": "Términos de servicio • Ultra Xake Online",
+    "title": "Términos de servicio",
+    "last_updated": "Última actualización: 19 de mayo de 2026",
+    "intro": "Al acceder o utilizar Ultra Xake Online (el “Servicio”), aceptas estos Términos de servicio. Si no estás de acuerdo con ellos, no utilices el Servicio.",
+    "sections": {
+      "1": {
+        "title": "1) El Servicio",
+        "text": "Ultra Xake Online te permite crear una cuenta, jugar partidas de ajedrez (incluyendo partidas en tiempo real), utilizar el emparejamiento, ver clasificaciones/ELO e historial de partidas, y utilizar funciones sociales y de chat."
+      },
+      "2": {
+        "title": "2) Elegibilidad",
+        "text": "Debes utilizar el Servicio de conformidad con la legislación aplicable. Si no estás legalmente autorizado a utilizar el Servicio en tu jurisdicción, no debes utilizarlo."
+      },
+      "3": {
+        "title": "3) Cuentas y seguridad",
+        "items": {
+          "1": "Eres responsable de toda la actividad que ocurra bajo tu cuenta.",
+          "2": "Mantén tus credenciales en privado y utiliza una contraseña sólida.",
+          "3": "Si sospechas de un acceso no autorizado, deja de utilizar el Servicio y restablece tus credenciales."
+        }
+      },
+      "4": {
+        "title": "4) Uso aceptable",
+        "intro": "Aceptas no hacer lo siguiente:",
+        "items": {
+          "1": "Acosar, amenazar o abusar de otros usuarios, incluyendo a través del chat o de los nombres de usuario.",
+          "2": "Publicar contenido ilegal o que vulnere los derechos de terceros.",
+          "3": "Intentar explotar errores (bugs), realizar ingeniería inversa o interrumpir el Servicio o su infraestructura.",
+          "4": "Utilizar automatizaciones, bots o métodos de trampa para manipular las partidas o las clasificaciones.",
+          "5": "Burlar la autenticación o acceder a datos a los que no estás autorizado a acceder."
+        }
+      },
+      "5": {
+        "title": "5) Contenido del usuario",
+        "text": "Puedes subir un avatar y enviar mensajes. Eres responsable del contenido que envíes. No subas contenido que sea ilegal, ofensivo o para el cual no tengas derecho de uso."
+      },
+      "6": {
+        "title": "6) Jugabilidad, emparejamiento y clasificaciones",
+        "items": {
+          "1": "Los resultados de las partidas y la clasificación/ELO se proporcionan \"tal cual\", basándose en los resultados registrados de los juegos.",
+          "2": "Podemos ajustar las clasificaciones, suspender partidas o tomar otras medidas si es necesario para preservar el juego limpio y la integridad del Servicio.",
+          "3": "Los problemas de red pueden afectar a las partidas en tiempo real. No garantizamos partidas sin interrupciones."
+        }
+      },
+      "7": {
+        "title": "7) Disponibilidad y cambios",
+        "text": "El Servicio puede ser modificado, suspendido o interrumpido en cualquier momento. Las funciones pueden cambiar a medida que el proyecto evolucione."
+      },
+      "8": {
+        "title": "8) Cancelación",
+        "text": "Podemos suspender o rescindir tu acceso al Servicio si incumples estos Términos o si es necesario para proteger el Servicio o a otros usuarios."
+      },
+      "9": {
+        "title": "9) Exclusión de garantías",
+        "text": "El Servicio se proporciona \"tal cual\" y \"según disponibilidad\", sin garantías de ningún tipo. En la medida máxima permitida por la ley, excluimos las garantías implícitas de comerciabilidad, idoneidad para un fin determinado y no infracción."
+      },
+      "10": {
+        "title": "10) Limitación de responsabilidad",
+        "text": "En la medida máxima permitida por la ley, no seremos responsables de daños indirectos, incidentales, especiales, consecuentes o punitivos, ni de ninguna pérdida de datos que se derive de tu uso del Servicio."
+      },
+      "11": {
+        "title": "11) Cambios en estos Términos",
+        "text": "Podemos actualizar estos Términos de vez en cuando. La última versión se publicará en esta página."
+      },
+      "12": {
+        "title": "12) Contacto",
+        "text": "Para preguntas sobre estos Términos, ponte en contacto con el administrador/mantenedores de la instancia de Ultra Xake Online que estés utilizando."
+      }
     }
   }
 }

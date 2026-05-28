@@ -133,7 +133,9 @@
       "subtitle": "Kudeatu zure kontua eta avatarra",
       "username": "Erabiltzailea",
       "email": "Posta elektronikoa",
-      "avatar": "Avatarra"
+      "avatar": "Avatarra",
+      "choose_new_avatar": "Aukeratu profileko argazki berria",
+      "selected_file": "Hautatutako fitxategia"
     },
 
     "buttons": {
@@ -146,6 +148,140 @@
       "subtitle": "Profil publikoa",
       "username": "Erabiltzailea",
       "user_id": "Erabiltzaile IDa"
+    }
+  },
+
+  "privacy": {
+    "meta_title": "Pribatutasun-politika • Ultra Xake Online",
+    "title": "Pribatutasun-politika",
+    "last_updated": "Azken eguneratzea: 2026ko maiatzaren 19a",
+    "intro": "Pribatutasun-politika honek azaltzen du Ultra Xake Online-k (aurrerantzean, “Zerbitzua”) nola biltzen, erabiltzen eta partekatzen duen informazioa kontu bat sortzen duzunean eta jokatzen duzunean.",
+    "sections": {
+      "1": {
+        "title": "1) Biltzen dugun informazioa",
+        "items": {
+          "account": { "bold": "Kontuaren informazioa: ", "text": "erabiltzaile-izena, posta elektronikoaren helbidea eta pasahitzaren hash-a. Ez dugu zure pasahitza gordinik gordetzen." },
+          "profile": { "bold": "Profilaren informazioa: ", "text": "igotzen duzun avatar irudia eta ondoriozko avatarren URLa. Avatarrik igotzen ez baduzu, baliteke lehenetsitako avatar bat erabiltzea." },
+          "gameplay": { "bold": "Jokoaren informazioa: ", "text": "joko-identifikatzaileak, mugimenduak, denbora-zigiluak eta partiden emaitzak (irabazi/galdu/berdindu), gehi sailkapen/ELO aldaketak." },
+          "social": { "bold": "Gizarte eta komunikazio informazioa: ", "text": "lagun-eskaerak/harremanak eta Zerbitzuaren bidez bidalitako txat-mezuak (denbora errealeko txat-funtzioak barne)." },
+          "technical": { "bold": "Informazio teknikoa: ", "text": "Zerbitzua ustiatzeko eta segurtatzeko beharrezkoak diren oinarrizko erregistroak eta konexio-metadatuak (adibidez, errore-erregistroak eta denbora errealeko konexio-gertaerak)." }
+        }
+      },
+      "2": {
+        "title": "2) Informazioa nola erabiltzen dugun",
+        "items": {
+          "1": "Autentifikazioa ematea eta saioa hasita mantentzea.",
+          "2": "Matchmaking-a (parekatzea) exekutatzea, partidak sortzea eta jokoaren egoera denbora errealean sinkronizatzea.",
+          "3": "Jokalarien profilak, partiden historialak eta sailkapena/ELOa erakustea.",
+          "4": "Lagunen eta txataren funtzioak gaitzea.",
+          "5": "Abusuak detektatzea, arazoak konpontzea eta Zerbitzuaren segurtasuna eta osotasuna mantentzea."
+        }
+      },
+      "3": {
+        "title": "3) Tokiko biltegiratzea eta saio-datuak",
+        "p1": "Zerbitzuak saioarekin lotutako datuak gordetzen ditu zure nabigatzailean, behar bezala funtzionatzeko. Horrek autentifikazio-token bat eta oinarrizko identifikatzaileak izan ditzake (adibidez, zure erabiltzaile-id-a eta erabiltzaile-izena), saioa behin eta berriz hasi behar ez izateko eta denbora errealeko funtzioek funtziona dezaten.",
+        "p2": "Datu hauek ken ditzakezu saioa itxiz edo nabigatzailearen biltegia garbituz."
+      },
+      "4": {
+        "title": "4) Partekatzea",
+        "text": "Ez dugu zure informazio pertsonala saltzen. Informazioa Zerbitzua ustiatzeko behar denean soilik partekatzen dugu (adibidez, ostatatze/azpiegitura hornitzaileekin) edo aplikatzekoa den legea betetzeko."
+      },
+      "5": {
+        "title": "5) Atxikipena",
+        "text": "Informazioa Zerbitzua emateko behar den bitartean gordetzen dugu, sailkapenak, partiden historiala eta abusuak prebenitzea barne. Kontu bat kentzen bada, erregistro batzuk modu anonimoan edo agregatuan gorde ditzakegu, jokoaren osotasuna eta estatistikak babesteko."
+      },
+      "6": {
+        "title": "6) Segurtasuna",
+        "text": "Arrazoizko neurri teknikoak erabiltzen ditugu Zerbitzua eta zure datuak babesteko. Lineako ezein zerbitzu ez da guztiz segurua; beraz, mesedez, erabili pasahitz sendo bat eta ez partekatu zure kredentzialak."
+      },
+      "7": {
+        "title": "7) Zure aukerak",
+        "items": {
+          "1": "Zure posta elektronikoa eta avatarra eguneratzea zure Profileko orrialdetik.",
+          "2": "Saioa ixtea zure gailutik tokiko saio-datuak kentzeko.",
+          "3": "Zerbitzua erabiltzeari uztea edozein unetan."
+        }
+      },
+      "8": {
+        "title": "8) Politika honen aldaketak",
+        "text": "Pribatutasun-politika hau egunera dezakegu Zerbitzuak bilakaera izan ahala. Azken bertsioa orrialde honetan argitaratuko da."
+      },
+      "9": {
+        "title": "9) Harremanetarako",
+        "text": "Pribatutasunari buruzko zalantzarik izanez gero, jarri harremanetan erabiltzen ari zaren Ultra Xake Online instantziaren administratzailearekin/arduradunekin."
+      }
+    }
+  },
+
+  "terms": {
+    "meta_title": "Zerbitzu-baldintzak • Ultra Xake Online",
+    "title": "Zerbitzu-baldintzak",
+    "last_updated": "Azken eguneratzea: 2026ko maiatzaren 19a",
+    "intro": "Ultra Xake Online-ra (“Zerbitzua”) sartzean edo bera erabiltzean, Zerbitzu-baldintza hauek onartzen dituzu. Ados ez bazaude, ez ezazu Zerbitzua erabili.",
+    "sections": {
+      "1": {
+        "title": "1) Zerbitzua",
+        "text": "Ultra Xake Online-k kontu bat sortzeko, xake-partidak jokatzeko (denbora errealeko jokoa barne), matchmaking-a erabiltzeko, sailkapenak/ELOa eta partiden historiala ikusteko, eta gizarte/txat funtzioak erabiltzeko aukera ematen dizu."
+      },
+      "2": {
+        "title": "2) Hautagarritasuna",
+        "text": "Zerbitzua indarreko legeak betez erabili behar duzu. Zure jurisdikzioan Zerbitzua erabiltzea legez baimenduta ez baduzu, ez duzu erabili behar."
+      },
+      "3": {
+        "title": "3) Kontuak eta segurtasuna",
+        "items": {
+          "1": "Zure kontupean gertatzen diren jardueren arduraduna zara.",
+          "2": "Mantendu zure kredentzialak isilpean eta erabili pasahitz sendo bat.",
+          "3": "Baimenik gabeko sarbiderik susmatzen baduzu, utzi Zerbitzua erabiltzeari eta berrezarri zure kredentzialak."
+        }
+      },
+      "4": {
+        "title": "4) Erabilera onargarria",
+        "intro": "Honako hauek ez egitea onartzen duzu:",
+        "items": {
+          "1": "Beste erabiltzaile batzuk jazartzea, mehatxatzea edo haietaz abusatzea, txataren edo erabiltzaile-izenen bidez barne.",
+          "2": "Eduki ilegalak edo besteen eskubideak urratzen dituzten edukiak argitaratzea.",
+          "3": "Akatsak (bug-ak) ustiatzen saiatzea, alderantzizko ingeniaritza egitea edo Zerbitzua edo bere azpiegitura eteten saiatzea.",
+          "4": "Automatizazioak, bot-ak edo tranpa-metodoak erabiltzea jokoa edo sailkapenak manipulatzeko.",
+          "5": "Autentifikazioa saihestea edo baimenik ez duzun datuetara sartzea."
+        }
+      },
+      "5": {
+        "title": "5) Erabiltzailearen edukia",
+        "text": "Avatar bat igo eta mezuak bidal ditzakezu. Bidaltzen duzun edukiaren arduraduna zara. Ez igo legez kanpokoa edo iraungile den edukirik, edota erabiltzeko eskubiderik ez duzun edukirik."
+      },
+      "6": {
+        "title": "6) Jokoa, Matchmaking-a eta Sailkapenak",
+        "items": {
+          "1": "Partiden emaitzak eta sailkapena/ELOa \"duden bezala\" ematen dira, grabatutako joko-emaitzetan oinarrituta.",
+          "2": "Sailkapenak egokitu, partidak bertan behera utzi edo bestelako neurriak har ditzakegu joko garbia eta Zerbitzuaren osotasuna babesteko beharrezkoa bada.",
+          "3": "Sareko arazoek denbora errealeko jokoari eragin diezaiokete. Ez dugu bermatzen etenik gabeko partidarik."
+        }
+      },
+      "7": {
+        "title": "7) Eskuragarritasuna eta aldaketak",
+        "text": "Zerbitzua edozein unetan aldatu, bertan behera utzi edo eten daiteke. Funtzioak alda daitezke proiektuak aurrera egin ahala."
+      },
+      "8": {
+        "title": "8) Amaiera",
+        "text": "Zerbitzurako sarbidea bertan behera utzi edo amaitu dezakegu Baldintza hauek urratzen badituzu edo Zerbitzua nahiz beste erabiltzaile batzuk babesteko beharrezkoa bada."
+      },
+      "9": {
+        "title": "9) Bermeen pozespena",
+        "text": "Zerbitzua \"dagoen bezala\" eta \"eskuragarri dagoen arabera\" ematen da, inolako bermerik gabe. Legeak baimentzen duen gehieneko neurrian, salbuetsi egiten ditugu merkataritza-berme inplizituak, helburu jakin baterako egokitasuna eta urraketarik ezarena."
+      },
+      "10": {
+        "title": "10) Erantzukizunaren mugapena",
+        "text": "Legeak baimentzen duen gehieneko neurrian, ez dugu inolako erantzukizunik izango zeharkako, kasualitatezko, berezi, ondoriozko edo zigor-kalteengatik, ez eta Zerbitzua erabiltzeagatik gertatutako datu-galerengatik ere."
+      },
+      "11": {
+        "title": "11) Baldintza hauen aldaketak",
+        "text": "Baldintza hauek noizean behin egunera ditzakegu. Azken bertsioa orrialde honetan argitaratuko da."
+      },
+      "12": {
+        "title": "12) Harremanetarako",
+        "text": "Baldintza hauei buruzko galderarik izanez gero, jarri harremanetan erabiltzen ari zaren Ultra Xake Online instantziaren administratzailearekin/arduradunekin."
+      }
     }
   }
 }

@@ -1,97 +1,72 @@
+<script>
+	import { t } from 'svelte-i18n';
+</script>
+
 <svelte:head>
-	<title>Privacy Policy • Ultra Xake Online</title>
+	<title>{$t('privacy.meta_title')}</title>
 </svelte:head>
 
 <div class="container py-4" style="max-width: 900px;">
-	<h1 class="text-white">Privacy Policy</h1>
+	<h1 class="text-white">{$t('privacy.title')}</h1>
 	<p class="text-white-50 mb-4">
-		Last updated: May 19, 2026
+		{$t('privacy.last_updated')}
 	</p>
 
 	<p class="text-white-50">
-		This Privacy Policy explains how Ultra Xake Online (the “Service”) collects, uses, and shares
-		information when you create an account and play games.
+		{$t('privacy.intro')}
 	</p>
 
-	<h2 class="h4 text-white mt-4">1) Information We Collect</h2>
+	<h2 class="h4 text-white mt-4">{$t('privacy.sections.1.title')}</h2>
 	<ul class="text-white-50">
 		<li>
-			<strong>Account information</strong>: username, email address, and a password hash.
-			We do not store your raw password.
+			<strong>{$t('privacy.sections.1.items.account.bold')}</strong>{$t('privacy.sections.1.items.account.text')}
 		</li>
 		<li>
-			<strong>Profile information</strong>: avatar image you upload and the resulting avatar URL.
-			If you do not upload an avatar, a default avatar may be used.
+			<strong>{$t('privacy.sections.1.items.profile.bold')}</strong>{$t('privacy.sections.1.items.profile.text')}
 		</li>
 		<li>
-			<strong>Gameplay information</strong>: game identifiers, moves, timestamps, and match outcomes
-			(win/loss/draw), plus ranking/ELO changes.
+			<strong>{$t('privacy.sections.1.items.gameplay.bold')}</strong>{$t('privacy.sections.1.items.gameplay.text')}
 		</li>
 		<li>
-			<strong>Social and communication information</strong>: friend requests/relationships and chat messages
-			sent through the Service (including real-time chat features).
+			<strong>{$t('privacy.sections.1.items.social.bold')}</strong>{$t('privacy.sections.1.items.social.text')}
 		</li>
 		<li>
-			<strong>Technical information</strong>: basic logs and connection metadata required to operate and
-			secure the Service (for example, error logs and real-time connection events).
+			<strong>{$t('privacy.sections.1.items.technical.bold')}</strong>{$t('privacy.sections.1.items.technical.text')}
 		</li>
 	</ul>
 
-	<h2 class="h4 text-white mt-4">2) How We Use Information</h2>
+	<h2 class="h4 text-white mt-4">{$t('privacy.sections.2.title')}</h2>
 	<ul class="text-white-50">
-		<li>Provide authentication and keep you signed in.</li>
-		<li>Run matchmaking, create games, and synchronize game state in real time.</li>
-		<li>Display player profiles, match history, and ranking/ELO.</li>
-		<li>Enable friends and chat features.</li>
-		<li>Detect abuse, troubleshoot issues, and maintain the security and integrity of the Service.</li>
+		<li>{$t('privacy.sections.2.items.1')}</li>
+		<li>{$t('privacy.sections.2.items.2')}</li>
+		<li>{$t('privacy.sections.2.items.3')}</li>
+		<li>{$t('privacy.sections.2.items.4')}</li>
+		<li>{$t('privacy.sections.2.items.5')}</li>
 	</ul>
 
-	<h2 class="h4 text-white mt-4">3) Local Storage and Session Data</h2>
-	<p class="text-white-50">
-		The Service stores session-related data in your browser to function properly. This may include
-		an authentication token and basic identifiers (for example, your user id and username) so you
-		do not need to log in repeatedly and so real-time features work.
-	</p>
-	<p class="text-white-50">
-		You can remove this data by logging out or clearing your browser storage.
-	</p>
+	<h2 class="h4 text-white mt-4">{$t('privacy.sections.3.title')}</h2>
+	<p class="text-white-50">{$t('privacy.sections.3.p1')}</p>
+	<p class="text-white-50">{$t('privacy.sections.3.p2')}</p>
 
-	<h2 class="h4 text-white mt-4">4) Sharing</h2>
-	<p class="text-white-50">
-		We do not sell your personal information. We share information only as needed to operate
-		the Service (for example, with hosting/infrastructure providers) or to comply with applicable
-		law.
-	</p>
+	<h2 class="h4 text-white mt-4">{$t('privacy.sections.4.title')}</h2>
+	<p class="text-white-50">{$t('privacy.sections.4.text')}</p>
 
-	<h2 class="h4 text-white mt-4">5) Retention</h2>
-	<p class="text-white-50">
-		We retain information for as long as needed to provide the Service, including maintaining
-		rankings, match history, and abuse prevention. If an account is removed, we may keep certain
-		records in an anonymized or aggregated form to preserve game integrity and statistics.
-	</p>
+	<h2 class="h4 text-white mt-4">{$t('privacy.sections.5.title')}</h2>
+	<p class="text-white-50">{$t('privacy.sections.5.text')}</p>
 
-	<h2 class="h4 text-white mt-4">6) Security</h2>
-	<p class="text-white-50">
-		We use reasonable technical measures to protect the Service and your data. No online service
-		is perfectly secure, so please use a strong password and do not share your credentials.
-	</p>
+	<h2 class="h4 text-white mt-4">{$t('privacy.sections.6.title')}</h2>
+	<p class="text-white-50">{$t('privacy.sections.6.text')}</p>
 
-	<h2 class="h4 text-white mt-4">7) Your Choices</h2>
+	<h2 class="h4 text-white mt-4">{$t('privacy.sections.7.title')}</h2>
 	<ul class="text-white-50">
-		<li>Update your email and avatar from your Profile page.</li>
-		<li>Log out to remove local session data from your device.</li>
-		<li>Stop using the Service at any time.</li>
+		<li>{$t('privacy.sections.7.items.1')}</li>
+		<li>{$t('privacy.sections.7.items.2')}</li>
+		<li>{$t('privacy.sections.7.items.3')}</li>
 	</ul>
 
-	<h2 class="h4 text-white mt-4">8) Changes to This Policy</h2>
-	<p class="text-white-50">
-		We may update this Privacy Policy as the Service evolves. The latest version will be posted
-		on this page.
-	</p>
+	<h2 class="h4 text-white mt-4">{$t('privacy.sections.8.title')}</h2>
+	<p class="text-white-50">{$t('privacy.sections.8.text')}</p>
 
-	<h2 class="h4 text-white mt-4">9) Contact</h2>
-	<p class="text-white-50 mb-0">
-		For questions about privacy, contact the administrator/maintainers of the Ultra Xake Online
-		instance you are using.
-	</p>
+	<h2 class="h4 text-white mt-4">{$t('privacy.sections.9.title')}</h2>
+	<p class="text-white-50 mb-0">{$t('privacy.sections.9.text')}</p>
 </div>
