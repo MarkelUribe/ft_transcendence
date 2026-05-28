@@ -1,4 +1,4 @@
-.PHONY: all dev up down rebuild ensure-env
+.PHONY: all dev up down rebuild ensure-env clean-secrets clean fclean reset re
 
 ENV_FILE := ./srcs/.env
 ENV_EXAMPLE := ./srcs/.env.example
@@ -63,11 +63,34 @@ down:
 	@docker compose -f ./srcs/compose.yaml down -v || true
 	@docker system prune -f >/dev/null 2>&1 || true
 
-rebuild: ensure-env
+# 42-style target: clean runtime resources (containers/volumes).
+clean: down
+
+clean-secrets:
+	@echo "[make] Removing generated secrets..."
+	@rm -f secrets/db_password.txt secrets/db_root_password.txt secrets/jwt_secret.txt
+	@rm -f secrets/ssl/localhost.key secrets/ssl/localhost.crt
+	@rmdir secrets/ssl 2>/dev/null || true
+	@rmdir secrets 2>/dev/null || true
+
+# Fully reset the project: stop/remove containers + volumes, delete generated secrets, and remove built images.
+# After running: `make up` (will regenerate secrets and rebuild).
+fclean: down clean-secrets
+	@echo "[make] Removing project images (if present)..."
+	@docker rmi -f nest_backend mariadb svelte_frontend 2>/dev/null || true
+	@echo "[make] Full clean done. Next: make up"
+
+# Alias: more explicit name for evaluators and teammates
+reset: fclean
+
+# 42-style target: full clean + restart.
+re: fclean up
+
+rebuild: all
 	@echo "Destroying everything..."
 	@docker compose -f ./srcs/compose.yaml down -v || true
 	@echo "Removing old images..."
-	@docker rmi -f nest_backend mariadb 2>/dev/null || true
+	@docker rmi -f nest_backend mariadb svelte_frontend 2>/dev/null || true
 	@echo "Building without cache..."
 	@docker compose -f ./srcs/compose.yaml build --no-cache
 	@docker compose -f ./srcs/compose.yaml up
