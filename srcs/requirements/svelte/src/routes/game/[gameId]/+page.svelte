@@ -588,14 +588,16 @@
 				{:else}
 					<div class="logs-panel card shadow-sm h-100 chat-panel">
 						<ChatWidget
-						compact={false}
-						isInGame={true}
-						showGameChat={true}
-						{gameMessages}
-						{myUsername}
-						opponentName={myColor === "w" ? blackPlayer?.username : whitePlayer?.username}
-						{onSendGameChat}
-						gameId={null}
+							compact={false}
+							isInGame={true}
+							showGameChat={true}
+							{gameMessages}
+							{myUsername}
+							opponentName={myColor === "w"
+								? blackPlayer?.username
+								: whitePlayer?.username}
+							{onSendGameChat}
+							gameId={null}
 						/>
 					</div>
 				{/if}
@@ -827,27 +829,27 @@
 	}
 
 	.side-tabs {
-	display: flex;
-	gap: 6px;
-	padding: 8px;
-	background: #2b2f33;
-	border: 1px solid rgb(255 255 255 / 5%);
-	border-radius: 10px;
+		display: flex;
+		gap: 6px;
+		padding: 8px;
+		background: #2b2f33;
+		border: 1px solid rgb(255 255 255 / 5%);
+		border-radius: 10px;
 	}
 
 	.side-tabs button {
-	flex: 1;
-	border: none;
-	border-radius: 8px;
-	padding: 8px 10px;
-	background: transparent;
-	color: white;
-	opacity: 0.7;
+		flex: 1;
+		border: none;
+		border-radius: 8px;
+		padding: 8px 10px;
+		background: transparent;
+		color: white;
+		opacity: 0.7;
 	}
 
 	.side-tabs button.active {
-	opacity: 1;
-	background: rgb(255 255 255 / 8%);
+		opacity: 1;
+		background: rgb(255 255 255 / 8%);
 	}
 
 	.move-number {
@@ -1286,21 +1288,21 @@
 	}
 
 	.chat-panel {
-	flex: 1;
-	min-height: 0;
-	overflow: hidden;
-	background-color: white;
+		flex: 1;
+		min-height: 0;
+		overflow: hidden;
+		background-color: white;
 	}
 
 	/* Force the ChatWidget container to behave like the logs panel body */
 	.chat-panel :global(.chat-box) {
-	width: 100%;
-	height: 100%;
-	display: flex;
+		width: 100%;
+		height: 100%;
+		display: flex;
 	}
 
 	.chat-panel :global(.chat-container) {
-	width: 100%;
-	height: 100%;
+		width: 100%;
+		height: 100%;
 	}
 </style>
