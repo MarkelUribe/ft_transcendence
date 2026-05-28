@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { User } from '../users/user.entity';
-
+import { Game } from '../game/entities/game.entity';
 @Entity('messages')
 export class Message {
   @PrimaryGeneratedColumn()
@@ -26,4 +26,7 @@ export class Message {
 
   @Column({ default: false })
   isRead: boolean;
+
+  @ManyToOne(() => Game, { onDelete: 'CASCADE', nullable: true })
+  game: Game;
 }

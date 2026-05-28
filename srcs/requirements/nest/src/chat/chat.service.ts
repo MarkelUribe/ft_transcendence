@@ -4,6 +4,8 @@ import { Repository, LessThan } from 'typeorm';
 import { Message } from './message.entity';
 import { Friendship, FriendshipStatus } from '../friends/friendship.entity';
 import { User } from '../users/user.entity';
+import { Not } from 'typeorm';
+
 
 @Injectable()
 export class ChatService {
@@ -105,4 +107,45 @@ export class ChatService {
       },
     });
   }
+
+  async hasUnreadGameMessages(gameId: string, userId: number): Promise<boolean> {
+  const count = await this.messageRepository
+    .createQueryBuilder('message')
+    .where('gameId = :gameId', { gameId })
+    .andWhere('senderId != :userId', { userId })
+    .andWhere('isRead = :isRead', { isRead: false })
+    .getCount();
+
+  return count > 0;
+}
+
+async markGameMessagesAsRead(gameId: number | string, userId: number): Promise<void> {
+  await this.messageRepository
+    .createQueryBuilder('message')
+    .update(Message)
+    .set({ isRead: true })
+    .where('gameId = :gameId', { gameId: gameId.toString() })
+    .andWhere('senderId != :userId', { userId })
+    .andWhere('isRead = :isRead', { isRead: false })
+    .execute();
+}
+
+  async getUnreadConversations(userId: number): Promise<Record<number, boolean>> {
+  const unreads = await this.messageRepository
+    .createQueryBuilder('m')
+    .select('m.senderId', 'senderId')
+    .where('m.recipientId = :userId', { userId })
+    .andWhere('m.isRead = false')
+    .groupBy('m.senderId')
+    .getRawMany();
+
+  return Object.fromEntries(unreads.map(r => [r.senderId, true]));
+}
+
+async markConversationAsRead(userId: number, friendId: number): Promise<void> {
+  await this.messageRepository.update(
+    { sender: { id: friendId }, recipient: { id: userId }, isRead: false },
+    { isRead: true },
+  );
+}
 }

@@ -28,7 +28,7 @@ export class AuthController {
 	@Get('me')
 	@UseGuards(PassportJwtAuthGuard)
 	getMe(@Req() req: any) {
-		return this.usersService.findOne(req.user.id);
+		return this.usersService.getMeSafe(req.user.id);
 	}
 
 	@UseGuards(PassportJwtAuthGuard)

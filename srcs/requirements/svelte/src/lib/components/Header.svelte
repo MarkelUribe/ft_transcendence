@@ -70,13 +70,12 @@
 </script>
 
 <header
-  class="navbar navbar-expand-md p-3 bg-dark text-white"
-  data-bs-theme="dark"
+  class="navbar navbar-expand-md p-3 bg-dark text-white sticky-top" data-bs-theme="dark"
 >
   <div class="container">
-    <img src="{BACKEND_URL}{'/resources/default.webp'}" width="30px" />
+    <img src="{BACKEND_URL}{'/resources/default.webp'}" width="30px" alt="Logo"/>
     <a class="navbar-brand text-white text-decoration-none" href="/" style="padding-right: 25px;"
-      >Chess Arena</a
+      >Ultra Xake Online</a
     >
 
     <button

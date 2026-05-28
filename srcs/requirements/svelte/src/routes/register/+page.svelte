@@ -101,7 +101,7 @@
 </style>
 
 <div class="login-container">
-  <h1>Chess Arena Sign In</h1>
+  <h1>Ultra Xake Online Sign In</h1>
 
   <div class="login-box">
     {#if error}

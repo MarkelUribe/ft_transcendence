@@ -42,7 +42,7 @@
 </script>
 
 <div class="container">
-    <h1>Welcome to Chess Arena</h1>
+    <h1>Welcome to Ultra Xake Online</h1>
     <p>
         {#if isLoggedIn}
             Hello, {username}! Ready to play?
@@ -76,7 +76,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        height: 70vh;
         text-align: center;
         position: relative;
         z-index: 1;
@@ -137,10 +137,10 @@
     }
 
     .responsive-chat {
-        position: fixed;
+        position: absolute;
         right: 20px;
         bottom: 20px;
-        z-index: 1000;
+        z-index: 2  ;
     }
 
     @media (max-width: 1100px) {
