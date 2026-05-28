@@ -101,5 +101,51 @@
       "empty": "No matches found yet.",
       "redirecting": "Redirecting..."
     }
+  },
+
+  "profile": {
+    "card": {
+      "aria_go_to": "Go to profile",
+      "unrated": "Unrated"
+    },
+
+    "status": {
+      "loading_profile": "Loading profile...",
+      "loading_stats": "Loading stats...",
+      "not_logged_in": "No user data. Are you logged in?"
+    },
+  
+    "stats": {
+      "title": "Stats",
+      "subtitle": "Last 50 matches",
+      "matches": "Matches",
+      "finished": "Finished",
+      "wins": "Wins",
+      "draws": "Draws",
+      "losses": "Losses",
+      "win_rate": "Win rate",
+      "active_games": "Active games",
+      "member_since": "Member since"
+    },
+  
+    "manage": {
+      "title": "My Profile",
+      "subtitle": "Manage your account and avatar",
+      "username": "Username",
+      "email": "Email",
+      "avatar": "Avatar"
+    },
+  
+    "buttons": {
+      "save": "Save profile",
+      "upload": "Upload avatar"
+    },
+
+    "public": {
+      "title": "Profile",
+      "subtitle": "Public profile",
+      "username": "Username",
+      "user_id": "User ID"
+    }
   }
 }

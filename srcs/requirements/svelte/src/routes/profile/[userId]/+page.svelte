@@ -5,6 +5,7 @@
   import { io, type Socket } from "socket.io-client";
   import { onDestroy } from "svelte";
   import { page } from "$app/stores";
+  import { t } from 'svelte-i18n';
 
   type HistoryGame = {
     gameId: string;
@@ -164,44 +165,44 @@
 
 <div class="page-container">
   {#if loading}
-    <div class="profile-card"><p>Loading profile...</p></div>
+    <div class="profile-card"><p>{$t('profile.status.loading_profile')}</p></div>
   {:else}
     <div class="profile-grid">
       <div class="profile-card">
-        <h1 style="margin: 0 0 0.5rem 0;">Stats</h1>
+        <h1 style="margin: 0 0 0.5rem 0;">{$t('profile.stats.title')}</h1>
         {#if statsLoading}
-          <p>Loading stats...</p>
+          <p>{$t('profile.status.loading_stats')}</p>
         {:else if statsError}
           <p class="error-text">{statsError}</p>
         {:else if user}
-          <p class="subtitle">Last 50 matches</p>
+          <p class="subtitle">{$t('profile.stats.subtitle')}</p>
 
           <div class="stats-list">
             <div class="stat-row">
               <span>ELO</span><strong>{user.elo ?? 0}</strong>
             </div>
             <div class="stat-row">
-              <span>Matches</span><strong>{stats.played}</strong>
+              <span>{$t('profile.stats.matches')}</span><strong>{stats.played}</strong>
             </div>
             <div class="stat-row">
-              <span>Finished</span><strong>{stats.finished}</strong>
+              <span>{$t('profile.stats.finished')}</span><strong>{stats.finished}</strong>
             </div>
             <div class="stat-row">
-              <span>Wins</span><strong>{stats.wins}</strong>
+              <span>{$t('profile.stats.wins')}</span><strong>{stats.wins}</strong>
             </div>
             <div class="stat-row">
-              <span>Draws</span><strong>{stats.draws}</strong>
+              <span>{$t('profile.stats.draws')}</span><strong>{stats.draws}</strong>
             </div>
             <div class="stat-row">
-              <span>Losses</span><strong>{stats.losses}</strong>
+              <span>{$t('profile.stats.losses')}</span><strong>{stats.losses}</strong>
             </div>
             <div class="stat-row">
-              <span>Win rate</span><strong
+              <span>{$t('profile.stats.win_rate')}</span><strong
                 >{Math.round(stats.winRate * 100)}%</strong
               >
             </div>
             <div class="stat-row">
-              <span>Active games</span><strong>{stats.active}</strong>
+              <span>{$t('profile.stats.active_games')}</span><strong>{stats.active}</strong>
             </div>
           </div>
         {/if}
@@ -213,8 +214,8 @@
         {/if}
 
         {#if user}
-          <h1>Profile</h1>
-          <p class="subtitle">Public profile</p>
+          <h1>{$t('profile.public.title')}</h1>
+          <p class="subtitle">{$t('profile.public.subtitle')}</p>
 
           <div class="avatar-wrapper">
             <img
@@ -227,14 +228,14 @@
 
           <div class="stats-list">
             <div class="stat-row">
-              <span>Username</span><strong>{user.username}</strong>
+              <span>{$t('profile.public.username')}</span><strong>{user.username}</strong>
             </div>
             <div class="stat-row">
-              <span>User ID</span><strong>{user.id}</strong>
+              <span>{$t('profile.public.user_id')}</span><strong>{user.id}</strong>
             </div>
           </div>
         {:else}
-          <p>No user data.</p>
+          <p>{$t('profile.status.no_user_data')}</p>
         {/if}
       </div>
     </div>

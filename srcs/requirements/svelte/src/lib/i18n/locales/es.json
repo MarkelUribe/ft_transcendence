@@ -101,5 +101,51 @@
       "empty": "No se han encontrado partidas aún.",
       "redirecting": "Redirigiendo..."
     }
+  },
+
+  "profile": {
+    "card": {
+      "aria_go_to": "Ir al perfil",
+      "unrated": "Sin clasificar"
+    },
+    
+    "status": {
+      "loading_profile": "Cargando perfil...",
+      "loading_stats": "Cargando estadísticas...",
+      "not_logged_in": "No hay datos de usuario. ¿Has iniciado sesión?"
+    },
+  
+    "stats": {
+      "title": "Estadísticas",
+      "subtitle": "Últimas 50 partidas",
+      "matches": "Partidas",
+      "finished": "Finalizadas",
+      "wins": "Victorias",
+      "draws": "Empates",
+      "losses": "Derrotas",
+      "win_rate": "Porcentaje de victorias",
+      "active_games": "Partidas activas",
+      "member_since": "Miembro desde"
+    },
+  
+    "manage": {
+      "title": "Mi Perfil",
+      "subtitle": "Gestiona tu cuenta y avatar",
+      "username": "Usuario",
+      "email": "Correo electrónico",
+      "avatar": "Avatar"
+    },
+  
+    "buttons": {
+      "save": "Guardar perfil",
+      "upload": "Subir avatar"
+    },
+
+    "public": {
+      "title": "Perfil",
+      "subtitle": "Perfil público",
+      "username": "Usuario",
+      "user_id": "ID de usuario"
+    }
   }
 }

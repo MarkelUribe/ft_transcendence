@@ -101,5 +101,51 @@
       "empty": "Ez da partidarik aurkitu oraindik.",
       "redirecting": "Bideratzen..."
     }
+  },
+
+  "profile": {
+    "card": {
+      "aria_go_to": "Profilera joan",
+      "unrated": "Sailkatu gabea"
+    },
+
+    "status": {
+      "loading_profile": "Profila kargatzen...",
+      "loading_stats": "Estatistikak kargatzen...",
+      "not_logged_in": "Ez dago erabiltzaile daturik. Saioa hasi duzu?"
+    },
+  
+    "stats": {
+      "title": "Estatistikak",
+      "subtitle": "Azken 50 partidak",
+      "matches": "Partidak",
+      "finished": "Amaituak",
+      "wins": "Garipenak",
+      "draws": "Berdinketak",
+      "losses": "Porrotak",
+      "win_rate": "Irabazien ehunekoa",
+      "active_games": "Partida aktiboak",
+      "member_since": "Honezkero kide"
+    },
+  
+    "manage": {
+      "title": "Nire Profila",
+      "subtitle": "Kudeatu zure kontua eta avatarra",
+      "username": "Erabiltzailea",
+      "email": "Posta elektronikoa",
+      "avatar": "Avatarra"
+    },
+
+    "buttons": {
+      "save": "Profila gorde",
+      "upload": "Avatarra igo"
+    },
+
+    "public": {
+      "title": "Profila",
+      "subtitle": "Profil publikoa",
+      "username": "Erabiltzailea",
+      "user_id": "Erabiltzaile IDa"
+    }
   }
 }

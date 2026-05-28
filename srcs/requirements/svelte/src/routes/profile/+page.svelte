@@ -4,6 +4,7 @@
   import { browser } from "$app/environment";
   import { io, type Socket } from "socket.io-client";
   import { onDestroy } from "svelte";
+  import { t } from 'svelte-i18n';
 
   type HistoryGame = {
     gameId: string;
@@ -192,44 +193,44 @@
 
 <div class="page-container">
   {#if loading}
-    <div class="profile-card"><p>Loading profile...</p></div>
+    <div class="profile-card"><p>{$t('profile.status.loading_profile')}</p></div>
   {:else}
     <div class="profile-grid">
       <div class="profile-card">
-        <h1 style="margin: 0 0 0.5rem 0;">My Stats</h1>
+        <h1 style="margin: 0 0 0.5rem 0;">{$t('profile.stats.title')}</h1>
         {#if statsLoading}
-          <p>Loading stats...</p>
+          <p>{$t('profile.status.loading_stats')}</p>
         {:else if statsError}
           <p class="error-text">{statsError}</p>
         {:else if user}
-          <p class="subtitle">Last 50 matches</p>
+          <p class="subtitle">{$t('profile.stats.subtitle')}</p>
 
           <div class="stats-list">
             <div class="stat-row">
               <span>ELO</span><strong>{user.elo ?? 0}</strong>
             </div>
             <div class="stat-row">
-              <span>Matches</span><strong>{stats.played}</strong>
+              <span>{$t('profile.stats.matches')}</span><strong>{stats.played}</strong>
             </div>
             <div class="stat-row">
-              <span>Finished</span><strong>{stats.finished}</strong>
+              <span>{$t('profile.stats.matches')}</span><strong>{stats.finished}</strong>
             </div>
             <div class="stat-row">
-              <span>Wins</span><strong>{stats.wins}</strong>
+              <span>{$t('profile.stats.wins')}</span><strong>{stats.wins}</strong>
             </div>
             <div class="stat-row">
-              <span>Draws</span><strong>{stats.draws}</strong>
+              <span>{$t('profile.stats.draws')}</span><strong>{stats.draws}</strong>
             </div>
             <div class="stat-row">
-              <span>Losses</span><strong>{stats.losses}</strong>
+              <span>{$t('profile.stats.losses')}</span><strong>{stats.losses}</strong>
             </div>
             <div class="stat-row">
-              <span>Win rate</span><strong
+              <span>{$t('profile.stats.win_rate')}</span><strong
                 >{Math.round(stats.winRate * 100)}%</strong
               >
             </div>
             <div class="stat-row">
-              <span>Active games</span><strong>{stats.active}</strong>
+              <span>{$t('profile.stats.active_games')}</span><strong>{stats.active}</strong>
             </div>
             <div class="stat-row">
               <span>Member since</span><strong
@@ -248,8 +249,8 @@
         {/if}
 
         {#if user}
-          <h1>My Profile</h1>
-          <p class="subtitle">Manage your account and avatar</p>
+          <h1>{$t('profile.manage.title')}</h1>
+          <p class="subtitle">{$t('profile.manage.subtitle')}</p>
 
           <div class="avatar-wrapper">
             <img
@@ -263,16 +264,16 @@
           <div class="forms">
             <form on:submit|preventDefault={saveProfile}>
               <div style="text-align: center; width: 100%;">
-                <strong>Username:</strong>
+                <strong>{$t('profile.manage.username')}:</strong>
                 {user.username}
               </div>
 
               <label>
-                Email
+                {$t('profile.manage.email')}
                 <input type="email" bind:value={email} />
               </label>
 
-              <button class="primary-button" type="submit">Save profile</button>
+              <button class="primary-button" type="submit">{$t('profile.buttons.save')}</button>
             </form>
 
             <form
@@ -280,7 +281,7 @@
               enctype="multipart/form-data"
             >
               <label>
-                Avatar
+                {$t('profile.manage.avatar')}
                 <input
                   type="file"
                   accept="image/*"
@@ -291,12 +292,12 @@
               </label>
 
               <button class="secondary-button" type="submit"
-                >Upload avatar</button
+                >{$t('profile.buttons.upload')}</button
               >
             </form>
           </div>
         {:else}
-          <p>No user data. Are you logged in?</p>
+          <p>{$t('profile.status.not_logged_in')}</p>
         {/if}
       </div>
     </div>

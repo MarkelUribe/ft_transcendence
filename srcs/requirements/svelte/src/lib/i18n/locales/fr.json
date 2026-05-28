@@ -101,5 +101,51 @@
       "empty": "Aucun match trouvé pour le moment.",
       "redirecting": "Redirection..."
     }
+  },
+
+  "profile": {
+    "card": {
+      "aria_go_to": "Aller au profil",
+      "unrated": "Non classé"
+    },
+
+    "status": {
+    "loading_profile": "Chargement du profil...",
+    "loading_stats": "Chargement des statistiques...",
+    "not_logged_in": "Aucune donnée d'utilisateur. Êtes-vous connecté ?"
+  },
+  
+    "stats": {
+      "title": "Stats",
+      "subtitle": "50 derniers matchs",
+      "matches": "Matchs",
+      "finished": "Terminés",
+      "wins": "Victoires",
+      "draws": "Nuls",
+      "losses": "Défaites",
+      "win_rate": "Taux de victoire",
+      "active_games": "Matchs actifs",
+      "member_since": "Membre depuis"
+    },
+    
+    "manage": {
+      "title": "Mon Profil",
+      "subtitle": "Gérer votre compte et votre avatar",
+      "username": "Nom d'utilisateur",
+      "email": "E-mail",
+      "avatar": "Avatar"
+    },
+  
+    "buttons": {
+      "save": "Enregistrer le profil",
+      "upload": "Téléverser l'avatar"
+    },
+
+    "public": {
+      "title": "Profil",
+      "subtitle": "Profil public",
+      "username": "Nom d'utilisateur",
+      "user_id": "ID Utilisateur"
+    }
   }
 }

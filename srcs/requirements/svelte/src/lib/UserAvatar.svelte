@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
   import { page } from '$app/stores';
+  import { t } from 'svelte-i18n';
 
   const BACKEND_URL = 'https://localhost:3000';
 
@@ -112,7 +113,7 @@
       color: #fff;
       width: 130%;
     "
-    aria-label="Go to profile"
+    aria-label={$t('profile.card.aria_go_to')}
   >
     <div
       style="
@@ -142,7 +143,7 @@
     >
       <span style="font-weight: 600;">{user.username}</span>
       <span>ID: {user.id}</span>
-      <span>{user.elo ?? 'Unrated'} ELO</span>
+      <span>{user.elo ?? $t('profile.card.unrated')} ELO</span>
     </div>
   </button>
 {/if}
