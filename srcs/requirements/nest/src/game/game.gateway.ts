@@ -58,42 +58,50 @@ export class GameGateway implements OnGatewayConnection{
 		@ConnectedSocket() client: Socket,
 		@MessageBody() data: { gameId: string })
 	{
-		const { gameId } = data;
-
-		client.join(gameId);
-
-		const game = await this.gameService.findOne(gameId);
-
-		if (!game) {
-			client.emit('notFound', { message: 'Game not found' });
-			return;
-		}
-
-		const moves = await this.moveRepo.find(
+		try
 		{
-			where: { game: { id: gameId } },
-			order: { id: 'ASC' },
-		});
+			const { gameId } = data;
 
-		client.emit('gameState', {
-			gameId: game.id,
-			white: game.white,
-			black: game.black,
-			status: game.status,
-			lastMoveTimestamp: game.lastMoveTimestamp,
-			moves: moves.map(m => ({
-				from: m.from,
-				to: m.to,
-				san: m.san,
-				promotion: m.promotion,
-				fen: m.fen,
-				whiteTimeMs: m.whiteTimeMs,
-				blackTimeMs: m.blackTimeMs,
-			})),
-		});
+			const game = await this.gameService.findOne(gameId);
 
-		const history = this.gameService.getChatHistory(gameId);
-		client.emit('chatHistory', history);
+			client.join(gameId);
+
+			const moves = await this.moveRepo.find(
+			{
+				where: { game: { id: gameId } },
+				order: { id: 'ASC' },
+			});
+
+			client.emit('gameState', {
+				gameId: game.id,
+				white: game.white,
+				black: game.black,
+				status: game.status,
+				lastMoveTimestamp: game.lastMoveTimestamp,
+				whiteDraw: game.whiteDraw,
+				blackDraw: game.blackDraw,
+				moves: moves.map(m => ({
+					from: m.from,
+					to: m.to,
+					san: m.san,
+					promotion: m.promotion,
+					fen: m.fen,
+					whiteTimeMs: m.whiteTimeMs,
+					blackTimeMs: m.blackTimeMs,
+				})),
+			});
+
+			const history = this.gameService.getChatHistory(gameId);
+			client.emit('chatHistory', history);
+		}
+		catch (err)
+		{
+			if (err instanceof Error)
+			{
+				return client.emit('err.message', { message: err.message });
+			}
+			throw err;
+		}
 	}
 
 	@SubscribeMessage('getMatchHistory')
@@ -185,6 +193,8 @@ export class GameGateway implements OnGatewayConnection{
 			{
 				move: move,
 				lastMoveTimestamp: game.lastMoveTimestamp,
+				whiteDraw: game.whiteDraw,
+				blackDraw: game.blackDraw,
 			});
 		}
 		catch (error)
@@ -219,6 +229,52 @@ export class GameGateway implements OnGatewayConnection{
 		catch { client.emit('error', { message: 'Surrender failed' }); }
 	}
 
+	@SubscribeMessage('draw')
+	async handleDraw(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { gameId: string }
+	) {
+		const { gameId } = data;
+
+		const userId = client.data.userId;
+
+		if (!userId) return;
+
+		const game = await this.gameService.findOne(gameId);
+
+		if (!game) return;
+
+		const isWhite = game.white.id === userId;
+		const isBlack = game.black.id === userId;
+
+		if (!isWhite && !isBlack)
+			return;
+
+		if (isWhite)
+			game.whiteDraw = true;
+
+		if (isBlack)
+			game.blackDraw = true;
+
+		if (game.whiteDraw && game.blackDraw)
+		{
+			game.status = 'ended';
+	
+			this.gameService.drawAccepted(gameId);
+
+			this.server.to(gameId).emit('ended', { looser: game.looser });
+
+			return ;
+		}
+
+		await this.gameRepo.save(game);
+
+		this.server.to(gameId).emit('drawOffer', {
+			whiteDraw: game.whiteDraw,
+			blackDraw: game.blackDraw,
+		});
+	}
+
 	@SubscribeMessage('sendMessage')
 	async handleSendMessage(
 		@ConnectedSocket() client: Socket,
@@ -227,6 +283,7 @@ export class GameGateway implements OnGatewayConnection{
 		const { gameId, user, text } = data;
 
 		const userId = client.data.userId;
+	
 		if (!userId) return;
 
 		this.gameService.addMessage(gameId, { user, text });

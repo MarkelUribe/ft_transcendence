@@ -28,9 +28,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
     try {
       const res = await fetch(BASE_URL+'/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ username, password })
       });
 
@@ -90,7 +88,7 @@ const BASE_URL = import.meta.env.VITE_API_URL;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 80vh;
     text-align: center;
   }
 
