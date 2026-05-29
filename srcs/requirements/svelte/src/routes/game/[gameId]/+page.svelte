@@ -655,10 +655,10 @@ onDestroy(() => socket?.disconnect());
 				</div>
 				<div class="modal-footer">
 					<button class="btn-secondary" on:click={() => {showSurrender = false; showDraw = false}}>
-						Cancel
+						{$t('game.buttons.cancel')}
 					</button>
 					<button class="btn-danger" on:click={confirmAction}>
-						Accept
+						{$t('game.buttons.accept')}
 					</button>
 				</div>
 			</div>
