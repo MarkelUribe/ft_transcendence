@@ -3,6 +3,10 @@
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { t } from 'svelte-i18n';
+  import { disconnectMatchmakingSocket, stopFriendsActivityPolling } from '$lib/Matchmaking';
+  import { disconnectChat } from '$lib/api/chat';
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 
   let username = "";
   let password = "";
@@ -23,11 +27,9 @@
 
   async function handleLogin() {
     try {
-      const res = await fetch('https://localhost:3000/auth/login', {
+      const res = await fetch(BASE_URL+'/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ username, password })
       });
 
@@ -65,6 +67,11 @@
   function handleLogout() {
     if (!browser) return;
 
+    // desconecta sockets y polling inmediatamente
+    disconnectMatchmakingSocket();
+    stopFriendsActivityPolling();
+    disconnectChat();
+
     localStorage.removeItem('token');
     localStorage.removeItem('id');
     localStorage.removeItem('username');
@@ -83,7 +90,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 80vh;
     text-align: center;
   }
 

@@ -5,7 +5,8 @@
   import { page } from '$app/stores';
   import { t } from 'svelte-i18n';
 
-  const BACKEND_URL = 'https://localhost:3000';
+  const BACKEND_URL = import.meta.env.VITE_API_URL;
+
 
   type User = {
     id: number;

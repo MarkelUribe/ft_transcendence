@@ -112,10 +112,8 @@
   		</main>
   		<Footer />
 	</div>
-
-	<InviteModal {invite} onAccept={accept} onDecline={decline} />
+	<InviteModal invite={invite} onAccept={accept} onDecline={decline} />
 {/if}
-
 <style>
   .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
   .app-main { flex: 1; }

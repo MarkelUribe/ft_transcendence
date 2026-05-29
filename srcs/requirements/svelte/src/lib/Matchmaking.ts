@@ -6,6 +6,8 @@ import { writable, get } from 'svelte/store';
 let socket: Socket | null = null;
 export const searching = writable(false);
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 let friendsActivityTimer: ReturnType<typeof setInterval> | null = null;
 
 export type FriendActivity = {
@@ -37,29 +39,51 @@ async function startMatchmaking() {
 
 export function initMatchmakingSocket() {
 	const token = localStorage.getItem("token");
-	if (!token) return null;
+  if (!token) return null;
 
-	if (socket) return socket;
+  // si ya hay socket, intenta reconectar si está desconectado
+  if (socket) {
+    if (!socket.connected) {
+      try { socket.connect(); } catch { /* ignore */ }
+    }
+    return socket;
+  }
 
-	socket = io("https://localhost:3000", { auth: { token }, transports: ["websocket"] });
+  socket = io(BASE_URL, { auth: { token }, transports: ["websocket"] });
 
-	socket.on("matched", ({ gameId }: { gameId: string }) => {
-		searching.set(false);
-		goto(`/game/${gameId}`);
-	});
+  socket.on('connect', () => {
+    // pedir actividad de amigos inmediatamente al conectar
+    socket?.emit('friends:getActivity', (rows: FriendActivity[]) => {
+      window.dispatchEvent(new CustomEvent('friends:activity', { detail: rows }));
+    });
+  });
 
-	socket.on("match:inviteError", (e) => console.error("Invite error:", e));
-	socket.on("match:inviteSent", (e) => console.log("Invite sent:", e));
+  socket.on("matched", ({ gameId }: { gameId: string }) => {
+    searching.set(false);
+    goto(`/game/${gameId}`);
+  });
 
-	socket.on("match:inviteReceived", (inv) => {
-		window.dispatchEvent(new CustomEvent("match:inviteReceived", { detail: inv }));
-	});
+  socket.on("match:inviteError", (e) => console.error("Invite error:", e));
+  socket.on("match:inviteSent", (e) => console.log("Invite sent:", e));
 
-	socket.on("match:pendingInvites", (invites) => {
-		window.dispatchEvent(new CustomEvent("match:pendingInvites", { detail: invites }));
-	});
+  socket.on("match:inviteReceived", (inv) => {
+    window.dispatchEvent(new CustomEvent("match:inviteReceived", { detail: inv }));
+  });
 
-	return socket;
+  socket.on("match:pendingInvites", (invites) => {
+    window.dispatchEvent(new CustomEvent("match:pendingInvites", { detail: invites }));
+  });
+
+  return socket;
+}
+
+export function disconnectMatchmakingSocket() {
+  if (!socket) return;
+  try {
+    socket.removeAllListeners();
+    socket.disconnect();
+  } catch { /* ignore */ }
+  socket = null;
 }
 
 export function inviteFriend(friendId: number) {

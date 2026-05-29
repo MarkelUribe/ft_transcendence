@@ -1,9 +1,9 @@
 // src/lib/api/chess.ts
-const BASE_URL = 'https://localhost:3000';
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export async function getExistingGame(token: string) {
   try {
-    const res = await fetch(`https://localhost:3000/game/player`, {
+    const res = await fetch(`${BASE_URL}/game/player`, {
       headers: {
         Authorization: `Bearer ${token}`
       }

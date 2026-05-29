@@ -2,7 +2,13 @@
     import { onMount } from "svelte";
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
-    import { handleButtonClick, searching } from "$lib/Matchmaking";
+    import {
+        handleButtonClick,
+        searching,
+        disconnectMatchmakingSocket,
+        stopFriendsActivityPolling,
+    } from "$lib/Matchmaking";
+    import { disconnectChat } from "$lib/api/chat";
     import ChatWidget from "../lib/components/ChatWidget.svelte";
     import { t } from 'svelte-i18n';
 
@@ -28,6 +34,11 @@
     function handleLogout() {
         if (!browser) return;
 
+        // desconecta sockets y polling
+        disconnectMatchmakingSocket();
+        stopFriendsActivityPolling();
+        disconnectChat();
+
         localStorage.removeItem("token");
         localStorage.removeItem("id");
         localStorage.removeItem("username");
@@ -43,33 +54,43 @@
     }
 </script>
 
-<div class="container">
-    <h1>{$t('home.welcome')}</h1>
-    <p>
-        {#if isLoggedIn}
-            {$t('home.logged_in', { values: { name: username } })}
-        {:else}
-            {$t('home.description')}
-        {/if}
-    </p>
+<div class="home-layout">
+    <div class="home-main">
+        <div class="container">
+            <h1 class="hero-title">
+                <span class="hero-sub">{$t('home.welcome')}</span>
+                <span class="hero-main">Ultra Xake Online</span>
+            </h1>
+            <p>
+                {#if isLoggedIn}
+                    {$t('home.logged_in', { values: { name: username } })}
+                {:else}
+                     {$t('home.description')}
+                {/if}
+            </p>
 
-    <div class="buttons">
-        {#if isLoggedIn}
-            <button class="button {$searching ? 'searching' : 'idle'}" onclick={handleButtonClick}>
-                {$searching ? "Searching... (Click to cancel)" : $t('home.play')}
-            </button>
-            <button class="button" onclick={handleLogout}>{$t('home.logout')}</button>
-        {:else}
-            <button class="button" onclick={handleLogin}>{$t('home.login')}</button>
-        {/if}
+            <div class="buttons">
+                {#if isLoggedIn}
+                    <button
+                        class="button {$searching ? 'searching' : 'idle'}"
+                        onclick={handleButtonClick}
+                    >
+                    {$searching ? "Searching... (Click to cancel)" : $t('home.play')}
+                    </button>
+                    <button class="button" onclick={handleLogout}>{$t('home.logout')}</button
+                    >
+                {:else}
+                    <button class="button" onclick={handleLogin}>{$t('home.login')}</button>
+                {/if}
+            </div>
+        </div>
     </div>
+    {#if isLoggedIn}
+        <aside class="home-chat">
+            <ChatWidget showGameChat={false} onSendGameChat={() => {}} />
+        </aside>
+    {/if}
 </div>
-
-{#if isLoggedIn}
-    <div class="responsive-chat">
-        <ChatWidget />
-    </div>
-{/if}
 
 <style>
     .container {
@@ -83,10 +104,29 @@
         z-index: 1;
     }
 
-    h1 {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    .hero-title {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        margin-bottom: 0.75rem;
+        line-height: 1;
+    }
+
+    .hero-sub {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.85);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 700;
+        opacity: 0.95;
+    }
+
+    .hero-main {
+        font-size: clamp(2rem, 6vw, 3.2rem);
+        font-weight: 800;
+        color: #ffffff; /* higher contrast */
+        text-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
     }
 
     p {
@@ -110,7 +150,7 @@
         cursor: pointer;
         transition: all 0.3s ease;
         color: white;
-		background: linear-gradient(90deg, #24c6dc, #514a9d);
+        background: linear-gradient(90deg, #24c6dc, #514a9d);
     }
 
     .button:hover {
@@ -137,16 +177,47 @@
         }
     }
 
-    .responsive-chat {
-        position: absolute;
-        right: 20px;
-        bottom: 20px;
-        z-index: 2  ;
+    @media (max-width: 1100px) {
+    }
+    .home-layout {
+        width: min(1200px, 100%);
+        margin: 0 auto;
+        padding: 1rem;
+
+        display: grid;
+        grid-template-columns: 1fr minmax(0, 640px) minmax(280px, 320px) 1fr;
+        gap: 1rem;
+        align-items: start;
     }
 
-    @media (max-width: 1100px) {
-        .responsive-chat {
-            display: none;
+    .home-main {
+        grid-column: 2;
+    }
+    .home-chat {
+        grid-column: 3;
+        justify-self: end;
+        margin-top: 4rem; /* moves it lower */
+        position: static; /* “moves with the page” (not sticky) */
+    }
+
+    /* Mobile: stack + center chat horizontally */
+    @media (max-width: 768px) {
+        .home-layout {
+            grid-template-columns: 1fr;
+        }
+        .home-main,
+        .home-chat {
+            grid-column: 1;
+        }
+
+        .home-chat {
+            margin-top: 1rem;
+            justify-self: center;
+            width: min(320px, 100%);
+        }
+
+        .container {
+            height: auto;
         }
     }
 </style>

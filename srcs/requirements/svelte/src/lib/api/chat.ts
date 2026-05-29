@@ -2,6 +2,9 @@ import { io, Socket } from 'socket.io-client';
 
 let chatSocket: Socket | null = null;
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+
 export function initChatSocket() {
   const token = localStorage.getItem('token');
   if (!token) return null;
@@ -10,10 +13,10 @@ export function initChatSocket() {
     return chatSocket;
   }
 
-  chatSocket = io('https://localhost:3000/chat', {
-    auth: { token },
-    transports: ['websocket'],
-  });
+chatSocket = io(`${BASE_URL}/chat`, {
+  auth: { token },
+  transports: ['websocket'],
+});
 
   chatSocket.on('connect', () => {
     console.log('Chat socket connected');
