@@ -269,7 +269,19 @@ onDestroy(() => {
 					game.status !== 'active' &&
 					!iWon}
 
-				<div class="game-card" on:click={() => goToMatch(game.gameId)} class:win={iWon} class:loss={iLost}>
+				<div
+				class="game-card"
+				role="button"
+				tabindex="0"
+				onclick={() => goToMatch(game.gameId)}
+				onkeydown={(e) => {
+					if (e.key === "Enter" || e.key === " ") {
+					goToMatch(game.gameId);
+					}
+				}}
+				class:win={iWon}
+				class:loss={iLost}
+				>
 					<div class="matchup">
 						<div class="player">
 							<a href="/profile/{me.id}" style="color: #FFFFFF; text-decoration: none;">
