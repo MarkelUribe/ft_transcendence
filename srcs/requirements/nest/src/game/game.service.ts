@@ -208,18 +208,6 @@ export class GameService
 
 		if (!move) throw new BadRequestException('Invalid move');
 
-		if (turnId === 'white')
-			game.blackDraw = false;
-		if (turnId === 'black')
-			game.whiteDraw = false;
-
-		console.log('New move:', {
-			from,
-			to,
-			san: move.san,
-			fen: chess.fen(),
-		});
-	
 		this.chessClockService.clearTimeout(game.id);
 
 		if (chess.isCheckmate())
@@ -227,16 +215,20 @@ export class GameService
 			this.eloGivingLogic(game, turnId as 'white' | 'black');
 			game.blackDraw = false;
 			game.whiteDraw = false;
-			await this.gameRepo.save(game);
-			return game;
 		}
 		else if (chess.isDraw())
 		{
 			this.eloGivingLogic(game, 'draw');
 			game.blackDraw = false;
 			game.whiteDraw = false;
-			await this.gameRepo.save(game);
-			return game;
+		}
+		else
+		{
+			if (turnId === 'white')
+				game.blackDraw = false;
+			if (turnId === 'black')
+				game.whiteDraw = false;
+	
 		}
 
 		this.chessClockService.updateClock(game);
@@ -254,13 +246,14 @@ export class GameService
 			blackTimeMs: game.blackTimeMs,
 		});
 
-		await this.moveRepo.save(newMove);
-
 		if (!game.moves) game.moves = [];
 		
 		game.moves.push(newMove);
 
-		this.chessClockService.startTimeout(game, async () => { await this.handleTimeout(game.id); });
+		await this.moveRepo.save(newMove);
+
+		if (game.status === 'active')
+			this.chessClockService.startTimeout(game, async () => { await this.handleTimeout(game.id); });
 
 		return game;
 	}

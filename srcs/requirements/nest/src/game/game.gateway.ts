@@ -177,7 +177,6 @@ export class GameGateway implements OnGatewayConnection{
 
 			if (game.status === 'ended')
 			{
-				await this.gameRepo.save(game);
 				return this.server.to(gameId).emit('ended', { looser: game.looser });
 			}
 

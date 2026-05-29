@@ -313,6 +313,34 @@
           <p>{$t('profile.status.not_logged_in')}</p>
         {/if}
       </div>
+
+      <div class="profile-card">
+        <h1 style="margin: 0 0 0.5rem 0;">Achivements</h1>
+        {#if statsLoading}
+          <p>Loading Achivements...</p>
+        {:else if statsError}
+          <p class="error-text">{statsError}</p>
+        {:else}
+
+          <div class="stats-list">
+            <div class="stat-row">
+              <span>Your First Game</span><strong>{Number(stats.played) >= 1? '✔': '0/1'}</strong>
+            </div>
+            <div class="stat-row">
+              <span>Play 1000 Games</span><strong>{Number(stats.played) >= 1000? '✔': stats.played + ' / 1000'}</strong>
+            </div>
+            <div class="stat-row">
+              <span>Win 1 Games</span><strong>{Number(stats.wins) >= 1? '✔': '✖'}</strong>
+            </div>
+            <div class="stat-row">
+              <span>Win 10 Games</span><strong>{Number(stats.wins) >= 10? '✔': '✖'}</strong>
+            </div>
+            <div class="stat-row">
+              <span>Win 100 Games</span><strong>{Number(stats.wins) >= 100? '✔': stats.wins + ' / 100'}</strong>
+            </div>
+          </div>
+        {/if}
+      </div>
     </div>
   {/if}
 </div>
@@ -430,9 +458,10 @@
     font-size: 0.95rem;
     opacity: 0.8;
   }
+
   .profile-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
     align-items: start;
   }
