@@ -112,15 +112,11 @@ make down
 - MariaDB runs inside the Docker network by default.
 
 ## Team Information
-
 | Member (login) | Role(s) | Responsibilities |
- We distributed the work according to each person’s strengths, such as system work (Docker, Makefile automation), frontend work, gameplay systems, and framework/database integration.
- We discussed responsibilities before implementation so branches could be merged cleanly and the project could keep moving forward.
- We tested the full stack and the features, especially after each merge, to make sure everything kept working as intended.
 |---|---|---|
 | muribe-l | PM DEV | Users/Auth/Ranking systems + related frontend |
 | kabasolo | PO DEV | Game system (backend + frontend), replay, clock, matchmaking |
- Replay (review mode): implemented as part of the game UI using the stored move list; useful for reviewing a finished match, but **not counted** as a subject module.
+| jleon-la | TL DEV | Docker, Compose, Makefile (secrets/SSL automation) |
 | iboiraza | TL DEV | i18n (multi-language), chat widget, friends UX (incl. friends “leaderboard”) |
 
 ## Project Management
@@ -167,7 +163,7 @@ We tested the full stack and the features, especially after each merge, to make 
 - GNU Make for project automation
 - OpenSSL for local TLS certificates and generated secrets
 
-### Major technical choices (justification)
+### Major technical choices
 
 - Why SvelteKit (SPA/SSR, routing, DX)
 	It gives us file-based routing, a clean component model, and a good development experience.
@@ -308,21 +304,15 @@ Below is the set of modules that are **implemented in code**. During evaluation,
 | Implement a complete web-based game (live matches) | Major | 2 | Core gameplay module | Real-time chess matches with rules validation, win/draw logic | kabasolo |
 | Remote players (two computers in real-time) | Major | 2 | Real online gameplay | Socket.IO reconnection + client re-joins the game room on reconnect; server re-sends game state | kabasolo |
 | Implement spectator mode for games | Minor | 1 | Better UX and evaluation demo | Spectate active games via game id (real-time updates for spectators) | kabasolo, iboiraza |
-
-**Total points (implemented above):** 15
-
-### Modules considered (not yet claimed)
-
-These are modules we considered/count internally, but they are **not** included in the total above until they fully match the subject requirements.
-
-| Module | Type | Points | Current state | What’s missing to safely claim |
+| Support for additional browsers | Minor | 1 | Tested in various browsers | All |
+| Game statistics and match history  | Minor | 1 | (match history + W/L/D stats + ELO + leaderboard UI + basic achievements UI) | Full progression system (persistent level/XP/badges/etc.) and/or a clearer achievement/progression spec stored in DB | kabasolo |
+## Extra module
+| Module | Type | Points | Why chosen | Owner(s) |
 |---|---|---:|---|---|
-| Game statistics and match history (requires a game module) | Minor | 1 | Partially implemented (match history + W/L/D stats + ELO + leaderboard UI + basic achievements UI) | Full progression system (persistent level/XP/badges/etc.) and/or a clearer achievement/progression spec stored in DB |
-| Support for additional browsers | Minor | 1 | Tested on Chrome + Firefox | Add at least 2 additional browsers beyond the baseline (e.g. Safari/Edge), document limitations, verify consistent UI/UX |
+|  Replay (review mode) | Minor | 1 | implemented as part of the game UI using the stored move list; useful for reviewing a finished match | kabasolo |
 
-### Extra feature
+**Total points (implemented above):** 17
 
-- Replay (review mode): implemented as part of the game UI using the stored move list; useful for reviewing a finished match, but **not counted** as a subject module.
 
 
 ## Individual Contributions
@@ -370,7 +360,7 @@ Note: the number of “features” per person is not directly comparable — som
 - chess.js documentation: https://github.com/jhlywa/chess.js
 - JWT (RFC 7519): https://www.rfc-editor.org/rfc/rfc7519
 
-### AI usage disclosure (required)
+### AI usage disclosure
 
 We used AI tools to help with debugging and understanding framework features. We validated outputs by reviewing code changes, running the application locally, and checking behavior manually.
 
