@@ -68,6 +68,7 @@
     localStorage.removeItem('token');
     localStorage.removeItem('id');
     localStorage.removeItem('username');
+    localStorage.removeItem("chat_times");
     isLoggedIn = false;
     username = "";
     password = "";

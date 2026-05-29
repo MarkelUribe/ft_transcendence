@@ -88,11 +88,6 @@ onMount(async () => {
     return;
   }
 
-  const savedTimes = localStorage.getItem("chat_times");
-  if (savedTimes) {
-    lastMessageTimes = JSON.parse(savedTimes);
-  }
-
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
     currentUserId = payload.sub;
@@ -100,6 +95,11 @@ onMount(async () => {
     goto("/login");
     return;
   }
+
+  const savedTimes = localStorage.getItem(`chat_times_${currentUserId}`);
+    if (savedTimes) {
+        lastMessageTimes = JSON.parse(savedTimes);
+    }
 
   initChatSocket();
 
@@ -206,9 +206,8 @@ onMount(async () => {
   const date = new Date(dateStr);
   const now = new Date();
   
-  // Forzamos las 00:00:00 para comparar solo el día del calendario
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const yesterday = today - 24 * 60 * 60 * 1000; // Restamos exactamente un día en milisegundos
+  const yesterday = today - 24 * 60 * 60 * 1000;
   
   const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
@@ -289,11 +288,12 @@ onMount(async () => {
         friendsApi.getFriends(),
         friendsApi.getPendingRequests(),
       ]);
+      console.log("friendsData:", friendsData);
 
       friends = (friendsData ?? []).map((f) => ({
         ...f,
-        last_message_at: lastMessageTimes[f.id] || null,
-      }));
+        last_message_at: f.last_message_at || lastMessageTimes[f.id] || null,
+    }));
       incomingRequests = pending?.incoming ?? [];
     } catch (err) {
       console.error("Failed to load friends or requests", err);
@@ -383,8 +383,9 @@ onMount(async () => {
   }
 
   $effect(() => {
-    const data = JSON.stringify(lastMessageTimes);
-    localStorage.setItem("chat_times", data);
+    if (currentUserId) {
+        localStorage.setItem(`chat_times_${currentUserId}`, JSON.stringify(lastMessageTimes));
+    }
   });
 
   $effect(() => {
