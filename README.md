@@ -304,7 +304,7 @@ Below is the set of modules that are **implemented in code**. During evaluation,
 | Implement a complete web-based game (live matches) | Major | 2 | Core gameplay module | Real-time chess matches with rules validation, win/draw logic | kabasolo |
 | Remote players (two computers in real-time) | Major | 2 | Real online gameplay | Socket.IO reconnection + client re-joins the game room on reconnect; server re-sends game state | kabasolo |
 | Implement spectator mode for games | Minor | 1 | Better UX and evaluation demo | Spectate active games via game id (real-time updates for spectators) | kabasolo, iboiraza |
-| Support for additional browsers | Minor | 1 | Tested in various browsers | All |
+| Support for additional browsers | Minor | 1 | We work on different browsers | Tested in various browsers| All |
 | Game statistics and match history  | Minor | 1 | (match history + W/L/D stats + ELO + leaderboard UI + basic achievements UI) | Full progression system (persistent level/XP/badges/etc.) and/or a clearer achievement/progression spec stored in DB | kabasolo |
 ## Extra module
 | Module | Type | Points | Why chosen | Owner(s) |
