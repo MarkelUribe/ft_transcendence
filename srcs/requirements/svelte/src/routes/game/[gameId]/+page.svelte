@@ -578,7 +578,7 @@ onDestroy(() => socket?.disconnect());
 							opponentName={myColor === "white"
 								? blackPlayer?.username
 								: whitePlayer?.username}
-							{onSendGameChat}
+								onSendGameChat={myColor !== 'spectator' && !isReviewMode ? onSendGameChat : null}
 							gameId={null}
 						/>
 					</div>

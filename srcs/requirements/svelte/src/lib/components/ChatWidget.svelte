@@ -682,7 +682,7 @@ onMount(async () => {
           class="message-input"
           onsubmit={(e) => {
             e.preventDefault();
-            if (selectedFriend.isGame) {
+            if (selectedFriend.isGame ) {
               if (newMessage.trim()) {
                 onSendGameChat(newMessage);
                 newMessage = "";
