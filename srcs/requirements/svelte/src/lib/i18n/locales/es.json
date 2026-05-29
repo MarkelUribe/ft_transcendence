@@ -1,6 +1,6 @@
 {
   "home": {
-    "welcome": "Bienvenido a Ultra Xake Online",
+    "welcome": "Bienvenido a",
     "logged_in": "¡Hola, {name}! ¿Listo para jugar?",
     "description": "Juega al ajedrez, revisa tus historiales de partidas y mejora tu estrategia. Elige lo que quieres hacer a continuación:",
     "play": "Jugar",
@@ -100,6 +100,12 @@
       "loading": "Cargando historial…",
       "empty": "No se han encontrado partidas aún.",
       "redirecting": "Redirigiendo..."
+    },
+    "results": {
+      "victory": "VICTORIA",
+      "defeat": "DERROTA",
+      "draw": "TABLAS",
+      "battling": "EN JUEGO"
     }
   },
 
@@ -148,6 +154,47 @@
       "subtitle": "Perfil público",
       "username": "Usuario",
       "user_id": "ID de usuario"
+    }
+  },
+
+  "game": {
+    "player_avatar": "Avatar del jugador",
+    "tabs": {
+      "logs": "Movimientos",
+      "chat": "Chat"
+    },
+    "modes": {
+      "review": "Modo análisis",
+      "spectator": "Modo espectador"
+    },
+    "buttons": {
+      "accept_draw": "¿Aceptar tablas?",
+      "cancel": "Cancelar",
+      "accept": "Aceptar",
+      "back_home": "Volver a la principal"
+    },
+    "modals": {
+      "surrender": {
+        "title": "Confirmar rendición",
+        "body": "Perderás la partida automáticamente."
+      },
+      "offer_draw": {
+        "title": "¿Ofrecer tablas?",
+        "body": "La partida terminará en empate si el rival acepta."
+      },
+      "accept_draw": {
+        "title": "¿Aceptar tablas?",
+        "body": "La partida terminará en empate si aceptas."
+      },
+      "game_over": {
+        "title": "Fin de la partida"
+      }
+    },
+    "end_status": {
+      "ended": "Partida finalizada",
+      "draw": "Tablas (Empate)",
+      "defeat": "Derrota",
+      "victory": "¡Victoria!"
     }
   },
 

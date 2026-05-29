@@ -309,13 +309,13 @@ onDestroy(() => {
 					<div class="result-row">
 						<div class="result-msg">
 							{#if iWon}
-								VICTORY
+								{$t('history.results.victory')}
 							{:else if iLost}
-								DEFEAT
+								{$t('history.results.defeat')}
 							{:else if isDraw}
-								DRAW
+								{$t('history.results.draw')}
 							{:else}
-								BATTLING
+								{$t('history.results.battling')}
 							{/if}
 						</div>
 
