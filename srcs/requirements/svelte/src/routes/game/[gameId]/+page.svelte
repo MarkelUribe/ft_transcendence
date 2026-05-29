@@ -637,51 +637,53 @@ onDestroy(() => socket?.disconnect());
 				<button class="nav-btn" on:click={goToEnd} disabled={currentMoveIndex >= logs.length - 1}>▶▶</button>
 			</div>
 		</div>
-		{#if showSurrender || showDraw}
-		<div class="modal">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5>{headerText}</h5>
-					</div>
-					<div class="modal-body">
-						{bodyText}
-					</div>
-					<div class="modal-footer">
-						<button class="btn-secondary" on:click={() => {showSurrender = false; showDraw = false}}>
-							Cancel
-						</button>
-						<button class="btn-danger" on:click={confirmAction}>
-							Accept
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="modal-backdrop"></div>
-		{/if}
-		{#if gameOver}
-		<div class="modal">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5>Game Over</h5>
-					</div>
-					<div class="modal-body">
-						{resultText}
-					</div>
-					<div class="modal-footer">
-						<button class="btn-secondary" on:click={goHome}>
-							Return to home
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="modal-backdrop"></div>
-		{/if}
 	</div>
 </div>
+
+{#if showSurrender || showDraw}
+	<div class="modal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5>{headerText}</h5>
+				</div>
+				<div class="modal-body">
+					{bodyText}
+				</div>
+				<div class="modal-footer">
+					<button class="btn-secondary" on:click={() => {showSurrender = false; showDraw = false}}>
+						Cancel
+					</button>
+					<button class="btn-danger" on:click={confirmAction}>
+						Accept
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-backdrop"></div>
+{/if}
+
+{#if gameOver}
+	<div class="modal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5>Game Over</h5>
+				</div>
+				<div class="modal-body">
+					{resultText}
+				</div>
+				<div class="modal-footer">
+					<button class="btn-secondary" on:click={goHome}>
+						Return to home
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-backdrop"></div>
+{/if}
 
 <style>
 

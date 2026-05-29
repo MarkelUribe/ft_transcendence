@@ -41,6 +41,7 @@ RUN npm ci --omit=dev
 RUN apk add --no-cache wget netcat-openbsd
 
 COPY --from=build /app/dist ./dist
+COPY resources ./resources
 COPY tools/entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh
 

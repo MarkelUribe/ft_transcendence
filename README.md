@@ -26,6 +26,9 @@ Ultra Xake Online is a full-stack real-time chess web app with matchmaking, frie
 - Matchmaking:
 	- Queue-based matchmaking by ELO range
 	- Friend invites (time-limited)
+- Multi-language UI (i18n) with a language selector (EN/ES/FR/EU)
+- Player stats + basic achievements (derived from match history)
+- In-game chat + spectator-friendly game rooms (join by game id)
 
 ## Instructions
 
@@ -81,11 +84,16 @@ make down
 
 ### Useful commands
 
-- `make dev` — run full stack with dev overrides
+- `make dev` — run full stack with dev overrides (hot reload)
 - `make up` — build & run base stack
-- `make down` — stop containers and remove volumes
+- `make down` — stop containers and remove volumes (and prune unused Docker resources)
 - `make rebuild` — rebuild without cache
+- `make all` — generate secrets + TLS certs (and ensure `srcs/.env` exists)
+- `make ensure-env` — create `srcs/.env` from `srcs/.env.example` if missing
 - `make clean` — alias for `make down`
+- `make clean-secrets` — delete generated secrets and TLS certs
+- `make fclean` / `make reset` — full reset (down + delete secrets + remove images)
+- `make re` — full reset + restart
 
 
 ### Services and compose files
@@ -103,10 +111,10 @@ Ports are configured in `srcs/.env`:
 
 | Member (login) | Role(s) | Responsibilities |
 |---|---|---|
-| muribe-l | PM DEV	| Systems like Users ranking and frontend |
-| kabasolo | PO DEV	| All the back and front of the Game |
-| jleon-la | TL DEV	| Docker and makefile |
-| iboiraza | TL DEV	| Systems like languages and chadWidget |
+| muribe-l | PM DEV | Users/Auth/Ranking systems + related frontend |
+| kabasolo | PO DEV | Game system (backend + frontend), replay, clock, matchmaking |
+| jleon-la | TL DEV | Docker, Compose, Makefile (secrets/SSL automation) |
+| iboiraza | TL DEV | i18n (multi-language), chat widget, friends UX (incl. friends “leaderboard”) |
 
 ## Project Management
 
@@ -254,14 +262,19 @@ erDiagram
 | Avatar upload | Upload image (2MB, images only) | `POST /users/me/avatar` | `/profile` | muribe-l |
 | Public profile | View other users | `GET /users/:id` | `/profile/:userId` | muribe-l |
 | Ranking | Display top players by ELO | `GET /users/ranking/:n` | `/ranking` | muribe-l |
+| Multi-language UI (i18n) | Translate UI + switch language | N/A | Language selector + translated UI | iboiraza |
 | Friends | Requests + accept/reject + list + remove | `/friends/*` + WS refresh | Chat widget (Friends tab) | muribe-l |
+| Friends “leaderboard” | Sort friends list by ELO | `GET /friends` | Chat widget (Friends tab) | iboiraza |
 | Private chat | Friends-only DM, unread state | Chat gateway (`/chat`) | Chat widget | iboiraza |
 | Matchmaking queue | Queue by ELO range | Matchmaking gateway/service | Home “Play” button | kabasolo |
 | Friend invites | Invite friends to a match (TTL) | Matchmaking invites | Invite modal | muribe-l |
 | Real-time game | Join game room, propose moves | Game gateway/service | `/game/:gameId` | kabasolo |
+| In-game chat | Chat inside a match room | `sendMessage` event | `/game/:gameId` | kabasolo |
 | Chess clock | Timeouts per player | ChessClockService | In-game timers | kabasolo |
 | Match history | Recent matches list & stats | `getMatchHistory` event | `/historial/:userId` + profile stats | kabasolo |
+| Stats + achievements | Compute W/L/D + show basic achievements | `getMatchHistory` event | `/profile` | kabasolo |
 | Replay (review mode) | Move-by-move replay of a match (navigation through stored moves) | `joinGame` emits full move list (FEN + SAN) | `/game/:gameId` (review mode, arrows + move list) | kabasolo |
+| Spectator mode | Watch an ongoing game by id with real-time updates | `joinGame` + `moveMade` events | `/game/:gameId` | kabasolo, iboiraza |
 
 ## Modules
 
@@ -276,13 +289,14 @@ Below is the set of modules that are **implemented in code**. During evaluation,
 | Use a framework for both the frontend and backend | Major | 2 | Productivity, clear structure | SvelteKit frontend + NestJS backend (TypeScript) | All |
 | Implement real-time features using WebSockets (or similar) | Major | 2 | Required for live gameplay and chat | Socket.IO for matchmaking, game events, and chat | kabasolo, iboiraza |
 | Allow users to interact with other users (chat/profile/friends) | Major | 2 | Core social layer for the platform | Friends system + profiles + private chat | muribe-l, iboiraza |
+| Support for multiple languages (at least 3) | Minor | 1 | Better UX + subject requirement | `svelte-i18n` with 4 locales (EN/ES/FR/EU) + language selector; core UI text is translated via locale JSON files | iboiraza |
 | Use an ORM for the database | Minor | 1 | Faster iteration and safer DB access | TypeORM entities + repositories | muribe-l |
 | Standard user management and authentication | Major | 2 | Core product requirement | JWT auth, profile update, avatar upload, friends + online activity | muribe-l |
 | Implement a complete web-based game (live matches) | Major | 2 | Core gameplay module | Real-time chess matches with rules validation, win/draw logic | kabasolo |
 | Remote players (two computers in real-time) | Major | 2 | Real online gameplay | Socket.IO reconnection + client re-joins the game room on reconnect; server re-sends game state | kabasolo |
 | Implement spectator mode for games | Minor | 1 | Better UX and evaluation demo | Spectate active games via game id (real-time updates for spectators) | kabasolo, iboiraza |
 
-**Total points (implemented above):** 14
+**Total points (implemented above):** 15
 
 ### Modules considered (not yet claimed)
 
@@ -290,9 +304,8 @@ These are modules we considered/count internally, but they are **not** included 
 
 | Module | Type | Points | Current state | What’s missing to safely claim |
 |---|---|---:|---|---|
-| Game statistics and match history (requires a game module) | Minor | 1 | Partially implemented (match history + W/L/D stats + ELO + leaderboard UI) | Achievements/progression (as described in the subject) or a clear equivalent feature set + explanation in README |
-| Support for multiple languages (at least 3 languages) | Minor | 1 | Planned / pending merge from another branch | i18n system, 3 complete translations, language switcher, all text translatable |
-| Support for additional browsers | Minor | 1 | Not validated yet | Test and fix for at least 2 additional browsers, document limitations |
+| Game statistics and match history (requires a game module) | Minor | 1 | Partially implemented (match history + W/L/D stats + ELO + leaderboard UI + basic achievements UI) | Full progression system (persistent level/XP/badges/etc.) and/or a clearer achievement/progression spec stored in DB |
+| Support for additional browsers | Minor | 1 | Tested on Chrome + Firefox | Add at least 2 additional browsers beyond the baseline (e.g. Safari/Edge), document limitations, verify consistent UI/UX |
 
 ### Extra feature (not a scored module)
 
@@ -301,27 +314,35 @@ These are modules we considered/count internally, but they are **not** included 
 
 ## Individual Contributions
 
-TODO: Provide a detailed breakdown per team member.
+Note: the number of “features” per person is not directly comparable — some items (like the real-time game) are large, multi-week systems, while other contributions are smaller but numerous (auth/users/ranking, UI/UX iterations, etc.).
 
 ### muribe-l
 
-- TODO: Features/modules/components delivered
-- TODO: Hard problems solved / key decisions
-- TODO: Challenges faced + how they were overcome
-
-
+- Users/Auth/Ranking systems + related frontend (as listed in the features/modules above)
+- Main challenges: learning Svelte/Nest/TypeScript from scratch and integrating everything cleanly
+- Worked through merge/integration issues after branch merges to keep features working together
 
 ### kabasolo
 
-- TODO
+- Game system end-to-end (backend + frontend): real-time matches, move handling, win/draw/end detection
+- Replay/review mode (move-by-move navigation using stored moves)
+- Chess clock / timeouts
+- Match history + stats used by the profile “achievements” view
 
 ### jleon-la
 
-- TODO
+- Docker/Compose setup and overall project automation
+- Compose configuration for base stack + dev overrides (`srcs/compose.yaml`, `srcs/compose.dev.yaml`)
+- Makefile workflow for the project lifecycle (`make dev`, `make up`, `make down`, `make rebuild`, etc.)
+- Secrets automation (auto-generate DB passwords + JWT secret if missing)
+- Local HTTPS automation (self-signed TLS cert generation for `localhost`)
+- Full reset tooling for evaluators/teammates (remove containers/volumes/images + generated secrets)
 
 ### iboiraza
 
-- TODO
+- Multi-language system (i18n) and language selector
+- Chat widget UX (friends/messages) and related interactions
+- Friends “leaderboard” behavior (friends list sorted by ELO)
 
 ## Resources
 
@@ -347,7 +368,7 @@ We used AI tools to help with debugging and understanding framework features. We
 
 ## TODO Checklist
 
-- Write individual contributions per member
+- Document browser support beyond Chrome+Firefox (Edge/Safari, limitations)
 - Add any known limitations (optional but recommended)
 - (Optional) Make AI usage disclosure more precise (feature/file level)
 
