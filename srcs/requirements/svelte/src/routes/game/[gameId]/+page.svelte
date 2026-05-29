@@ -7,6 +7,8 @@ import { ChessAPI } from '$lib/api/chess';
 import { goto } from '$app/navigation';
 import ChatWidget from "$lib/components/ChatWidget.svelte";
 import { browser } from "$app/environment";
+import { get } from 'svelte/store';
+import { t } from 'svelte-i18n';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -172,12 +174,13 @@ function handleEnd(msg: any)
 {
 	const myId = Number(localStorage.getItem('id'));
 
+	const $t = get(t);
 	if (!myColor)
-		resultText = 'Match ended';
+		resultText = $t('game.end_status.ended');
 	else if (msg.looser === -1)
-		resultText = 'Draw';
+		resultText = $t('game.end_status.draw');
 	else
-		resultText = msg.looser === myId ? 'Defeat' : 'Victory';
+		resultText = msg.looser === myId ? $t('game.end_status.defeat') : $t('game.end_status.victory');
 
 	gameStatus = 'ended';
 	gameOver = true;
@@ -467,17 +470,17 @@ onDestroy(() => socket?.disconnect());
 				{:else}
 					{#if isReviewMode}
 						<div class="controls">
-							<button class="surrender-btn"> Review Mode </button>
+							<button class="surrender-btn"> {$t('game.modes.review')} </button>
 						</div>
 					{:else}
 						{#if drawOffer}
 							<div class="controls">
-								<button class="surrender-btn" on:click={() => {showDraw = true; headerText = "Accept the Draw?"; bodyText = "The game will end in a draw if accepted."}}> Accept Draw? </button>
+								<button class="surrender-btn" on:click={() => {showDraw = true; headerText = $t('game.modals.accept_draw.title'); bodyText = $t('game.modals.accept_draw.body')}}> {$t('game.buttons.accept_draw')} </button>
 							</div>
 						{:else}
 							{#if myColor === 'spectator'}
 								<div class="controls">
-									<button class="surrender-btn"> Spectator Mode </button>
+									<button class="surrender-btn">{$t('game.modes.spectator')}</button>
 								</div>
 							{/if}
 						{/if}
@@ -526,11 +529,11 @@ onDestroy(() => socket?.disconnect());
 				<div class="side-tabs">
 					<button
 						class:active={sidePanel === "LOGS"}
-						on:click={() => (sidePanel = "LOGS")}>Logs</button
+						on:click={() => (sidePanel = "LOGS")}>{$t('game.tabs.logs')}</button
 					>
 					<button
 						class:active={sidePanel === "CHAT"}
-						on:click={() => (sidePanel = "CHAT")}>Chat</button
+						on:click={() => (sidePanel = "CHAT")}>{$t('game.tabs.chat')}</button
 					>
 				</div>
 
@@ -621,10 +624,10 @@ onDestroy(() => socket?.disconnect());
 				{/if}
 				{#if !isReviewMode}
 					<div class="controls">
-						<button class="surrender-btn" on:click={() => {showSurrender = true; headerText = "Confirm Surrender"; bodyText = "You will lose the game."}}> 🏳️ </button>
+						<button class="surrender-btn" on:click={() => {showSurrender = true; headerText = $t('game.modals.surrender.title'); bodyText = $t('game.modals.surrender.body')}}> 🏳️ </button>
 					</div>
 					<div class="controls">
-						<button class="surrender-btn" on:click={() => {showDraw = true; headerText = "Offer a Draw?"; bodyText = "The game will end in a draw if accepted."}}> 🤝 </button>
+						<button class="surrender-btn" on:click={() => {showDraw = true; headerText = $t('game.modals.offer_draw.title'); bodyText = $t('game.modals.offer_draw.body')}}> 🤝 </button>
 					</div>
 				{/if}
 			</div>
@@ -649,10 +652,10 @@ onDestroy(() => socket?.disconnect());
 					</div>
 					<div class="modal-footer">
 						<button class="btn-secondary" on:click={() => {showSurrender = false; showDraw = false}}>
-							Cancel
+							{$t('game.buttons.cancel')}
 						</button>
 						<button class="btn-danger" on:click={confirmAction}>
-							Accept
+							{$t('game.buttons.accept')}
 						</button>
 					</div>
 				</div>
@@ -665,14 +668,14 @@ onDestroy(() => socket?.disconnect());
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5>Game Over</h5>
+						<h5>{$t('game.modals.game_over.title')}</h5>
 					</div>
 					<div class="modal-body">
 						{resultText}
 					</div>
 					<div class="modal-footer">
 						<button class="btn-secondary" on:click={goHome}>
-							Return to home
+							{$t('game.buttons.back_home')}
 						</button>
 					</div>
 				</div>

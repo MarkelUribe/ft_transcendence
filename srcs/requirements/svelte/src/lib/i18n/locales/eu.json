@@ -1,6 +1,6 @@
 {
   "home": {
-    "welcome": "Ongi etorri Ultra Xake Online-ra",
+    "welcome": "Ongi etorri",
     "logged_in": "Kaixo, {name}! Jokatzeko prest?",
     "description": "Xakean jokatu, zure partiden erregistroak ikusi eta zure estrategia hobetu. Aukeratu zer egin nahi duzun behean:",
     "play": "Jokatu",
@@ -80,7 +80,7 @@
     },
     "status": {
       "no_friends": "Ez duzu lagunik oraindik",
-      "game_chat": "Partida Txata",
+      "game_chat": "Partidako Chat-a",
       "in_game": "Jokoan",
       "opponent": "Aurkaria",
       "no_game_messages": "Ez dago mezurik partidan",
@@ -151,6 +151,47 @@
     }
   },
 
+  "game": {
+    "player_avatar": "Jokalariaren avatarra",
+    "tabs": {
+      "logs": "Mugimenduak",
+      "chat": "Chat"
+    },
+    "modes": {
+      "review": "Azterketa modua",
+      "spectator": "Ikusle modua"
+    },
+    "buttons": {
+      "accept_draw": "Berdinketa onartu?",
+      "cancel": "Utzi",
+      "accept": "Onartu",
+      "back_home": "Itzuli nagusira"
+    },
+    "modals": {
+      "surrender": {
+        "title": "Errenditzea ziurtatu",
+        "body": "Partida galduko duzu norgehiagokari uko eginez gero."
+      },
+      "offer_draw": {
+        "title": "Berdinketa eskaini?",
+        "body": "Partida berdinketarekin amaituko da aurkariak onartzen badu."
+      },
+      "accept_draw": {
+        "title": "Berdinketa onartu?",
+        "body": "Partida berdinketarekin amaituko da onartzen baduzu."
+      },
+      "game_over": {
+        "title": "Partida amaitu da"
+      }
+    },
+    "end_status": {
+      "ended": "Partida amaitu da",
+      "draw": "Berdinketa",
+      "defeat": "Galdua",
+      "victory": "Garaipena!"
+    }
+  },
+
   "privacy": {
     "meta_title": "Pribatutasun-politika • Ultra Xake Online",
     "title": "Pribatutasun-politika",
@@ -173,7 +214,7 @@
           "1": "Autentifikazioa ematea eta saioa hasita mantentzea.",
           "2": "Matchmaking-a (parekatzea) exekutatzea, partidak sortzea eta jokoaren egoera denbora errealean sinkronizatzea.",
           "3": "Jokalarien profilak, partiden historialak eta sailkapena/ELOa erakustea.",
-          "4": "Lagunen eta txataren funtzioak gaitzea.",
+          "4": "Lagunen eta Chat-aren funtzioak gaitzea.",
           "5": "Abusuak detektatzea, arazoak konpontzea eta Zerbitzuaren segurtasuna eta osotasuna mantentzea."
         }
       },
@@ -239,7 +280,7 @@
         "title": "4) Erabilera onargarria",
         "intro": "Honako hauek ez egitea onartzen duzu:",
         "items": {
-          "1": "Beste erabiltzaile batzuk jazartzea, mehatxatzea edo haietaz abusatzea, txataren edo erabiltzaile-izenen bidez barne.",
+          "1": "Beste erabiltzaile batzuk jazartzea, mehatxatzea edo haietaz abusatzea, Chat-aren edo erabiltzaile-izenen bidez barne.",
           "2": "Eduki ilegalak edo besteen eskubideak urratzen dituzten edukiak argitaratzea.",
           "3": "Akatsak (bug-ak) ustiatzen saiatzea, alderantzizko ingeniaritza egitea edo Zerbitzua edo bere azpiegitura eteten saiatzea.",
           "4": "Automatizazioak, bot-ak edo tranpa-metodoak erabiltzea jokoa edo sailkapenak manipulatzeko.",

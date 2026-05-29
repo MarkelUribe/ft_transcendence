@@ -1,6 +1,6 @@
 {
   "home": {
-    "welcome": "Welcome to Ultra Xake Online",
+    "welcome": "Welcome to",
     "logged_in": "Hello, {name}! Ready to play?",
     "description": "Play chess, review your game logs, and improve your strategy. Choose what you want to do below:",
     "play": "Play",
@@ -148,6 +148,47 @@
       "subtitle": "Public profile",
       "username": "Username",
       "user_id": "User ID"
+    }
+  },
+
+  "game": {
+    "player_avatar": "Player avatar",
+    "tabs": {
+      "logs": "Logs",
+      "chat": "Chat"
+    },
+    "modes": {
+      "review": "Review Mode",
+      "spectator": "Spectator Mode"
+    },
+    "buttons": {
+      "accept_draw": "Accept Draw?",
+      "cancel": "Cancel",
+      "accept": "Accept",
+      "back_home": "Return to home"
+    },
+    "modals": {
+      "surrender": {
+        "title": "Confirm Surrender",
+        "body": "You will lose the game."
+      },
+      "offer_draw": {
+        "title": "Offer a Draw?",
+        "body": "The game will end in a draw if accepted."
+      },
+      "accept_draw": {
+        "title": "Accept the Draw?",
+        "body": "The game will end in a draw if accepted."
+      },
+      "game_over": {
+        "title": "Game Over"
+      }
+    },
+    "end_status": {
+      "ended": "Match ended",
+      "draw": "Draw",
+      "defeat": "Defeat",
+      "victory": "Victory!"
     }
   },
 

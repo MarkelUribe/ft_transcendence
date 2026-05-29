@@ -1,6 +1,6 @@
 {
   "home": {
-    "welcome": "Bienvenue sur Ultra Xake Online",
+    "welcome": "Bienvenue sur",
     "logged_in": "Bonjour, {name} ! Prêt à jouer ?",
     "description": "Jouez aux échecs, consultez l'historique de vos parties et améliorez votre stratégie. Choisissez ce que vous voulez faire ci-dessous :",
     "play": "Jouer",
@@ -148,6 +148,48 @@
       "subtitle": "Profil public",
       "username": "Nom d'utilisateur",
       "user_id": "ID Utilisateur"
+    }
+  },
+
+  "game": {
+    "player_avatar": "Avatar du joueur",
+    "tabs": {
+      "logs": "Coups",
+      "chat": "Chat"
+    },
+    "modes": {
+      "review": "Mode analyse",
+      "spectator": "Mode spectateur"
+    },
+    "buttons": {
+      "accept_draw": "Accepter le nul ?",
+      "cancel": "Annuler",
+      "accept": "Accepter",
+      "back_home": "Retour à l'accueil"
+    },
+    "modals": {
+      "surrender": {
+        "title": "Confirmer l'abandon",
+        "body": "Vous perdrez la partie automatiquement."
+      },
+      "offer_draw": {
+        "title": "Proposer le nul ?",
+        "body": "La partie se terminera par un match nul si l'adversaire accepte."
+      },
+      "accept_draw": {
+        "title": "Accepter le nul ?",
+        "body": "La partie se terminera par un match nul si vous acceptez."
+      },
+      "game_over": {
+        "title": "Partie terminée"
+      }
+    },
+
+    "end_status": {
+      "ended": "Match terminé",
+      "draw": "Match nul",
+      "defeat": "Défaite",
+      "victory": "Victoire !"
     }
   },
 
