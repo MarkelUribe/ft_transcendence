@@ -53,6 +53,7 @@ Ultra Xake Online is a full-stack real-time chess web app with matchmaking, frie
 Notes:
 
 - The stack uses HTTPS locally with a self-signed certificate. Your browser will warn you; accept it for local development.
+- You might have to accept the backend ssl aswell, do this trying to access the port 3000 of the host ip in the browser.
 - Do **not** commit secrets.
 
 ### Run (development)
@@ -75,33 +76,36 @@ Builds and runs the base compose stack:
 ```bash
 make up
 ```
-
-### Stop / cleanup
-
+ SvelteKit with Svelte 5 and Vite
+ Bootstrap for responsive layout and styling
+ svelte-i18n for translations and the language selector
+ socket.io-client for real-time communication with the backend
 ```bash
 make down
 ```
-
-### Useful commands
-
-- `make dev` — run full stack with dev overrides (hot reload)
-- `make up` — build & run base stack
+ NestJS with TypeScript
+ Socket.IO and Nest WebSockets for real-time gameplay, chat, and matchmaking
+ TypeORM with MariaDB
+ JWT authentication with Passport local and JWT strategies
+ chess.js for move validation and game-state logic
+ bcrypt, class-validator, class-transformer, and ConfigModule for authentication, validation, and configuration
+ File uploads handled through the Nest/Express stack for user avatars
 - `make down` — stop containers and remove volumes (and prune unused Docker resources)
 - `make rebuild` — rebuild without cache
 - `make all` — generate secrets + TLS certs (and ensure `srcs/.env` exists)
-- `make ensure-env` — create `srcs/.env` from `srcs/.env.example` if missing
 - `make clean` — alias for `make down`
+ ### DevOps / Infrastructure
+
+ - Docker and Docker Compose
+ - GNU Make for project automation
+ - OpenSSL for local TLS certificates and generated secrets
 - `make clean-secrets` — delete generated secrets and TLS certs
 - `make fclean` / `make reset` — full reset (down + delete secrets + remove images)
 - `make re` — full reset + restart
-
-
-### Services and compose files
-
-- Base stack: `srcs/compose.yaml`
-- Dev overrides: `srcs/compose.dev.yaml`
-
-Ports are configured in `srcs/.env`:
+ It gives us file-based routing, a clean component model, and a good development experience.
+ It fits the project well because it is modular, strongly typed, and easy to structure for services, gateways, and controllers.
+ We needed real-time communication for chat, matchmaking, and live games, and Socket.IO handles reconnects well.
+ MariaDB works well for the project, and TypeORM makes entity-based development and relations straightforward.
 
 - `BACKEND_PORT` (default: 3000)
 - `FRONTEND_PORT` (default: 5173)
@@ -110,19 +114,19 @@ Ports are configured in `srcs/.env`:
 ## Team Information
 
 | Member (login) | Role(s) | Responsibilities |
+ We distributed the work according to each person’s strengths, such as system work (Docker, Makefile automation), frontend work, gameplay systems, and framework/database integration.
+ We discussed responsibilities before implementation so branches could be merged cleanly and the project could keep moving forward.
+ We tested the full stack and the features, especially after each merge, to make sure everything kept working as intended.
 |---|---|---|
 | muribe-l | PM DEV | Users/Auth/Ranking systems + related frontend |
 | kabasolo | PO DEV | Game system (backend + frontend), replay, clock, matchmaking |
-| jleon-la | TL DEV | Docker, Compose, Makefile (secrets/SSL automation) |
+ Replay (review mode): implemented as part of the game UI using the stored move list; useful for reviewing a finished match, but **not counted** as a subject module.
 | iboiraza | TL DEV | i18n (multi-language), chat widget, friends UX (incl. friends “leaderboard”) |
 
 ## Project Management
-
-**How we organized the work**
-
-We distributed the work taking into account the experience of each one, like the system side (docker, make), also frontend, making games and experience with frameworks and databases etc.
-We spoke about what should everyone do so that we could merge our branches and continue the project.
-We tested all the systems and the features, specialy after every merge so we knew that it worked as intended. Then we decided how many features we wanted to keep adding.
+We distributed the work according to each person’s strengths, such as system work (Docker, Makefile automation), frontend work, gameplay systems, and framework/database integration.
+We discussed responsibilities before implementation so branches could be merged cleanly and the project could keep moving forward.
+We tested the full stack and the features, especially after each merge, to make sure everything kept working as intended.
 
 **Tools**
 
@@ -138,32 +142,41 @@ We tested all the systems and the features, specialy after every merge so we kne
 
 ### Frontend
 
-- SvelteKit (Svelte 5) + Vite (HTTPS dev server)
-- Bootstrap
-- Socket.IO client
+- SvelteKit with Svelte 5 and Vite
+- Bootstrap for responsive layout and styling
+- svelte-i18n for translations and the language selector
+- socket.io-client for real-time communication with the backend
 
 ### Backend
 
-- NestJS (TypeScript)
-- Socket.IO (WebSockets)
-- TypeORM
-- JWT + Passport
-- chess.js
+- NestJS with TypeScript
+- Socket.IO and Nest WebSockets for real-time gameplay, chat, and matchmaking
+- TypeORM with MariaDB
+- JWT authentication with Passport local and JWT strategies
+- chess.js for move validation and game-state logic
+- bcrypt, class-validator, class-transformer, and ConfigModule for authentication, validation, and configuration
+- File uploads handled through the Nest/Express stack for user avatars
 
 ### Database
 
 - MariaDB
 
+### DevOps / Infrastructure
+
+- Docker and Docker Compose
+- GNU Make for project automation
+- OpenSSL for local TLS certificates and generated secrets
+
 ### Major technical choices (justification)
 
 - Why SvelteKit (SPA/SSR, routing, DX)
-Because it is a common framework known to work well and some friends recomended it to us.
+	It gives us file-based routing, a clean component model, and a good development experience.
 - Why NestJS (architecture, modules, TS ecosystem)
-It is known to be a good match with svelte and we had no problem using typescript
+	It fits the project well because it is modular, strongly typed, and easy to structure for services, gateways, and controllers.
 - Why Socket.IO (events, reconnections)
-Because we needed websockets for real time events and it comes with other featueres.
+	We needed real-time communication for chat, matchmaking, and live games, and Socket.IO handles reconnects well.
 - Why MariaDB + TypeORM (relations, consistency, Docker friendliness)
-MariaDB just workes fine and typeORM makes our lifes so much easier.
+	MariaDB works well for the project, and TypeORM makes entity-based development and relations straightforward.
 
 ## Database Schema
 
@@ -307,9 +320,9 @@ These are modules we considered/count internally, but they are **not** included 
 | Game statistics and match history (requires a game module) | Minor | 1 | Partially implemented (match history + W/L/D stats + ELO + leaderboard UI + basic achievements UI) | Full progression system (persistent level/XP/badges/etc.) and/or a clearer achievement/progression spec stored in DB |
 | Support for additional browsers | Minor | 1 | Tested on Chrome + Firefox | Add at least 2 additional browsers beyond the baseline (e.g. Safari/Edge), document limitations, verify consistent UI/UX |
 
-### Extra feature (not a scored module)
+### Extra feature
 
-- Replay (review mode): implemented as part of the game UI using the stored move list; documented here for completeness but **not counted** as an extra subject module.
+- Replay (review mode): implemented as part of the game UI using the stored move list; useful for reviewing a finished match, but **not counted** as a subject module.
 
 
 ## Individual Contributions
@@ -366,9 +379,4 @@ We used AI tools to help with debugging and understanding framework features. We
 | GitHub Copilot | Debugging and understanding framework/library usage, help with the README | Most of the project | Manual testing, code review |
 | ChatGPT | Debugging help and conceptual explanations | Some backend services and some frontend parts | Manual testing, cross-checking docs, code review |
 
-## TODO Checklist
-
-- Document browser support beyond Chrome+Firefox (Edge/Safari, limitations)
-- Add any known limitations (optional but recommended)
-- (Optional) Make AI usage disclosure more precise (feature/file level)
 

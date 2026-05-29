@@ -202,9 +202,6 @@
                 >{Math.round(stats.winRate * 100)}%</strong
               >
             </div>
-            <div class="stat-row">
-              <span>{$t('profile.stats.active_games')}</span><strong>{stats.active}</strong>
-            </div>
           </div>
         {/if}
       </div>

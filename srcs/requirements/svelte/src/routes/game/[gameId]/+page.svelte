@@ -672,14 +672,14 @@ onDestroy(() => socket?.disconnect());
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5>Game Over</h5>
+					<h5>{$t('game.modals.game_over.title')}</h5>
 				</div>
 				<div class="modal-body">
 					{resultText}
 				</div>
 				<div class="modal-footer">
 					<button class="btn-secondary" on:click={goHome}>
-						Return to home
+						{$t('game.buttons.back_home')}
 					</button>
 				</div>
 			</div>
