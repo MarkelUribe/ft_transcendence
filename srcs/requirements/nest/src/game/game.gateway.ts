@@ -257,8 +257,6 @@ export class GameGateway implements OnGatewayConnection{
 
 		if (game.whiteDraw && game.blackDraw)
 		{
-			game.status = 'ended';
-	
 			this.gameService.drawAccepted(gameId);
 
 			this.server.to(gameId).emit('ended', { looser: game.looser });
