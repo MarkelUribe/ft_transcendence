@@ -200,7 +200,7 @@ export class GameService
 
 		if (game.activeColor !== turnId) throw new BadRequestException("Not your turn silly");
 
-		const currentFen = lastMove ? lastMove.fen : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNQkq - 0 1';
+		const currentFen = lastMove ? lastMove.fen : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 		const chess = new Chess(currentFen);
 

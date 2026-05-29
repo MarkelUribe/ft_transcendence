@@ -214,9 +214,6 @@
               <span>{$t('profile.stats.matches')}</span><strong>{stats.played}</strong>
             </div>
             <div class="stat-row">
-              <span>{$t('profile.stats.finished')}</span><strong>{stats.finished}</strong>
-            </div>
-            <div class="stat-row">
               <span>{$t('profile.stats.wins')}</span><strong>{stats.wins}</strong>
             </div>
             <div class="stat-row">
@@ -232,13 +229,6 @@
             </div>
             <div class="stat-row">
               <span>{$t('profile.stats.active_games')}</span><strong>{stats.active}</strong>
-            </div>
-            <div class="stat-row">
-              <span>{$t('profile.stats.member_since')}</span><strong
-                >{user.createdAt
-                  ? new Date(user.createdAt).toLocaleDateString()
-                  : "—"}</strong
-              >
             </div>
           </div>
         {/if}
@@ -324,16 +314,16 @@
 
           <div class="stats-list">
             <div class="stat-row">
-              <span>Your First Game</span><strong>{Number(stats.played) >= 1? '✔': '0/1'}</strong>
+              <span>Your First Game</span><strong>{Number(stats.played) >= 1? '✔': stats.played + ' / 1'}</strong>
             </div>
             <div class="stat-row">
               <span>Play 1000 Games</span><strong>{Number(stats.played) >= 1000? '✔': stats.played + ' / 1000'}</strong>
             </div>
             <div class="stat-row">
-              <span>Win 1 Games</span><strong>{Number(stats.wins) >= 1? '✔': '✖'}</strong>
+              <span>Win 1 Games</span><strong>{Number(stats.wins) >= 1? '✔': stats.wins + ' / 1'}</strong>
             </div>
             <div class="stat-row">
-              <span>Win 10 Games</span><strong>{Number(stats.wins) >= 10? '✔': '✖'}</strong>
+              <span>Win 10 Games</span><strong>{Number(stats.wins) >= 10? '✔': stats.wins + ' / 10'}</strong>
             </div>
             <div class="stat-row">
               <span>Win 100 Games</span><strong>{Number(stats.wins) >= 100? '✔': stats.wins + ' / 100'}</strong>
