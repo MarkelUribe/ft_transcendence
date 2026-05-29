@@ -100,6 +100,12 @@
       "loading": "Historiala kargatzen…",
       "empty": "Ez da partidarik aurkitu oraindik.",
       "redirecting": "Bideratzen..."
+    },
+    "results": {
+      "victory": "GARAIPENA",
+      "defeat": "GALDUTA",
+      "draw": "BERDINKETA",
+      "battling": "JOKOAN"
     }
   },
 

@@ -100,6 +100,12 @@
       "loading": "Chargement de l'historique…",
       "empty": "Aucun match trouvé pour le moment.",
       "redirecting": "Redirection..."
+    },
+    "results": {
+      "victory": "VICTOIRE",
+      "defeat": "DÉFAITE",
+      "draw": "MATCH NUL",
+      "battling": "EN COURS"
     }
   },
 

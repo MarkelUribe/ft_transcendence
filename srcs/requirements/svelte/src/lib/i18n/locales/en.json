@@ -100,6 +100,12 @@
       "loading": "Loading history…",
       "empty": "No matches found yet.",
       "redirecting": "Redirecting..."
+    },
+    "results": {
+      "victory": "VICTORIA",
+      "defeat": "DEFEAT",
+      "draw": "DRAW",
+      "battling": "BATTLING"
     }
   },
 
