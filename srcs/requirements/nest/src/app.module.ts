@@ -6,9 +6,11 @@ import { GameModule } from './game/game.module';
 import { MatchmakingModule } from './game/matchmaking/matchmaking.module';
 import { FriendsModule } from './friends/friends.module';
 import { ChatModule } from './chat/chat.module';
+import { HealthController } from './health.controller';
 
 
 @Module({
   imports: [UsersModule, AuthModule, DatabaseModule, GameModule, MatchmakingModule, FriendsModule, ChatModule],
+  controllers: [HealthController],
 })
 export class AppModule {}

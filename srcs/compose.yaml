@@ -7,7 +7,6 @@ services:
     environment:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
-      # IMPORTANTE: Usamos _FILE para que MariaDB lea el contenido del archivo
       - MYSQL_PASSWORD_FILE=/run/secrets/db_password
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
     volumes:
@@ -18,12 +17,10 @@ services:
     networks:
       - transcendence_net
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mariadb-admin ping -h 127.0.0.1 -uroot -p\"$(cat /run/secrets/db_root_password)\" --silent"
-        ]
-
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -p\"$(cat /run/secrets/db_root_password)\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   backend:
     build:
       context: ./requirements/nest
@@ -74,6 +71,39 @@ services:
       - transcendence_net
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 5173"]
+
+  backuper:
+    image: debian:latest
+    container_name: backup-container
+    stdin_open: true
+    tty: true
+    restart: always
+    depends_on:
+      frontend: 
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - transcendence_net
+    volumes:
+      - ./requirements/backuper/tools:/usr/local/bin:Z 
+      - ./requirements/backuper/srcs/index.html:/var/www/html/index.html:Z 
+      - ./backups:/backups:Z
+      - mariadb_data:/var/lib/mysql
+      - ../secrets/db_password.txt:/run/secrets/db_password:ro,Z
+      - ../secrets/db_root_password.txt:/run/secrets/db_root_password:ro,Z
+      - ../secrets/db_password.txt:/run/secrets/db_password:ro,Z
+      - ../secrets/jwt_secret.txt:/run/secrets/jwt_secret:ro,Z
+      - ../secrets/ssl/localhost.crt:/run/secrets/ssl_cert:ro,Z
+      - ../secrets/ssl/localhost.key:/run/secrets/ssl_key:ro,Z
+      - ../secrets/ssl/localhost.crt:/run/secrets/ssl_cert:ro,Z
+      - ../secrets/ssl/localhost.key:/run/secrets/ssl_key:ro,Z
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: bash /usr/local/bin/entrypoint.sh
 
 volumes:
   mariadb_data:
