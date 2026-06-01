@@ -79,8 +79,10 @@ services:
     tty: true
     restart: always
     depends_on:
-      frontend: 
+      frontend:
         condition: service_healthy
+      environment:
+        VITE_API_URL: ${VITE_API_URL}
     ports:
       - "8080:8080"
     networks:
