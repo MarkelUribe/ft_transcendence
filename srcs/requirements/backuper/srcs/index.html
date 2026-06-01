@@ -79,7 +79,7 @@
 <script>
     // Configura aquí las URLs de tus contenedores
     BASE_URL = import.meta.env.VITE_API_URL;
-    const FRONTEND_URL = BASE_URL.slice(0, -5) + ":5173"; // Ajusta el puerto de tu Svelte si es necesario
+    const FRONTEND_URL = BASE_URL.slice(0, -5) + ":5173";
     const BACKEND_URL = BASE_URL + "/api/health"; 
 
     async function checkHealth() {
