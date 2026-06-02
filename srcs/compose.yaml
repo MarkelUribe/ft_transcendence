@@ -81,8 +81,8 @@ services:
     depends_on:
       frontend:
         condition: service_healthy
-      environment:
-        VITE_API_URL: ${VITE_API_URL}
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
     ports:
       - "8080:8080"
     networks:

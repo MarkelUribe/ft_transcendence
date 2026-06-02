@@ -78,9 +78,14 @@
 
 <script>
     // Configura aquí las URLs de tus contenedores
-    BASE_URL = import.meta.env.VITE_API_URL;
-    const FRONTEND_URL = BASE_URL.slice(0, -5) + ":5173";
-    const BACKEND_URL = BASE_URL + "/api/health"; 
+    //BASE_URL = import.meta.env.VITE_API_URL;
+    //const FRONTEND_URL = BASE_URL.slice(0, -5) + ":5173";
+    //const BACKEND_URL = BASE_URL + "/api/health"; 
+
+    // Obtiene automáticamente el protocolo y host actual (ej: http://localhost:8080)
+    BASE_URL = window.location.origin; 
+    const FRONTEND_URL = "https://" + window.location.hostname + ":5173";
+    const BACKEND_URL  = "https://" + window.location.hostname + ":3000/api/health";
 
     async function checkHealth() {
         const frontendDiv = document.getElementById('status-frontend');
