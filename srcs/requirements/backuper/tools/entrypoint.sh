@@ -23,8 +23,11 @@ echo "Inserting job in root's crontab"
 chmod 755 /tmp/cronjob.sh
 echo "0 * * * * /tmp/cronjob.sh" | crontab -
 
-sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
-sed -i 's/<VirtualHost \*:80>/<VirtualHost \*:8080>/g' /etc/apache2/sites-available/000-default.conf
+# Only modify ports.conf if it hasn't been modified yet to avoid syntax errors on restart
+if ! grep -q "Listen 8080" /etc/apache2/ports.conf; then
+    sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
+    sed -i 's/<VirtualHost \*:80>/<VirtualHost \*:8080>/g' /etc/apache2/sites-available/000-default.conf
+fi
 echo "Starting Apache Web Server on port 8080..."
 
 source /etc/apache2/envvars

@@ -56,6 +56,34 @@ Notes:
 - You might have to accept the backend ssl aswell, do this trying to access the port 3000 of the host ip in the browser.
 - Do **not** commit secrets.
 
+### Before running (important)
+
+- Run `make` once (no arguments) to prepare the local development environment. The Makefile now creates all required secrets first (database passwords, JWT secret, TLS certs), then generates `srcs/.env` from `srcs/.env.example` if it's missing.
+
+- After the first `make`, edit `srcs/.env` and set `VITE_API_URL` to your machine's local (LAN) IP if you want other devices on your network to access the frontend. Then run `make up` to build and start the stack.
+
+- The first `make` will print exactly the following block (and exit cleanly with no Make error):
+
+```
+==========================================================================
+ [make] Created ./srcs/.env from ./srcs/.env.example.
+   IMPORTANT: Edit ./srcs/.env and change the variables appropriately
+   specifically VITE_API_URL to your locally hosted IP to run on network!
+   Once configured, run 'make up' or 'make dev'.
+==========================================================================
+```
+
+- You will also see explicit messages showing that random secrets were created, for example:
+
+```
+[make] Created secrets/db_password.txt
+[make] Created secrets/db_root_password.txt
+[make] Created secrets/jwt_secret.txt
+[make] Created secrets/ssl/localhost.key and localhost.crt
+```
+
+- Configuration note: the `ensure-env` target deliberately exits cleanly after generating `srcs/.env` to avoid surfacing an `Error 1` to the console; you only need to edit `srcs/.env` and run `make up` afterwards.
+
 ### Run (development)
 
 Runs the base compose file plus dev overrides (hot reload via bind mounts + node_modules volumes):
@@ -68,6 +96,7 @@ Open:
 
 - Frontend: `https://localhost:5173`
 - Backend: `https://localhost:3000`
+- DevOps Status Page: `http://localhost:8080` (provides access to database backups)
 
 ### Run (production-style)
 
@@ -76,20 +105,7 @@ Builds and runs the base compose stack:
 ```bash
 make up
 ```
- SvelteKit with Svelte 5 and Vite
- Bootstrap for responsive layout and styling
- svelte-i18n for translations and the language selector
- socket.io-client for real-time communication with the backend
-```bash
-make down
-```
- NestJS with TypeScript
- Socket.IO and Nest WebSockets for real-time gameplay, chat, and matchmaking
- TypeORM with MariaDB
- JWT authentication with Passport local and JWT strategies
- chess.js for move validation and game-state logic
- bcrypt, class-validator, class-transformer, and ConfigModule for authentication, validation, and configuration
- File uploads handled through the Nest/Express stack for user avatars
+
 - `make down` — stop containers and remove volumes (and prune unused Docker resources)
 - `make rebuild` — rebuild without cache
 - `make all` — generate secrets + TLS certs (and ensure `srcs/.env` exists)
@@ -284,6 +300,7 @@ erDiagram
 | Stats + achievements | Compute W/L/D + show basic achievements | `getMatchHistory` event | `/profile` | kabasolo |
 | Replay (review mode) | Move-by-move replay of a match (navigation through stored moves) | `joinGame` emits full move list (FEN + SAN) | `/game/:gameId` (review mode, arrows + move list) | kabasolo |
 | Spectator mode | Watch an ongoing game by id with real-time updates | `joinGame` + `moveMade` events | `/game/:gameId` | kabasolo, iboiraza |
+| DevOps Status/Backup Page | View system status and access database backups | Custom Apache server in `backuper` container | `http://localhost:8080` | jleon-la |
 
 ## Modules
 
@@ -306,12 +323,17 @@ Below is the set of modules that are **implemented in code**. During evaluation,
 | Implement spectator mode for games | Minor | 1 | Better UX and evaluation demo | Spectate active games via game id (real-time updates for spectators) | kabasolo, iboiraza |
 | Support for additional browsers | Minor | 1 | We work on different browsers | Tested in various browsers| All |
 | Game statistics and match history  | Minor | 1 | (match history + W/L/D stats + ELO + leaderboard UI + basic achievements UI) | Full progression system (persistent level/XP/badges/etc.) and/or a clearer achievement/progression spec stored in DB | kabasolo |
+| Infrastructure for log management | Major | 2 | Required for logs centralization | Infrastructure for log management using ELK (Elasticsearch, Logstash, Kibana) | jleon-la |
+| Monitoring system | Major | 2 | Better system visibility | Monitoring system with Prometheus and Grafana | jleon-la |
+| Backend as microservices | Major | 2 | Application scalablity | Backend structured as loosely-coupled microservices with clear interfaces | jleon-la |
+| Health check and status page | Minor | 1 | Disaster recovery & uptime | Health check and status page system with automated backups and disaster recovery procedures | jleon-la |
+
 ## Extra module
 | Module | Type | Points | Why chosen | Owner(s) |
 |---|---|---:|---|---|
 |  Replay (review mode) | Minor | 1 | implemented as part of the game UI using the stored move list; useful for reviewing a finished match | kabasolo |
 
-**Total points (implemented above):** 17
+**Total points (implemented above):** 24
 
 
 
@@ -340,6 +362,7 @@ Note: the number of “features” per person is not directly comparable — som
 - Secrets automation (auto-generate DB passwords + JWT secret if missing)
 - Local HTTPS automation (self-signed TLS cert generation for `localhost`)
 - Full reset tooling for evaluators/teammates (remove containers/volumes/images + generated secrets)
+- DevOps modules: ELK stack for logs, Prometheus/Grafana for monitoring, microservices architecture, and health/backup systems
 
 ### iboiraza
 
