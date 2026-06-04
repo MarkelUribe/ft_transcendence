@@ -154,6 +154,18 @@
       "subtitle": "Perfil público",
       "username": "Usuario",
       "user_id": "ID de usuario"
+    },
+
+    "achievements": {
+      "title": "Logros",
+      "loading": "Cargando logros...",
+      "list": {
+        "first_game": "Tu primera partida",
+        "thousand_games": "Jugar 1000 partidas",
+        "win_1": "Ganar 1 partida",
+        "win_10": "Ganar 10 partidas",
+        "win_100": "Ganar 100 partidas"
+      }
     }
   },
 

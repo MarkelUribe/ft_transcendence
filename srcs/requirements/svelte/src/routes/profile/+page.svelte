@@ -302,28 +302,28 @@
       </div>
 
       <div class="profile-card">
-        <h1 style="margin: 0 0 0.5rem 0;">Achivements</h1>
+        <h1 style="margin: 0 0 0.5rem 0;">{$t('profile.achievements.title')}</h1>
         {#if statsLoading}
-          <p>Loading Achivements...</p>
+          <p>{$t('profile.achievements.loading')}</p>
         {:else if statsError}
           <p class="error-text">{statsError}</p>
         {:else}
 
           <div class="stats-list">
             <div class="stat-row">
-              <span>Your First Game</span><strong>{Number(stats.played) >= 1? '✔': stats.played + ' / 1'}</strong>
+              <span>{$t('profile.achievements.list.first_game')}</span><strong>{Number(stats.played) >= 1? '✔': stats.played + ' / 1'}</strong>
             </div>
             <div class="stat-row">
-              <span>Play 1000 Games</span><strong>{Number(stats.played) >= 1000? '✔': stats.played + ' / 1000'}</strong>
+              <span>{$t('profile.achievements.list.thousand_games')}</span><strong>{Number(stats.played) >= 1000? '✔': stats.played + ' / 1000'}</strong>
             </div>
             <div class="stat-row">
-              <span>Win 1 Games</span><strong>{Number(stats.wins) >= 1? '✔': stats.wins + ' / 1'}</strong>
+              <span>{$t('profile.achievements.list.win_1')}</span><strong>{Number(stats.wins) >= 1? '✔': stats.wins + ' / 1'}</strong>
             </div>
             <div class="stat-row">
-              <span>Win 10 Games</span><strong>{Number(stats.wins) >= 10? '✔': stats.wins + ' / 10'}</strong>
+              <span>{$t('profile.achievements.list.win_10')}</span><strong>{Number(stats.wins) >= 10? '✔': stats.wins + ' / 10'}</strong>
             </div>
             <div class="stat-row">
-              <span>Win 100 Games</span><strong>{Number(stats.wins) >= 100? '✔': stats.wins + ' / 100'}</strong>
+              <span>{$t('profile.achievements.list.win_100')}</span><strong>{Number(stats.wins) >= 100? '✔': stats.wins + ' / 100'}</strong>
             </div>
           </div>
         {/if}
