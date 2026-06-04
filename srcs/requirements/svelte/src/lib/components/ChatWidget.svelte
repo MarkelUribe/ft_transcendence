@@ -637,7 +637,9 @@ onMount(async () => {
               {selectedFriend.username?.charAt(0).toUpperCase() || "?"}
             {/if}
           </div>
-          <span>{selectedFriend.username}</span>
+          <span>
+            {selectedFriend.isGame ? $t('chat.status.game_chat') : selectedFriend.username}
+          </span>
         </header>
 
         <div class="messages" bind:this={messagesContainer}>
