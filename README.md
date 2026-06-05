@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by muribe-l, kabasolo, jleon-la, iboiraza.*
+*This project has been created as part of the 42 curriculum by muribe-l, kabasolo, jleon-la and iboiraza.*
 
 # ft_transcendence — Ultra Xake Online
 
