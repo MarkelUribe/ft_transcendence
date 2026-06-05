@@ -72,6 +72,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 backend/uploads/avatars/
 frontend/.svelte-kit
 
+# Backups
+srcs/backups/*
+
 # SvelteKit / Vite
 **/.svelte-kit/
 **/.vite/

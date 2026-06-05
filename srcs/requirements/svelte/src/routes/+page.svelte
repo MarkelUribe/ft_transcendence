@@ -54,7 +54,7 @@
     }
 </script>
 
-<div class="home-layout">
+<div class="home-layout" class:logged-in={isLoggedIn} class:logged-out={!isLoggedIn}>
     <div class="home-main">
         <div class="container">
             <h1 class="hero-title">
@@ -190,9 +190,14 @@
         align-items: start;
     }
 
+    .home-layout.logged-out {
+        grid-template-columns: 1fr minmax(0, 640px) 1fr;
+    }
+
     .home-main {
         grid-column: 2;
     }
+
     .home-chat {
         grid-column: 3;
         justify-self: end;

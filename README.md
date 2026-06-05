@@ -323,8 +323,6 @@ Below is the set of modules that are **implemented in code**. During evaluation,
 | Implement spectator mode for games | Minor | 1 | Better UX and evaluation demo | Spectate active games via game id (real-time updates for spectators) | kabasolo, iboiraza |
 | Support for additional browsers | Minor | 1 | We work on different browsers | Tested in various browsers| All |
 | Game statistics and match history  | Minor | 1 | (match history + W/L/D stats + ELO + leaderboard UI + basic achievements UI) | Full progression system (persistent level/XP/badges/etc.) and/or a clearer achievement/progression spec stored in DB | kabasolo |
-| Infrastructure for log management | Major | 2 | Required for logs centralization | Infrastructure for log management using ELK (Elasticsearch, Logstash, Kibana) | jleon-la |
-| Monitoring system | Major | 2 | Better system visibility | Monitoring system with Prometheus and Grafana | jleon-la |
 | Backend as microservices | Major | 2 | Application scalablity | Backend structured as loosely-coupled microservices with clear interfaces | jleon-la |
 | Health check and status page | Minor | 1 | Disaster recovery & uptime | Health check and status page system with automated backups and disaster recovery procedures | jleon-la |
 
@@ -333,7 +331,7 @@ Below is the set of modules that are **implemented in code**. During evaluation,
 |---|---|---:|---|---|
 |  Replay (review mode) | Minor | 1 | implemented as part of the game UI using the stored move list; useful for reviewing a finished match | kabasolo |
 
-**Total points (implemented above):** 24
+**Total points (implemented above):** 20
 
 
 
