@@ -154,6 +154,18 @@
       "subtitle": "Public profile",
       "username": "Username",
       "user_id": "User ID"
+    },
+
+    "achievements": {
+      "title": "Achievements",
+      "loading": "Loading achievements...",
+      "list": {
+        "first_game": "Your First Game",
+        "thousand_games": "Play 1000 Games",
+        "win_1": "Win 1 Game",
+        "win_10": "Win 10 Games",
+        "win_100": "Win 100 Games"
+      }
     }
   },
 

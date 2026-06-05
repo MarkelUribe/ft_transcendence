@@ -75,7 +75,7 @@
                         class="button {$searching ? 'searching' : 'idle'}"
                         onclick={handleButtonClick}
                     >
-                    {$searching ? "Searching... (Click to cancel)" : $t('home.play')}
+                    {$searching ? $t('home.searching') : $t('home.play')}
                     </button>
                     <button class="button" onclick={handleLogout}>{$t('home.logout')}</button
                     >

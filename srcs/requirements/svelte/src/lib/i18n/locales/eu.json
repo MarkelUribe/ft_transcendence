@@ -154,6 +154,18 @@
       "subtitle": "Profil publikoa",
       "username": "Erabiltzailea",
       "user_id": "Erabiltzaile IDa"
+    },
+
+    "achievements": {
+      "title": "Lorpenak",
+      "loading": "Lorpenak kargatzen...",
+      "list": {
+        "first_game": "Zure lehen partida",
+        "thousand_games": "1000 partida jokatu",
+        "win_1": "Partida 1 irabazi",
+        "win_10": "10 partida irabazi",
+        "win_100": "100 partida irabazi"
+      }
     }
   },
 

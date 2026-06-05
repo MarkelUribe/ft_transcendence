@@ -154,6 +154,18 @@
       "subtitle": "Profil public",
       "username": "Nom d'utilisateur",
       "user_id": "ID Utilisateur"
+    },
+
+    "achievements": {
+      "title": "Succès",
+      "loading": "Chargement des succès...",
+      "list": {
+        "first_game": "Votre première partie",
+        "thousand_games": "Jouer 1 000 parties",
+        "win_1": "Gagner 1 partie",
+        "win_10": "Gagner 10 parties",
+        "win_100": "Gagner 100 parties"
+      }
     }
   },
 
