@@ -175,7 +175,7 @@ function handleEnd(msg: any)
 	const myId = Number(localStorage.getItem('id'));
 
 	const $t = get(t);
-	if (!myColor)
+	if (myColor === 'spectator')
 		resultText = $t('game.end_status.ended');
 	else if (msg.looser === -1)
 		resultText = $t('game.end_status.draw');
@@ -187,8 +187,18 @@ function handleEnd(msg: any)
 }
 
 function originalIndices(r: number, c: number)	{ return myColor === 'black' ? [7 - r, 7 - c] : [r, c]; }
-function getPieceImage(piece: string | null)	{ return piece ? `/pieces/${piece}.png` : ''; }
 function goHome()								{ window.location.href = '/'; }
+
+function getPieceImage(piece: string | null): string
+{
+	if (!piece)
+		return '';
+
+	if (piece === piece.toUpperCase())
+		return `/pieces/white/${piece}.png`;
+
+	return `/pieces/black/${piece}.png`;
+}
 
 function coordFromDisplay(r: number, c: number)
 {
@@ -622,7 +632,7 @@ onDestroy(() => socket?.disconnect());
 						{formatTime(whiteClock)}
 					</div>
 				{/if}
-				{#if !isReviewMode}
+				{#if !(isReviewMode || myColor === 'spectator')}
 					<div class="controls">
 						<button class="surrender-btn" on:click={() => {showSurrender = true; headerText = $t('game.modals.surrender.title'); bodyText = $t('game.modals.surrender.body')}}> 🏳️ </button>
 					</div>

@@ -22,7 +22,7 @@ async function bootstrap() {
 
   app.enableCors({
     // In dev, reflect the request origin to avoid hard-coding
-    origin: true,
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
@@ -36,6 +36,6 @@ async function bootstrap() {
     express.static(join(__dirname, '..', 'resources')),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();

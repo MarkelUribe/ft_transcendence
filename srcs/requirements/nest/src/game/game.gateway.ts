@@ -48,7 +48,6 @@ export class GameGateway implements OnGatewayConnection{
 		}
 		catch (err)
 		{
-			console.log('Socket rejected');
 			client.disconnect();
 		}
 	}
@@ -167,8 +166,6 @@ export class GameGateway implements OnGatewayConnection{
 
 		if (!userId) { client.emit('moveRejected', { reason: 'Unauthorized' }); return; }
 
-		console.log('ProposeMove received:', { gameId, from, to, promotion, userId });
-
 		try
 		{
 			const game = await this.gameService.makeMove(gameId, from, to, userId, promotion);
@@ -199,8 +196,6 @@ export class GameGateway implements OnGatewayConnection{
 		catch (error)
 		{
 			const reason = error.message || 'Invalid move';
-
-			console.log('Move error:', reason);
 
 			client.emit('moveRejected', { reason });
 		}
@@ -282,6 +277,11 @@ export class GameGateway implements OnGatewayConnection{
 		const userId = client.data.userId;
 	
 		if (!userId) return;
+
+		const game = await this.gameService.findOne(gameId);
+
+		if ((game.white.id != userId && game.black.id != userId) || game.status != 'active')
+			return ;
 
 		this.gameService.addMessage(gameId, { user, text });
 
