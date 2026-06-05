@@ -110,6 +110,29 @@ make up
 - `make rebuild` — rebuild without cache
 - `make all` — generate secrets + TLS certs (and ensure `srcs/.env` exists)
 - `make clean` — alias for `make down`
+
+## Manual Database Restoration Procedure
+
+If you need to restore the database manually step by step, the logical workflow you must follow is outlined below:
+
+### Step 1: Identify the Most Recent Backup
+Navigate to the directory where backups are stored (in this case, `/backups`). List the files available there, sort them chronologically or alphabetically, and select the newest backup file (`.sql`) to ensure you are restoring the latest data state.
+
+### Step 2: Load Credentials and Environment Variables
+Before interacting with the database engine, you must ensure you have the correct access privileges. You need to extract and prepare the following data:
+* **Root Password:** Located inside the secret file `../../secrets/db_root_password.txt`. (Ensure any trailing newlines are removed when using it).
+* **Database Name:** Extracted from the configuration file `../../srcs/.env` under the `MYSQL_DATABASE` variable (the default target value used is `transcendence`).
+
+### Step 3: Clean the Database Environment
+To prevent duplication conflicts or leftover corrupt data, connect to the MariaDB server (host: `mariadb`) via local TCP and execute a cleanup statement.
+* First, drop the existing database if it already exists (`DROP DATABASE IF EXISTS transcendence;`).
+* Immediately after, create a completely fresh and empty database (`CREATE DATABASE transcendence;`).
+
+### Step 4: Import the Backup
+Finally, take the backup file selected in **Step 1** and redirect its entire content (the SQL statements for table creation and data insertion) directly into the clean database you just initialized in **Step 3**.
+
+**Configuration Note:** During manual terminal connections, communication with the `mariadb` host is performed by explicitly specifying the TCP protocol and keeping SSL disabled (`--ssl=0`).
+
  ### DevOps / Infrastructure
 
  - Docker and Docker Compose

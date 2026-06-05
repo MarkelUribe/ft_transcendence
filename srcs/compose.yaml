@@ -20,7 +20,8 @@ services:
       test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -p\"$(cat /run/secrets/db_root_password)\" --silent"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 25
+      start_period: 120s
   backend:
     build:
       context: ./requirements/nest
@@ -81,6 +82,8 @@ services:
     depends_on:
       frontend:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
       VITE_API_URL: ${VITE_API_URL}
     ports:
@@ -88,6 +91,7 @@ services:
     networks:
       - transcendence_net
     volumes:
+      - ./backups/recovery.sh:/tmp/recovery.sh:Z
       - ./requirements/backuper/tools:/usr/local/bin:Z 
       - ./requirements/backuper/srcs/index.html:/var/www/html/index.html:Z 
       - ./backups:/backups:Z
