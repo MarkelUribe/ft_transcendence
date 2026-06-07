@@ -107,7 +107,7 @@ onMount(async () => {
   try {
     unreadChats = await getUnreads();
   } catch (e) {
-    console.error("Error cargando unreads", e);
+    console.error("Error loading unreads", e);
   }
 
   try {
@@ -134,7 +134,7 @@ onMount(async () => {
           unreadChats['current-game-chat'] = true; 
         }
       } catch (err) {
-        console.error("Error al comprobar notificaciones de partida:", err);
+        console.error("Error checking game match notifications:", err);
       }
     }
   });

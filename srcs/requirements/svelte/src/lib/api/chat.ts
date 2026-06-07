@@ -19,11 +19,11 @@ chatSocket = io(`${BASE_URL}/chat`, {
 });
 
   chatSocket.on('connect', () => {
-    console.log('Chat socket connected');
+    console.info('Chat socket connected');
   });
 
   chatSocket.on('disconnect', () => {
-    console.log('Chat socket disconnected');
+    console.warn('Chat socket disconnected');
   });
 
   chatSocket.on('newMessage', (data) => {
