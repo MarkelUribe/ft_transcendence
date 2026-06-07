@@ -680,33 +680,35 @@ onMount(async () => {
             {/each}
           {/if}
         </div>
-        <form
-          class="message-input"
-          onsubmit={(e) => {
-            e.preventDefault();
-            if (selectedFriend.isGame ) {
-              if (newMessage.trim()) {
-                onSendGameChat(newMessage);
-                newMessage = "";
-              }
-            } else {
-              handleSendMessage();
-            }
-          }}
-        >
-          <input
-            type="text"
-            bind:value={newMessage}
-            placeholder={$t('chat.placeholders.write_message')}
-            disabled={!selectedFriend.isGame && loading}
-          />
-          <button
-            type="submit"
-            disabled={!newMessage.trim() || (!selectedFriend.isGame && loading)}
-          >
-            {$t('chat.buttons.send')}
-          </button>
-        </form>
+        {#if !selectedFriend.isGame || onSendGameChat}
+          <form
+              class="message-input"
+              onsubmit={(e) => {
+                e.preventDefault();
+                if (selectedFriend.isGame ) {
+                  if (newMessage.trim()) {
+                    onSendGameChat(newMessage);
+                    newMessage = "";
+                  }
+                } else {
+                  handleSendMessage();
+                }
+              }}
+            >
+            <input
+              type="text"
+              bind:value={newMessage}
+              placeholder={$t('chat.placeholders.write_message')}
+              disabled={!selectedFriend.isGame && loading}
+            />
+            <button
+              type="submit"
+              disabled={!newMessage.trim() || (!selectedFriend.isGame && loading)}
+            >
+              {$t('chat.buttons.send')}
+            </button>
+          </form>
+        {/if}
       </main>
     {/if}
   </div>

@@ -748,6 +748,9 @@ onDestroy(() => socket?.disconnect());
 
 	min-width: 250px;
 	min-height: 250px;
+
+	max-height: min(80vw, 80vh);
+	overflow: hidden;
 }
 
 .logs-panel {
@@ -766,6 +769,7 @@ onDestroy(() => socket?.disconnect());
 
 .logs-list {
 	flex: 1;
+	min-height: 0;
 	overflow-y: auto;
 }
 
