@@ -66,6 +66,11 @@ ensure-env:
 			echo "[make] Missing $(ENV_EXAMPLE). Cannot generate $(ENV_FILE)."; \
 			exit 1; \
 		fi; \
+	else \
+		printf "==========================================================================\n"; \
+		printf " [make] ./srcs/.env already created.\n"; \
+		printf "==========================================================================\n"; \
+		exit 0; \
 	fi
 
 # `make dev`: Starts the environment with hot-reloading dev overlays for frontend & backend.
