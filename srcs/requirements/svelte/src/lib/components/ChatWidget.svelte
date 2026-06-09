@@ -107,7 +107,6 @@ onMount(async () => {
   try {
     unreadChats = await getUnreads();
   } catch (e) {
-    console.error("Error loading unreads", e);
   }
 
   try {
@@ -134,7 +133,6 @@ onMount(async () => {
           unreadChats['current-game-chat'] = true; 
         }
       } catch (err) {
-        console.error("Error checking game match notifications:", err);
       }
     }
   });
@@ -289,7 +287,6 @@ onMount(async () => {
         friendsApi.getFriends(),
         friendsApi.getPendingRequests(),
       ]);
-      console.log("friendsData:", friendsData);
 
       friends = (friendsData ?? []).map((f) => ({
         ...f,
@@ -297,7 +294,6 @@ onMount(async () => {
     }));
       incomingRequests = pending?.incoming ?? [];
     } catch (err) {
-      console.error("Failed to load friends or requests", err);
       requestsError = "Could not load friend requests.";
     }
   }
@@ -328,7 +324,6 @@ onMount(async () => {
       newFriendId = "";
       await refreshFriendsAndRequests();
     } catch (err) {
-      console.error("Failed to send friend request", err);
       if (err instanceof Error && err.message) {
         addFriendError = err.message;
       } else {
@@ -343,7 +338,6 @@ onMount(async () => {
       await friendsApi.acceptFriendRequest(requestId);
       await refreshFriendsAndRequests();
     } catch (err) {
-      console.error("Failed to accept friend request", err);
       requestsError =
         err instanceof Error && err.message
           ? err.message
@@ -357,7 +351,6 @@ onMount(async () => {
       await friendsApi.rejectFriendRequest(requestId);
       await refreshFriendsAndRequests();
     } catch (err) {
-      console.error("Failed to reject friend request", err);
       requestsError =
         err instanceof Error && err.message
           ? err.message
@@ -373,7 +366,6 @@ onMount(async () => {
       if (selectedFriend?.id === friendId) selectedFriend = null;
       if (expandedFriendId === friendId) expandedFriendId = null;
     } catch (err) {
-      console.error("Failed to remove friend", err);
     }
   }
 

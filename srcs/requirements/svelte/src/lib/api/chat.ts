@@ -19,11 +19,9 @@ chatSocket = io(`${BASE_URL}/chat`, {
 });
 
   chatSocket.on('connect', () => {
-    console.info('Chat socket connected');
   });
 
   chatSocket.on('disconnect', () => {
-    console.warn('Chat socket disconnected');
   });
 
   chatSocket.on('newMessage', (data) => {
@@ -47,7 +45,6 @@ export function getChatSocket(): Socket | null {
 
 export function sendMessage(recipientId: number, content: string) {
   if (!chatSocket?.connected) {
-    console.error('Chat socket not connected');
     return;
   }
 
@@ -56,7 +53,6 @@ export function sendMessage(recipientId: number, content: string) {
 
 export function getConversation(friendId: number, limit?: number, beforeId?: number) {
   if (!chatSocket?.connected) {
-    console.error('Chat socket not connected');
     return;
   }
 
@@ -73,7 +69,6 @@ export function getConversation(friendId: number, limit?: number, beforeId?: num
 
 export function markRead(messageId: number) {
   if (!chatSocket?.connected) {
-    console.error('Chat socket not connected');
     return;
   }
 
