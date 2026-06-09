@@ -749,7 +749,7 @@ onDestroy(() => socket?.disconnect());
 	min-width: 250px;
 	min-height: 250px;
 
-	max-height: min(80vw, 80vh);
+	max-height: min(80vw, 68vh);
 	overflow: hidden;
 }
 
