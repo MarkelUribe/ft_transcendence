@@ -75,16 +75,21 @@ ensure-env:
 # `make dev`: Starts the environment with hot-reloading dev overlays for frontend & backend.
 dev: all
 	@sh -eu -c ' \
-		trap "printf \"\n[make] Stopping dev stack...\n\"; $(DC_DEV) down >/dev/null 2>&1 || true" EXIT INT TERM; \
-		$(DC_DEV) down >/dev/null 2>&1 || true; \
-		$(DC_DEV) up --build \
+		cleanup() { $(DC_DEV) down --timeout 0 >/dev/null 2>&1 || true; }; \
+		trap "printf \"\n[make] Stopping dev stack...\n\"; cleanup; exit 0" INT TERM; \
+		$(DC_DEV) up --build & \
+		compose_pid=$$!; \
+		wait "$$compose_pid" \
 	'
 
 # `make up`: Standard start target. Starts the production-style stack with build cache enabled.
 up: all
 	@sh -c 'set -eu; \
-		trap "echo \"\n[make] Caught Ctrl+C → stopping stack...\"; $(DC) down -v >/dev/null 2>&1 || true" INT TERM; \
-		$(DC) up --build \
+		cleanup() { $(DC) down -v --timeout 0 >/dev/null 2>&1 || true; }; \
+		trap "printf \"\n[make] Caught Ctrl+C -> stopping stack...\n\"; cleanup; exit 0" INT TERM; \
+		$(DC) up --build & \
+		compose_pid=$$!; \
+		wait "$$compose_pid" \
 	'
 
 # `make down`: Stops all running containers from both dev and production-style compose files, and auto-prunes basic system resources.
